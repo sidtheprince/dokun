@@ -236,13 +236,6 @@ int Engine::test(lua_State *L)
     label->set_string("Sid"); 
     label->set_background_color(32, 32, 32);
     label->set_position(window.get_client_width() / 2, 10);
-
-    Grid * grid = new Grid();
-	grid->set_row(2);
-	grid->set_column(2);
-	grid->set_position(100, 400);
-	grid->get_block(0, 0)->set_color(255, 51, 51);
-	std::cout << "Grid: " << grid->get_row_count() << " x " << grid->get_column_count() << std::endl;
 	//===================
     while(window.is_open()) // main loop
     {
