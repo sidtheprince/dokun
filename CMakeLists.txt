@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8) # Tested on 2.8 and higher (3.7 comes with vulkan support)
+cmake_minimum_required(VERSION 3.0) # Tested on 2.8 and higher (3.7 comes with vulkan support)
 
 project(dokun)
 

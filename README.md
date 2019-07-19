@@ -17,7 +17,7 @@ license          MIT
 ## Build requirements
 > `Windows` [`mingw 4.8.4+`](http://www.mingw.org/)
 
-> `All    ` [`cmake 2.8+  `](https://cmake.org/download/)</a>
+> `All    ` [`cmake 3.0+  `](https://cmake.org/download/)</a>
 
  
 # Building dokun
