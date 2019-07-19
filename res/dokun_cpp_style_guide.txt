@@ -1,0 +1,16 @@
+<<<<<<< HEAD
+dokun C++ guidelines:
+=======
+dokun c++ guideline
+>>>>>>> 29c2b98336abdbcf7196aa7479aaac026a6764f0
+File
+- file names should be lowercase and can have an underscore.
+- all cpp files should have a header file, headers do not need their own cpp files.
+Namespace
+- namespaces should be lowercase and can have underscore.
+- never use "using namespace std;" as naming conflictions could occur.
+<<<<<<< HEAD
+use "std::" instead. This applies to all namespaces.
+=======
+use std:: instead. This applies to all namespaces.
+>>>>>>> 29c2b98336abdbcf7196aa7479aaac026a6764f0

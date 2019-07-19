@@ -1,0 +1,15 @@
+[Desktop Entry]
+Version=1.0
+Name=Dokun
+Comment=Make games and apps
+Exec=/usr/bin/dokun
+Icon=/usr/share/icons/hicolor/32x32/apps/dokun.png
+StartupNotify=true
+Terminal=true
+Type=Application
+Categories=Graphics;2DGraphics;3DGraphics;Development;Building;
+GenericName=Console Application
+# sudo mv dokun.desktop /usr/share/applications
+# Exec=/usr/bin/dokun
+# Icon=dokun
+# Icons are found in /usr/share/icons/hicolor

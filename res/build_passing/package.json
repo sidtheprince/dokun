@@ -1,0 +1,25 @@
+{
+  "name": "dokun",
+  "version": "1.0.0",
+  "description": "Game engine.",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sidpoison/dokun.git"
+  },
+  "keywords": [
+    "dokun"
+  ],
+  "author": "Sid Lartey Doku",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/sidpoison/dokun/issues"
+  },
+  "homepage": "https://github.com/sidpoison/dokun#readme",
+  "devDependencies": {
+    "mocha": "^5.2.0"
+  }
+}
