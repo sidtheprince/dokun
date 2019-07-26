@@ -1,7 +1,7 @@
 #ifndef _ENGINE
 #define _ENGINE
 
-/*  Dokun Engine 1.0.0            Copyright (C) 2015-2016 Siddy Doku (no company or website)
+/*  Dokun Engine 1.0.0            Copyright (C) 2015-2016 Sid Lartey Doku (no company or website)
    
     The following rules apply when using this software:
         1. You are free to use, modify, distribute this software and sell the games you make
@@ -54,7 +54,6 @@
 #include "progressbar.h"
 #include "slider.h"
 #include "toggle.h"
-#include "tooltip.h"
 #include "scrollbar.h"
 #include "list.h"
 #include "spinner.h"
@@ -88,7 +87,7 @@
 #include "process.h"
 #include "http.h"
 /////////////
-#define ENGINE_NAME      "Dokun Engine"
+#define ENGINE_NAME      "dokun"
 #define ENGINE_AUTHOR    "Sid Lartey Doku"
 #define ENGINE_LICENSE   "MIT License" 
 #define ENGINE_COPYRIGHT "Copyright (C) 2015 Studio Blue" // just a placeholder name
@@ -107,13 +106,13 @@ public:
 	static bool open();                                           static int open(lua_State *L); // init engine
 	static void close();                                          static int close(lua_State *L); // uninitializes engine and closes engine                                                   
 	static int test(lua_State *L); // test function : temporary
-	static int regstr(lua_State *L); // registers the engine's lua module
+	static int reg(lua_State *L); // registers the engine's lua module
 	// getters
 	static Engine    * get_engine(); // returns a singleton object representing the engine
 	static bool        get_status(); // returns true if engine is open (initialized), otherwise returns false
 private:
     // callbacks
-	static bool on_open();  // do stuff on opening the engine
+	static bool on_open (); // do stuff on opening the engine
 	static void on_close(); // do stuff before closing engine
 	// registry (registers functions)
 	// singleton

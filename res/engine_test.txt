@@ -184,5 +184,60 @@ int Engine::test(lua_State *L)
 			//}
 ////////////////////////////////////////////
 library installation guide: http://www.linuxfromscratch.org/blfs/view/svn/general/
+#set(freevr_src)#set(biosig_src)
+
+#set(xml2_src   dependencies/xml2/buf.c dependencies/xml2/SAX.c dependencies/xml2/uri.c dependencies/xml2/c14n.c dependencies/xml2/dict.c dependencies/xml2/hash.c dependencies/xml2/list.c dependencies/xml2/SAX2.c dependencies/xml2/tree.c dependencies/xml2/error.c dependencies/xml2/valid.c dependencies/xml2/xlink.c dependencies/xml2/xmlIO.c dependencies/xml2/xpath.c dependencies/xml2/xzlib.c dependencies/xml2/legacy.c dependencies/xml2/parser.c dependencies/xml2/catalog.c dependencies/xml2/chvalid.c dependencies/xml2/globals.c dependencies/xml2/nanoftp.c dependencies/xml2/pattern.c dependencies/xml2/relaxng.c dependencies/xml2/testdso.c dependencies/xml2/threads.c dependencies/xml2/xmlsave.c dependencies/xml2/debugXML.c dependencies/xml2/encoding.c dependencies/xml2/entities.c dependencies/xml2/HTMLtree.c dependencies/xml2/nanohttp.c dependencies/xml2/xinclude.c dependencies/xml2/xpointer.c dependencies/xml2/xmlmemory.c dependencies/xml2/xmlmodule.c dependencies/xml2/xmlreader.c dependencies/xml2/xmlregexp.c dependencies/xml2/xmlstring.c dependencies/xml2/xmlwriter.c dependencies/xml2/HTMLparser.c dependencies/xml2/schematron.c dependencies/xml2/xmlschemas.c dependencies/xml2/xmlunicode.c dependencies/xml2/parserInternals.c dependencies/xml2/xmlschemastypes.c) # libxml2-2.9.9   install with ./configure --help ->  make -> make install (http://xmlsoft.org/xml.html) (can be used for reading Collada Dae(.dae) and Scalable Vector Graphics(.svg)) (tutorial: http://www.linuxfromscratch.org/blfs/view/svn/general/libxml2.html)(consider http://rapidxml.sourceforge.net/) # sudo apt-get install libxml2-dev
+#add_definitions(-DLIBXML_THREAD_ENABLED) #threads.o works fine #threads.c - missing definitions for xmlMutexLock, xmlNewMutex, xmlFreeMutex (to fix, add definition: LIBXML_THREAD_ENABLED) ("The failure is because HAVE_PTHREAD_H is defined but LIBXML_THREAD_ENABLED flag is not." : https://github.com/google/shaka-packager/issues/561)
+#add_definitions(-DLIBXML_STATIC        ) # libxml.a found in dependencies/xml2/.libs
+set(openssl_src ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/openssl/libssl.a ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/openssl/libcrypto.a) # openssl-1.1.1 (https://www.openssl.org/source/)
+
+    #find_package(LibXml2) # for .svg and .dae  # /usr/local/lib/libxml2.so
+    #if(LIBXML2_FOUND)
+    #    target_link_libraries(dokun  ${LIBXML2_LIBRARIES})
+    #    target_link_libraries(editor ${LIBXML2_LIBRARIES})
+    #endif()
+    #find_package(OpenSSL)
+    #if(OPENSSL_FOUND)
+    #	target_link_libraries(dokun  ${openssl_src})
+    #	target_link_libraries(editor ${openssl_src})
+    #endif()
+////////////////////////////////////////////
+		// Draw glyph
+		/*for(int i = 0; i < string.length(); i++)
+		{
+			unsigned char character = string[i];
+			Renderer::draw_glyph(character, get_x() + i * font->get_width(character), get_y(), get_angle(), get_scale().x, get_scale().y, 
+	            *font, get_color().x, get_color().y, get_color().z, get_color().w); // x = get_x + space_between_each_glyph
+		#ifdef DOKUN_DEBUG0
+			std::cout << "Glyph size: " << character << " " << font->get_size(character) << "\n"; // actual pixel_size of glyph
+		#endif
+		}*/
+////////////////////////////////////////////
+bool FONT::is_generated() const // checks if a texture has been generated for each glyph
+{
+	//return !character_array.empty(); // bad
+/*#ifdef DOKUN_OPENGL
+#ifdef __windows__
+	if(!wglGetCurrentContext())
+		return false;
+#endif
+#ifdef __gnu_linux__
+    if(!glXGetCurrentContext())
+		return false;
+#endif	
+#endif
+    for(unsigned char c = 0; c < 128; c++) 
+    {
+		if(glIsTexture(character_array.find(c)->second.id)) // if it is a texture   .find(glyph)   character_array[c].id     std::map.first is the char, std::map.second is the Character
+	        return true;
+    }
+    return false; */ // return false otherwise
+}
+////////////////////////////////////////////
+////////////////////////////////////////////
+////////////////////////////////////////////
+////////////////////////////////////////////
+////////////////////////////////////////////
+////////////////////////////////////////////
 ////////////////////////////////////////////
 ////////////////////////////////////////////

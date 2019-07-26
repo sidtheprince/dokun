@@ -344,7 +344,7 @@ namespace dokun // conversion functions
 	/////////
 	static float pixel_to_ndc(float n) // pixel coordinates to normalized device coordinates
 	{
-		
+		return 0;
 		
 	}
 	static Vector2 pixel_to_ndc(double x, double y, double width, double height) // requires window width and height; pixel coordinates to normalized device coordinates
@@ -362,6 +362,7 @@ namespace dokun // conversion functions
 	{
 		//s_x * X_NDC + d_x = X_pixel
         //s_y * Y_NDC + d_y = Y_pixel
+        return 0;
 	}
 	/////////
 }
@@ -432,7 +433,8 @@ namespace dokun // instance functions
 		if(dokun::lower(name) == "ui" || dokun::lower(name) == "gui")
 		{
 			return Factory::get_gui_factory()->get_object(index);
-		}	
+		}
+        return nullptr;	
 	}
 }
 /////////

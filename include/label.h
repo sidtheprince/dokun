@@ -10,7 +10,7 @@
 // FONT : lines 24, 30, 37
 class Label : public GUI {
     public:
-        Label();     static int new_(lua_State *L);
+        Label();     static int label_new(lua_State *L);
 		Label(const Label& label);
 		Label(const FONT& font);
 		Label(const std::string& text);

@@ -239,6 +239,7 @@ double Toggle::get_handle_x()const
 	    return get_x(); // same x_position as switch
 	if(value == 1) // if on
 		return get_x() + (get_width() / 2); // moved to the other half of the switch
+    return get_x();
 }
 double Toggle::get_handle_y()const
 {

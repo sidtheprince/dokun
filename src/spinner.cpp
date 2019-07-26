@@ -42,7 +42,9 @@ Spinner::Spinner(int x, int y, int width, int height)
 	set_label(*label);	
 }
 int spinner_new(lua_State *L)
-{}
+{
+    return 1;
+}
 Spinner::~Spinner()
 {}
 ////////////////		
@@ -61,7 +63,9 @@ void Spinner::draw()
 	on_draw(); // callback for all gui
 }
 int Spinner::draw(lua_State *L)
-{}
+{
+    return 0;
+}
 ////////////////
 void Spinner::set_value(double value)
 {
@@ -70,7 +74,9 @@ void Spinner::set_value(double value)
 	this->value = value;
 }
 int Spinner::set_value(lua_State * L)
-{}
+{
+    return 0;
+}
 void Spinner::set_range(double min_val, double max_val)
 {
 	range = Vector2(min_val, max_val);
@@ -80,7 +86,9 @@ void Spinner::set_range(const Vector2& range)
 	set_range(range.x, range.y);
 }
 int Spinner::set_range(lua_State * L)
-{}
+{
+    return 0;
+}
 void Spinner::set_color(int red, int green, int blue, int alpha)
 {
 	color = Vector4(red, green, blue, alpha);
@@ -94,51 +102,67 @@ void Spinner::set_color(const Vector4& color)
 	set_color(color.x, color.y, color.z, color.w);
 }
 int Spinner::set_color(lua_State * L)
-{}
+{
+    return 0;
+}
 
 void Spinner::set_label(const Label& label)
 {
 	this->label = &const_cast<Label&>(label);
 }
 int Spinner::set_label(lua_State * L)
-{}
+{
+    return 0;
+}
 ////////////////
 double Spinner::get_value() const
 {
 	return value;
 }
 int Spinner::get_value(lua_State * L)
-{}
+{
+    return 1;
+}
 double Spinner::get_minimum_value() const
 {
 	return range.x;
 }
 int Spinner::get_minimum_value(lua_State * L)
-{}
+{
+    return 1;
+}
 double Spinner::get_maximum_value() const
 {
 	return range.y;
 }
 int Spinner::get_maximum_value(lua_State * L)
-{}
+{
+    return 1;
+}
 Vector2 Spinner::get_range() const
 {
 	return range;
 }
 int Spinner::get_range(lua_State * L)
-{}
+{
+    return 2;
+}
 Vector4 Spinner::get_color() const
 {
 	return color;
 }
 int Spinner::get_color(lua_State * L)
-{}
+{
+    return 4;
+}
 Label * Spinner::get_label() const
 {
 	return label;
 }
 int Spinner::get_label(lua_State * L)
-{}
+{
+    return 1;
+}
 int Spinner::get_top_button_x() const
 {
 	return get_x() + get_width();
@@ -158,7 +182,7 @@ int Spinner::get_top_button_height() const
 
 int Spinner::get_bottom_button_x() const
 {
-	get_x() + get_width();
+	return get_x() + get_width();
 }
 int Spinner::get_bottom_button_y() const
 {

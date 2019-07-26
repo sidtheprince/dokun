@@ -243,7 +243,9 @@ void Mouse::restore() // restore cursor
 	}
 }
 int Mouse::restore(lua_State *L)
-{}
+{
+    return 0;
+}
 /////////////
   // setters
 void Mouse::set_position(int x, int y) // set global position(on desktop)
@@ -390,6 +392,7 @@ int Mouse::set_cursor(lua_State * L)
 			set_cursor(*image);
 		}
 	}	
+    return 0;
 }
 /////////////
 /////////////
@@ -556,9 +559,12 @@ Vector2 Mouse::get_size() //const
 #endif
 #ifdef __gnu_linux__
 #endif
+    return Vector2(0, 0);
 }
 int Mouse::get_size(lua_State * L)
-{}
+{
+    return 2;
+}
 /////////////
 #ifdef __windows__
 #ifndef DOKUN_SDL2
@@ -586,8 +592,10 @@ double Mouse::rotate(double x, double y)
  if mouse_is_over(sprite) and mouse_is_down() then rotate_with_mouse(sprite)
 */
 /////////////
-Vector3 rotate(double x, double y, double z)
-{}
+Vector3 Mouse::rotate(double x, double y, double z)
+{
+    return Vector3(0, 0, 0);
+}
 /////////////
 /////////////
 /////////////

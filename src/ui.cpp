@@ -669,7 +669,9 @@ double GUI::get_relative_x() const
 } 
 ///////////// 
 int GUI::get_relative_x(lua_State *L)
-{}
+{
+    return 1;
+}
 ///////////// 
 double GUI::get_relative_y() const
 {
@@ -683,7 +685,9 @@ double GUI::get_relative_y() const
 }
 ///////////// 
 int GUI::get_relative_y(lua_State *L)
-{}
+{
+    return 1;
+}
 ///////////// 
 Vector2 GUI::get_relative_position() const // returns object position relative to the parent coordinates
 {
@@ -691,7 +695,9 @@ Vector2 GUI::get_relative_position() const // returns object position relative t
 }
 /////////////
 int GUI::get_relative_position(lua_State *L)
-{}
+{
+    return 2;
+}
 /////////////
 Vector2 GUI::get_scale()const
 {

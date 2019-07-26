@@ -1010,6 +1010,7 @@ Vector4 Model::get_material(const std::string& name)const
 		return material.specular;
 	if(String::lower(name) == "emission")
 		return material.emission;
+    return Vector4(0, 0, 0, 0);
 }
 ////////////
 double Model::get_shininess()const

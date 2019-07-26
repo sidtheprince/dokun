@@ -151,7 +151,9 @@ void Slider::set_ball_color(int layer, int red, int green, int blue)
 }
 /////////////
 int Slider::set_ball_color(lua_State *L)
-{}
+{
+	return 0;
+}
 /////////////
 void Slider::set_ball_inner_color(int red, int green, int blue, int alpha)
 {}  
@@ -245,14 +247,18 @@ int Slider::get_ball_x()
 	return get_x() + (get_value() / get_maximum_value()) * static_cast<float>(get_width());
 }
 int Slider::get_ball_x(lua_State *L)
-{}
+{
+	return 1;
+}
 /////////////
 int Slider::get_ball_y()
 {
 	return get_y() + 1;
 }
 int Slider::get_ball_y(lua_State *L)
-{}
+{
+	return 1;
+}
 /////////////
 int Slider::get_ball_width()
 {
@@ -268,7 +274,9 @@ int Slider::get_ball_height()
 	return get_height() - 2;
 }
 int Slider::get_ball_height(lua_State *L)
-{}
+{
+	return 1;
+}
 /////////////
 /////////////
 /////////////

@@ -40,7 +40,9 @@ outline_antialiased(false)
 	label = new Label();	
 }
 int List::new_(lua_State *L)
-{}
+{
+    return 1;
+}
 List::~List()
 {}
 		
@@ -82,7 +84,9 @@ void List::draw()
 	on_draw(); // callback for all gui
 }
 int List::draw(lua_State *L)
-{}
+{
+    return 0;
+}
 void List::add(const Widget& item)
 {
 	item_list.push_back(&const_cast<Widget&>(item));
@@ -94,7 +98,9 @@ void List::add(const Widget& item)
 	const_cast<Widget&>(item).set_outline_antialiased(outline_antialiased);
 }
 int List::add(lua_State *L)
-{}
+{
+    return 0;
+}
 ////////////////
 void List::set_label(const Label& label)
 {
@@ -117,7 +123,9 @@ void List::set_selection(const Widget& selection)
 	this->selection = &const_cast<Widget&>(selection);
 }
 int List::set_selection(lua_State * L)
-{}
+{
+    return 0;
+}
 ///////////////
 Label * List::get_label() const
 {
@@ -145,7 +153,9 @@ Widget * List::get_selection() const
 	return selection;
 }
 int List::get_selection(lua_State * L)
-{}
+{
+    return 1;
+}
 /////////////////
 	// outline
 void List::set_outline(bool outline)
@@ -153,19 +163,25 @@ void List::set_outline(bool outline)
 	this->outline = outline;
 }
 int List::set_outline(lua_State * L)
-{}
+{
+    return 0;
+}
 void List::set_outline_width(double width)
 {
 	this->outline_width = width;
 }
 int List::set_outline_width(lua_State * L)
-{}
+{
+    return 0;
+}
 void List::set_outline_color(int red, int green, int blue, int alpha)
 {
 	this->outline_color = Vector4(red, green, blue, alpha);
 }
 int List::set_outline_color(lua_State * L)
-{}
+{
+    return 0;
+}
 void List::set_outline_color(const Vector3& color)
 {
 	set_outline_color(color.x, color.y, color.z);

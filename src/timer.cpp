@@ -394,6 +394,7 @@ bool Timer::QueryPerformanceCounter(int64_t *performance_count)
     clock_gettime(CLOCK_MONOTONIC, &time); // monotonic clock cannot be set and represents time since some unspecified starting point; CLOCK_REALTIME = wall-clock_time; CLOCK_PROCESS_CPUTIME_ID = cpu_time   librt.a
     *performance_count = (time.tv_nsec * 0.001) +              // nanoseconds - convert to microsecond??
                          time.tv_sec * usec_per_sec; // Seconds
+    return true;
 }
 double Timer::GetTickCount(void) 
 {

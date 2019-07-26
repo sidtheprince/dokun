@@ -63,9 +63,14 @@ void Combobox::draw()
 	on_draw();
 }                            
 int Combobox::draw(lua_State * L)
-{}
+{
+    return 0;
+}
 void Combobox::add(const Widget& widget){}                   
-int Combobox::add(lua_State * L){}
+int Combobox::add(lua_State * L)
+{
+    return 0;
+}
 /////////////
 /////////////
 /////////////
@@ -74,7 +79,10 @@ void Combobox::set_list(const List& list)
 	this->list = &const_cast<List&>(list);
 	const_cast<List&>(list).set_visible(false); // list is not visible until combobox is activated
 }                      
-int Combobox::set_list(lua_State * L){}
+int Combobox::set_list(lua_State * L)
+{
+    return 0;
+}
 /////////////
 void Combobox::set_scrollbar(const Scrollbar& scrollbar)
 {
@@ -82,21 +90,27 @@ void Combobox::set_scrollbar(const Scrollbar& scrollbar)
 	const_cast<Scrollbar&>(scrollbar).set_visible(false);
 }
 int Combobox::set_scrollbar(lua_State * L)
-{}
+{
+    return 0;
+}
 /////////////
 void Combobox::set_text(const std::string& text)
 {
 	get_label()->set_string(text);
 }     
 int Combobox::set_text(lua_State *L)
-{}
+{
+    return 0;
+}
 /////////////
 void Combobox::set_label(const Label& label)
 {
 	this->label = &const_cast<Label&>(label);
 }         
 int Combobox::set_label(lua_State *L)
-{}
+{
+    return 0;
+}
 /////////////
 void Combobox::set_image(const Image& image)
 {
@@ -107,7 +121,9 @@ void Combobox::set_image(const Image& image)
 	this->image = &const_cast<Image&>(image);
 }         
 int Combobox::set_image(lua_State *L)
-{}
+{
+    return 0;
+}
 /////////////
 void Combobox::set_color(int red, int green, int blue, int alpha)
 {
@@ -122,46 +138,63 @@ void Combobox::set_color(const Vector4& color)
 	this->color = color;
 }
 int Combobox::set_color(lua_State *L)
-{}	
+{
+    return 0;
+}	
 /////////////
 std::string Combobox::get_text()const
-{}                
-int Combobox::get_text(lua_State *L){}
+{
+    return "";
+}                
+int Combobox::get_text(lua_State *L)
+{
+    return 1;
+}
 /////////////
 Label * Combobox::get_label()const
 {
 	return label;
 }
 int Combobox::get_label(lua_State *L)
-{}
+{
+    return 1;
+}
 /////////////
 Image * Combobox::get_image()const
 {
 	return image;
 }                   
 int Combobox::get_image(lua_State *L)
-{}
+{
+    return 1;
+}
 /////////////
 Vector4 Combobox::get_color()const
 {
 	return color;
 }                   
 int Combobox::get_color(lua_State *L)
-{}
+{
+    return 4;
+}
 /////////////
 List * Combobox::get_list() const
 {
 	return list;
 }
 int Combobox::get_list(lua_State * L)
-{}
+{
+    return 1;
+}
 /////////////
 Scrollbar * Combobox::get_scrollbar()const
 {
 	return scrollbar;
 }
 int Combobox::get_scrollbar(lua_State * L)
-{}
+{
+    return 1;
+}
 /////////////
 /////////////
 	// button
@@ -170,25 +203,33 @@ int Combobox::get_button_x() const
 	return get_x() + get_width();
 } 
 int Combobox::get_button_x(lua_State *L)
-{}
+{
+    return 1;
+}
 int Combobox::get_button_y() const
 {
 	return get_y();
 }                  
 int Combobox::get_button_y(lua_State *L)
-{}
+{
+    return 1;
+}
 int Combobox::get_button_width() const
 {
 	return button_width;
 }              
 int Combobox::get_button_width(lua_State *L)
-{}
+{
+    return 1;
+}
 int Combobox::get_button_height() const
 {
-	get_height();
+	return get_height();
 }             
 int Combobox::get_button_height(lua_State *L)
-{}
+{
+    return 1;
+}
 /////////////
 void Combobox::on_button() // show or hide list on buttonpress or buttonrelease
 {

@@ -54,9 +54,9 @@ struct Math  { // helps with your math homework :)
 		return SA;
 	}
 	double perimeter_of_square(double side){return (4 * side);}
-	double perimeter_of_rectangle()
+	double perimeter_of_rectangle(double side)
 	{
-		
+		return (4 * side);
 	}
 	/*
 	double perimeter_of()

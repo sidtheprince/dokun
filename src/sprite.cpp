@@ -144,7 +144,7 @@ void Sprite::generate() // will generate shaders (ONLY once)
 static const char * vertex_source[] =
         //{"#version 330\n"};
 	    {
-		    "#version 330\n"
+		    "#version 330\n" // 330, 400,  410, 420, 430, 440, 450
 		    "\n"
             "\n"			
 		    "layout(location = 0) in vec2 xy;\n"
@@ -173,7 +173,7 @@ static const char * vertex_source[] =
 	    static const char * fragment_source[] =
 	    //{"#version 330\n"};
 	    {
-		    "#version 330\n"
+		    "#version 330\n" // 330, 400,  410, 420, 430, 440, 450
 		    "out vec4 out_color;\n"
 		    "uniform vec4 color;\n"
 			"uniform vec2 resolution;\n"
@@ -297,6 +297,8 @@ void Sprite::draw(int frame)
 		// Draw sprite
 		Renderer::draw_sprite(*texture, x, y, angle, scale_factor.x, scale_factor.y, 
 		    color.x, color.y, color.z, color.w, get_vertex_array(), *shader, map);
+            //Renderer::draw_sprite_test(x, y, angle, scale_factor.x, scale_factor.y, color.x, color.y, color.z, color.w,
+            //    get_vertex_array(), *shader, *texture);
 		}			
 		if(!texture->get_rect().empty())
 		{
@@ -337,7 +339,9 @@ void Sprite::update() // update vertices
 }
 ////////////
 int Sprite::update(lua_State *L)
-{}
+{
+    return 0;
+}
 ////////////
 void Sprite::translate(double x, double y) /* in units */
 {
@@ -572,8 +576,6 @@ void Sprite::set_scale(double sx, double sy)
 {
 	scale_factor.x = sx;
 	scale_factor.y = sy;
-	//width  = sx * texture->get_width ();
-	//height = sy * texture->get_height();
 }
 ////////////
 int Sprite::set_scale(lua_State *L)
@@ -604,7 +606,7 @@ int Sprite::set_texture(lua_State *L)
 		lua_getfield(L, 2, "udata");
 	    if(lua_isuserdata(L, -1)) 
 	    {
-		    Texture * texture = *(Texture**)lua_touserdata(L, -1);
+		    Texture * texture = *static_cast<Texture**>(lua_touserdata(L, -1));
 		    lua_getfield(L, 1, "udata");
 		    if(lua_isuserdata(L, -1)) 
 		    {
@@ -627,7 +629,7 @@ int Sprite::set_texture(lua_State *L)
 		if(lua_isuserdata(L, -1))
 		{
 		    Sprite * sprite = *static_cast<Sprite **>(lua_touserdata(L, -1));
-		    sprite->texture = (nullptr);
+		    sprite->texture = nullptr; // set texture to nullptr instead of deleting it so it can be reused
 		}
 		// set texture to nil in Lua
 		lua_pushvalue(L, 2);
@@ -640,10 +642,10 @@ void Sprite::set_size(int width, int height) /* in pixels */
 {
 	int old_width  = (texture ? texture->get_width () : get_width ());
 	int old_height = (texture ? texture->get_height() : get_height());
-	set_scale(width / (double)old_width, height / (double)old_height);
+	set_scale(width / static_cast<double>(old_width), height / static_cast<double>(old_height));
 	// change to new width and height (in value)
-	(this)->width  = width ;
-    (this)->height = height;
+	this->width  = width ;
+    this->height = height;
 } // resizes the sprite ONLY after texture is set; if called before setting a texture, texture will not appear on screen (unless called twice >:D)
 ////////////
 int Sprite::set_size(lua_State *L)

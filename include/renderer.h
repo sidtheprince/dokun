@@ -200,8 +200,8 @@ public:
 	void display(); // shows rendering information
 	// setters
 	static void set_viewport(int x, int y, int width, int height);
-	static void set_camera(const Camera& camera); // sets the current camera
-	static void set_light(const Light& light); // sets the current light
+	static void set_camera(const Camera& camera); static int set_camera(lua_State *L);// sets the current camera
+	static void set_light(const Light& light);    static int set_light (lua_State *L); // sets the current light
 	
 	static void set_clear(double red, double green, double blue, double alpha = 255, double depth = 1.0, int stencil = 0);
 	static void set_vertical_synchronization(bool v_sync);
@@ -244,6 +244,9 @@ public:
 	static unsigned int window_width ;
 	static unsigned int window_height;	
 	static void set_display_size(int width, int height);
+    // Test
+    static void draw_sprite_test(double x, double y, double angle, double scale_x, double scale_y, double red, double green, double blue, double alpha,
+    const std::vector<float>& vertex_array, const Shader& shader, const Texture& texture);
 private:
     static void context_check(void);
 	static void device_check (void); // NEW! added 9-3-2018
@@ -251,9 +254,6 @@ private:
  	static void generate_vertex_array(double x, double y, unsigned int width, unsigned int height);
 	static void update_vertex_array(const std::vector<float>& vertex_array);
 	static void destroy_vertex_array (void);
-	
-    static void draw_sprite_test(double x, double y, double angle, double scale_x, double scale_y, double red, double green, double blue, double alpha,
-    const std::vector<float>& vertex_array, const Shader& shader, const Texture& texture);
 	/////////////////////////////////////////
     static Renderer * render_ptr; // default renderer
 	static bool status;

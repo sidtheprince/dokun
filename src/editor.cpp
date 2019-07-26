@@ -329,6 +329,7 @@ bool Editor::load_sprite()
 		if(level) level->add(sprite); // add sprite to level
 	}
     delete file;	
+    return true;
 }
 ////////////
 bool Editor::load_sprite_custom()
@@ -387,6 +388,7 @@ bool Editor::load_sprite_custom()
 	}
 	// add to a level so it is drawn automatically
 	if(level) level->add(file_dialog);//label->draw();	
+    return true;
 }
 ////////////
 bool Editor::load_level()
@@ -401,7 +403,8 @@ bool Editor::load_level()
 		    if(level) level->load(state, file_name); // add sprite to level
 		}
 	}
-    delete file;		
+    delete file;
+    return true;		
 }
 ////////////
 void Editor::unload()

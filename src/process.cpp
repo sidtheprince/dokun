@@ -22,6 +22,7 @@ void * Process::open()
 #endif	
 #ifdef __gnu_linux__
 #endif
+    return nullptr;
 }
 bool Process::create(const std::string& program, const std::string& argument)
 {
@@ -87,6 +88,7 @@ bool Process::terminate()
 #endif	
 #ifdef __gnu_linux__
 #endif	
+    return false;
 }
 bool Process::terminate(Process * process)
 {
@@ -96,6 +98,7 @@ bool Process::terminate(Process * process)
 #ifdef __gnu_linux__
     //kill(static_cast<pid_t>(handle), SIGTERM);
 #endif	
+    return false;
 }
 void Process::exit(int code)
 {
@@ -116,4 +119,5 @@ void * Process::get_active()
 #endif
 #ifdef __gnu_linux__
 #endif	
+    return nullptr;
 }

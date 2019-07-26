@@ -27,7 +27,9 @@ Menubar::Menubar(int x, int y, int width, int height)
 	set_orientation(0);
 }
 int Menubar::menu_new(lua_State *L)
-{}
+{
+    return 1;
+}
 Menubar::~Menubar(){}
 		
 void Menubar::draw() // because Menubar is parent to all the menus, its menu children will be automatically drawn unless "visible" is set to false
@@ -104,7 +106,9 @@ void Menubar::draw() // because Menubar is parent to all the menus, its menu chi
 	on_draw(); // draws all children of menubar
 }                           
 int Menubar::draw(lua_State *L)
-{}
+{
+    return 0;
+}
 void Menubar::add(const Widget& menu)
 {
 	menu_list.push_back(&const_cast<Widget&>(menu));                     //std::cout << "number of menus = " << menu_list.size() << std::endl; // get number of menus after creation
@@ -123,7 +127,9 @@ void Menubar::add(const std::string& menu_name)
 	add(*menu);
 }
 int Menubar::add(lua_State * L)
-{}
+{
+    return 0;
+}
 void Menubar::sub(const Widget& submenu, int index)
 {
     if(menu_list.size() < index + 1) // if menu at index does not exist
@@ -184,15 +190,21 @@ void Menubar::set_color(const Vector4& color)
 void Menubar::set_outline(bool outline)
 {} 
 int Menubar::set_outline(lua_State *L)
-{}
+{
+    return 0;
+}
 void Menubar::set_outline_width(double width)
 {} 
 int Menubar::set_outline_width(lua_State *L)
-{}
+{
+    return 0;
+}
 void Menubar::set_outline_color(int red, int green, int blue, int alpha)
 {} 
 int Menubar::set_outline_color(lua_State *L)
-{}
+{
+    return 0;
+}
 void Menubar::set_outline_color(const Vector3& color)
 {}
 void Menubar::set_outline_color(const Vector4& color)
@@ -200,7 +212,9 @@ void Menubar::set_outline_color(const Vector4& color)
 void Menubar::set_outline_antialiased(bool antialised)
 {} 
 int Menubar::set_outline_antialiased(lua_State *L)
-{}
+{
+    return 0;
+}
 
 
 
@@ -212,7 +226,9 @@ Widget * Menubar::get_menu(int index)
 	return menu_list[index];
 }
 int Menubar::get_menu(lua_State * L)
-{}
+{
+    return 1;
+}
 Widget * Menubar::get_submenu(int menu_index, int sub_index)
 {
 #ifdef DOKUN_DEBUG	
@@ -222,13 +238,17 @@ Widget * Menubar::get_submenu(int menu_index, int sub_index)
 	return sub_list[menu_index][sub_index];
 }
 int Menubar::get_submenu(lua_State * L)
-{}
+{
+    return 1;
+}
 int Menubar::get_menu_count() // returns number of menus
 {
 	return menu_list.size();
 }
 int Menubar::get_menu_count(lua_State * L)
-{}
+{
+    return 1;
+}
 int Menubar::get_submenu_count(int index) // returns number of submenus at index
 {
 #ifdef DOKUN_DEBUG		
@@ -237,7 +257,9 @@ int Menubar::get_submenu_count(int index) // returns number of submenus at index
 	return sub_list[index].size();
 }
 int Menubar::get_submenu_count(lua_State * L)
-{}
+{
+    return 1;
+}
 Vector4 Menubar::get_color()
 {
 	return color;

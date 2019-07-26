@@ -39,7 +39,7 @@ endif()
 #############
 # engine (dokun)
 set(dokun_res  dokun.rc      )
-set(dokun_src  src/engine.cpp src/window.cpp src/sprite.cpp src/model.cpp src/texture.cpp src/image.cpp src/vertex.cpp src/mouse.cpp src/keyboard.cpp src/joystick.cpp src/touch.cpp src/virtual.cpp src/brain.cpp src/audio.cpp src/sound.cpp src/music.cpp src/voice.cpp src/font.cpp src/ui.cpp src/widget.cpp src/button.cpp src/label.cpp src/edit.cpp src/progressbar.cpp src/slider.cpp src/toggle.cpp src/tooltip.cpp src/scrollbar.cpp src/list.cpp src/spinner.cpp src/menubar.cpp src/grid.cpp src/combo.cpp src/tab.cpp src/server.cpp src/client.cpp src/entity.cpp src/component.cpp src/camera.cpp src/level.cpp src/timer.cpp src/light.cpp src/shader.cpp src/resource.cpp src/animator.cpp src/data.cpp src/factory.cpp src/script.cpp src/console.cpp src/video.cpp src/plugin.cpp src/file.cpp src/event.cpp src/loader.cpp src/renderer.cpp src/process.cpp src/http.cpp)
+set(dokun_src  src/engine.cpp src/window.cpp src/sprite.cpp src/model.cpp src/texture.cpp src/image.cpp src/vertex.cpp src/mouse.cpp src/keyboard.cpp src/joystick.cpp src/touch.cpp src/virtual.cpp src/brain.cpp src/audio.cpp src/sound.cpp src/music.cpp src/voice.cpp src/font.cpp src/ui.cpp src/widget.cpp src/button.cpp src/label.cpp src/edit.cpp src/progressbar.cpp src/slider.cpp src/toggle.cpp src/scrollbar.cpp src/list.cpp src/spinner.cpp src/menubar.cpp src/grid.cpp src/combo.cpp src/tab.cpp src/server.cpp src/client.cpp src/entity.cpp src/component.cpp src/camera.cpp src/level.cpp src/timer.cpp src/light.cpp src/shader.cpp src/resource.cpp src/animator.cpp src/data.cpp src/factory.cpp src/script.cpp src/console.cpp src/video.cpp src/plugin.cpp src/file.cpp src/event.cpp src/loader.cpp src/renderer.cpp src/process.cpp src/http.cpp)
 set(editor_src src/editor.cpp)
 set(game_src   src/game.cpp  ) # game demo
 #############
@@ -68,7 +68,7 @@ if(NOT lua_src)
 	add_definitions(-DLUA_LIBRARY) # lua 5.3
 endif()
 if(LINUX)
-add_definitions(-DLUA_USE_MKSTEMP) 
+add_definitions(-DLUA_USE_POSIX  )
 endif()
 #############
 # GPU
@@ -90,8 +90,6 @@ set(x11_src libX11.a libxcb.a libXau.a libXdmcp.a)
 set(cocoa_src)
 #############
 # input
-set(freevr_src)
-set(biosig_src)
 #############
 # extension
 set(glew_src  dependencies/glew/src/glew.c) # glew-2.1.0 (this version adds support for OpenGL 4.6) (http://glew.sourceforge.net/)
@@ -104,15 +102,15 @@ set(jpeg_src dependencies/jpeg/jaricom.c dependencies/jpeg/jcapimin.c dependenci
 set(gif_src  dependencies/gif/lib/dgif_lib.c dependencies/gif/lib/egif_lib.c dependencies/gif/lib/gif_err.c dependencies/gif/lib/gif_font.c dependencies/gif/lib/gif_hash.c dependencies/gif/lib/gifalloc.c dependencies/gif/lib/openbsd-reallocarray.c dependencies/gif/lib/quantize.c) # giflib-5.1.4 (http://giflib.sourceforge.net/)
 set(tiff_src dependencies/tiff/libtiff/tif_aux.c dependencies/tiff/libtiff/tif_close.c dependencies/tiff/libtiff/tif_codec.c dependencies/tiff/libtiff/tif_color.c dependencies/tiff/libtiff/tif_compress.c dependencies/tiff/libtiff/tif_dir.c dependencies/tiff/libtiff/tif_dirinfo.c dependencies/tiff/libtiff/tif_dirread.c dependencies/tiff/libtiff/tif_dirwrite.c dependencies/tiff/libtiff/tif_dumpmode.c dependencies/tiff/libtiff/tif_error.c dependencies/tiff/libtiff/tif_extension.c dependencies/tiff/libtiff/tif_fax3.c dependencies/tiff/libtiff/tif_fax3sm.c dependencies/tiff/libtiff/tif_flush.c dependencies/tiff/libtiff/tif_getimage.c dependencies/tiff/libtiff/tif_jbig.c dependencies/tiff/libtiff/tif_jpeg_12.c dependencies/tiff/libtiff/tif_jpeg.c dependencies/tiff/libtiff/tif_luv.c dependencies/tiff/libtiff/tif_lzma.c dependencies/tiff/libtiff/tif_lzw.c dependencies/tiff/libtiff/tif_next.c dependencies/tiff/libtiff/tif_ojpeg.c dependencies/tiff/libtiff/tif_open.c dependencies/tiff/libtiff/tif_packbits.c dependencies/tiff/libtiff/tif_pixarlog.c dependencies/tiff/libtiff/tif_predict.c dependencies/tiff/libtiff/tif_print.c dependencies/tiff/libtiff/tif_read.c dependencies/tiff/libtiff/tif_stream.cxx dependencies/tiff/libtiff/tif_strip.c dependencies/tiff/libtiff/tif_swab.c dependencies/tiff/libtiff/tif_thunder.c dependencies/tiff/libtiff/tif_tile.c dependencies/tiff/libtiff/tif_version.c dependencies/tiff/libtiff/tif_warning.c dependencies/tiff/libtiff/tif_write.c dependencies/tiff/libtiff/tif_zip.c) #tiff-4.0.7  tiffconf.h is generated with ./configure (http://simplesystems.org/libtiff/)
 if(WINDOWS)
-    list(APPEND tiff_src dependencies/tiff/libtiff/tif_win32.c)
-	list(APPEND jpeg_src dependencies/jpeg/jmemansi.c         )
+list(APPEND tiff_src dependencies/tiff/libtiff/tif_win32.c)
+list(APPEND jpeg_src dependencies/jpeg/jmemansi.c         )
 endif()
 if(LINUX)
-    list(APPEND tiff_src dependencies/tiff/libtiff/tif_unix.c)
-	list(APPEND jpeg_src dependencies/jpeg/jmemansi.c        )
+list(APPEND tiff_src dependencies/tiff/libtiff/tif_unix.c )
+list(APPEND jpeg_src dependencies/jpeg/jmemansi.c         )
 endif()
 if(MACOSX)
-    list(APPEND jpeg_src dependencies/jpeg/jmemmac.c)
+list(APPEND jpeg_src dependencies/jpeg/jmemmac.c          )
 endif()
 #############
 # container - for vorbis and theora
@@ -129,6 +127,8 @@ add_definitions(-DOPUS_BUILD)
 # video (codec)
 set(theora_src dependencies/theora/lib/analyze.c dependencies/theora/lib/apiwrapper.c dependencies/theora/lib/bitpack.c dependencies/theora/lib/cpu.c dependencies/theora/lib/decapiwrapper.c dependencies/theora/lib/decinfo.c dependencies/theora/lib/decode.c dependencies/theora/lib/dequant.c dependencies/theora/lib/encapiwrapper.c dependencies/theora/lib/encfrag.c dependencies/theora/lib/encinfo.c dependencies/theora/lib/encode.c dependencies/theora/lib/enquant.c dependencies/theora/lib/fdct.c dependencies/theora/lib/fragment.c dependencies/theora/lib/huffdec.c dependencies/theora/lib/huffenc.c dependencies/theora/lib/idct.c dependencies/theora/lib/info.c dependencies/theora/lib/internal.c dependencies/theora/lib/mathops.c dependencies/theora/lib/mcenc.c dependencies/theora/lib/quant.c dependencies/theora/lib/rate.c dependencies/theora/lib/state.c dependencies/theora/lib/tokenize.c) # libtheora-1.1.1 (https://xiph.org/downloads/)
 #############
+# video (playback)
+#############
 # font
 set(freetype_src dependencies/freetype/src/autofit/autofit.c dependencies/freetype/src/base/ftbase.c dependencies/freetype/src/base/ftbbox.c dependencies/freetype/src/base/ftbdf.c dependencies/freetype/src/base/ftbitmap.c dependencies/freetype/src/base/ftcid.c dependencies/freetype/src/base/ftfntfmt.c dependencies/freetype/src/base/ftfstype.c dependencies/freetype/src/base/ftgasp.c dependencies/freetype/src/base/ftglyph.c dependencies/freetype/src/base/ftgxval.c dependencies/freetype/src/base/ftinit.c dependencies/freetype/src/base/ftlcdfil.c dependencies/freetype/src/base/ftmm.c dependencies/freetype/src/base/ftotval.c dependencies/freetype/src/base/ftpatent.c dependencies/freetype/src/base/ftpfr.c dependencies/freetype/src/base/ftstroke.c dependencies/freetype/src/base/ftsynth.c dependencies/freetype/src/base/ftsystem.c dependencies/freetype/src/base/fttype1.c dependencies/freetype/src/base/ftwinfnt.c dependencies/freetype/src/bdf/bdf.c dependencies/freetype/src/bzip2/ftbzip2.c dependencies/freetype/src/cache/ftcache.c dependencies/freetype/src/cff/cff.c dependencies/freetype/src/cid/type1cid.c dependencies/freetype/src/gzip/ftgzip.c dependencies/freetype/src/lzw/ftlzw.c dependencies/freetype/src/pcf/pcf.c dependencies/freetype/src/pfr/pfr.c dependencies/freetype/src/psaux/psaux.c dependencies/freetype/src/pshinter/pshinter.c dependencies/freetype/src/psnames/psnames.c dependencies/freetype/src/raster/raster.c dependencies/freetype/src/sfnt/sfnt.c dependencies/freetype/src/smooth/smooth.c dependencies/freetype/src/truetype/truetype.c dependencies/freetype/src/type1/type1.c dependencies/freetype/src/type42/type42.c dependencies/freetype/src/winfonts/winfnt.c) #freetype-2.8.0 (https://www.freetype.org/download.html) (https://download.savannah.gnu.org/releases/freetype/)
 add_definitions(-DFT2_BUILD_LIBRARY)
@@ -137,24 +137,18 @@ add_definitions(-DFT2_BUILD_LIBRARY)
 set(winsocket_src ws2_32.lib)
 #############
 # physics
-set(box2d_src dependencies/box2d/Box2D/Box2D/Collision/b2BroadPhase.cpp dependencies/box2d/Box2D/Box2D/Collision/b2CollideCircle.cpp dependencies/box2d/Box2D/Box2D/Collision/b2CollideEdge.cpp dependencies/box2d/Box2D/Box2D/Collision/b2CollidePolygon.cpp dependencies/box2d/Box2D/Box2D/Collision/b2Collision.cpp dependencies/box2d/Box2D/Box2D/Collision/b2Distance.cpp dependencies/box2d/Box2D/Box2D/Collision/b2DynamicTree.cpp dependencies/box2d/Box2D/Box2D/Collision/b2TimeOfImpact.cpp dependencies/box2d/Box2D/Box2D/Collision/Shapes/b2CircleShape.cpp dependencies/box2d/Box2D/Box2D/Collision/Shapes/b2EdgeShape.cpp dependencies/box2d/Box2D/Box2D/Collision/Shapes/b2ChainShape.cpp dependencies/box2d/Box2D/Box2D/Collision/Shapes/b2PolygonShape.cpp dependencies/box2d/Box2D/Box2D/Common/b2BlockAllocator.cpp dependencies/box2d/Box2D/Box2D/Common/b2Draw.cpp dependencies/box2d/Box2D/Box2D/Common/b2Math.cpp dependencies/box2d/Box2D/Box2D/Common/b2Settings.cpp dependencies/box2d/Box2D/Box2D/Common/b2StackAllocator.cpp dependencies/box2d/Box2D/Box2D/Common/b2Timer.cpp dependencies/box2d/Box2D/Box2D/Dynamics/b2Body.cpp dependencies/box2d/Box2D/Box2D/Dynamics/b2ContactManager.cpp dependencies/box2d/Box2D/Box2D/Dynamics/b2Fixture.cpp dependencies/box2d/Box2D/Box2D/Dynamics/b2Island.cpp dependencies/box2d/Box2D/Box2D/Dynamics/b2World.cpp dependencies/box2d/Box2D/Box2D/Dynamics/b2WorldCallbacks.cpp dependencies/box2d/Box2D/Box2D/Dynamics/Contacts/b2CircleContact.cpp dependencies/box2d/Box2D/Box2D/Dynamics/Contacts/b2Contact.cpp dependencies/box2d/Box2D/Box2D/Dynamics/Contacts/b2ContactSolver.cpp dependencies/box2d/Box2D/Box2D/Dynamics/Contacts/b2PolygonAndCircleContact.cpp dependencies/box2d/Box2D/Box2D/Dynamics/Contacts/b2EdgeAndCircleContact.cpp dependencies/box2d/Box2D/Box2D/Dynamics/Contacts/b2EdgeAndPolygonContact.cpp dependencies/box2d/Box2D/Box2D/Dynamics/Contacts/b2ChainAndCircleContact.cpp dependencies/box2d/Box2D/Box2D/Dynamics/Contacts/b2ChainAndPolygonContact.cpp dependencies/box2d/Box2D/Box2D/Dynamics/Contacts/b2PolygonContact.cpp dependencies/box2d/Box2D/Box2D/Dynamics/Joints/b2DistanceJoint.cpp dependencies/box2d/Box2D/Box2D/Dynamics/Joints/b2FrictionJoint.cpp dependencies/box2d/Box2D/Box2D/Dynamics/Joints/b2GearJoint.cpp dependencies/box2d/Box2D/Box2D/Dynamics/Joints/b2Joint.cpp dependencies/box2d/Box2D/Box2D/Dynamics/Joints/b2MotorJoint.cpp dependencies/box2d/Box2D/Box2D/Dynamics/Joints/b2MouseJoint.cpp dependencies/box2d/Box2D/Box2D/Dynamics/Joints/b2PrismaticJoint.cpp dependencies/box2d/Box2D/Box2D/Dynamics/Joints/b2PulleyJoint.cpp dependencies/box2d/Box2D/Box2D/Dynamics/Joints/b2RevoluteJoint.cpp dependencies/box2d/Box2D/Box2D/Dynamics/Joints/b2RopeJoint.cpp dependencies/box2d/Box2D/Box2D/Dynamics/Joints/b2WeldJoint.cpp dependencies/box2d/Box2D/Box2D/Dynamics/Joints/b2WheelJoint.cpp dependencies/box2d/Box2D/Box2D/Rope/b2Rope.cpp) # add_definitions(-DBOX2D_BUILD_STATIC)
-set(bullet3_src)
-#############
-# video (playback)
-set(??_src)
+set(box2d_src dependencies/box2d/Box2D/Box2D/Collision/b2BroadPhase.cpp dependencies/box2d/Box2D/Box2D/Collision/b2CollideCircle.cpp dependencies/box2d/Box2D/Box2D/Collision/b2CollideEdge.cpp dependencies/box2d/Box2D/Box2D/Collision/b2CollidePolygon.cpp dependencies/box2d/Box2D/Box2D/Collision/b2Collision.cpp dependencies/box2d/Box2D/Box2D/Collision/b2Distance.cpp dependencies/box2d/Box2D/Box2D/Collision/b2DynamicTree.cpp dependencies/box2d/Box2D/Box2D/Collision/b2TimeOfImpact.cpp dependencies/box2d/Box2D/Box2D/Collision/Shapes/b2CircleShape.cpp dependencies/box2d/Box2D/Box2D/Collision/Shapes/b2EdgeShape.cpp dependencies/box2d/Box2D/Box2D/Collision/Shapes/b2ChainShape.cpp dependencies/box2d/Box2D/Box2D/Collision/Shapes/b2PolygonShape.cpp dependencies/box2d/Box2D/Box2D/Common/b2BlockAllocator.cpp dependencies/box2d/Box2D/Box2D/Common/b2Draw.cpp dependencies/box2d/Box2D/Box2D/Common/b2Math.cpp dependencies/box2d/Box2D/Box2D/Common/b2Settings.cpp dependencies/box2d/Box2D/Box2D/Common/b2StackAllocator.cpp dependencies/box2d/Box2D/Box2D/Common/b2Timer.cpp dependencies/box2d/Box2D/Box2D/Dynamics/b2Body.cpp dependencies/box2d/Box2D/Box2D/Dynamics/b2ContactManager.cpp dependencies/box2d/Box2D/Box2D/Dynamics/b2Fixture.cpp dependencies/box2d/Box2D/Box2D/Dynamics/b2Island.cpp dependencies/box2d/Box2D/Box2D/Dynamics/b2World.cpp dependencies/box2d/Box2D/Box2D/Dynamics/b2WorldCallbacks.cpp dependencies/box2d/Box2D/Box2D/Dynamics/Contacts/b2CircleContact.cpp dependencies/box2d/Box2D/Box2D/Dynamics/Contacts/b2Contact.cpp dependencies/box2d/Box2D/Box2D/Dynamics/Contacts/b2ContactSolver.cpp dependencies/box2d/Box2D/Box2D/Dynamics/Contacts/b2PolygonAndCircleContact.cpp dependencies/box2d/Box2D/Box2D/Dynamics/Contacts/b2EdgeAndCircleContact.cpp dependencies/box2d/Box2D/Box2D/Dynamics/Contacts/b2EdgeAndPolygonContact.cpp dependencies/box2d/Box2D/Box2D/Dynamics/Contacts/b2ChainAndCircleContact.cpp dependencies/box2d/Box2D/Box2D/Dynamics/Contacts/b2ChainAndPolygonContact.cpp dependencies/box2d/Box2D/Box2D/Dynamics/Contacts/b2PolygonContact.cpp dependencies/box2d/Box2D/Box2D/Dynamics/Joints/b2DistanceJoint.cpp dependencies/box2d/Box2D/Box2D/Dynamics/Joints/b2FrictionJoint.cpp dependencies/box2d/Box2D/Box2D/Dynamics/Joints/b2GearJoint.cpp dependencies/box2d/Box2D/Box2D/Dynamics/Joints/b2Joint.cpp dependencies/box2d/Box2D/Box2D/Dynamics/Joints/b2MotorJoint.cpp dependencies/box2d/Box2D/Box2D/Dynamics/Joints/b2MouseJoint.cpp dependencies/box2d/Box2D/Box2D/Dynamics/Joints/b2PrismaticJoint.cpp dependencies/box2d/Box2D/Box2D/Dynamics/Joints/b2PulleyJoint.cpp dependencies/box2d/Box2D/Box2D/Dynamics/Joints/b2RevoluteJoint.cpp dependencies/box2d/Box2D/Box2D/Dynamics/Joints/b2RopeJoint.cpp dependencies/box2d/Box2D/Box2D/Dynamics/Joints/b2WeldJoint.cpp dependencies/box2d/Box2D/Box2D/Dynamics/Joints/b2WheelJoint.cpp dependencies/box2d/Box2D/Box2D/Rope/b2Rope.cpp) # add_definitions(-DBOX2D_BUILD_STATIC) #set(bullet3_src)
 #############
 # audio (playback)
 if(WIN32)
 set(openal_src ${CMAKE_CURRENT_SOURCE_DIR}/src/OpenAL32.lib)
-else()
+endif()
+if(LINUX)
 set(openal_src libopenal.so)
 endif()
 #############
-# data (serialization; encryption)
+# data (serialization)
 set(sqlite_src dependencies/sqlite/sqlite3.c)
-set(xml_src) # libxml2   install with ./configure --help ->  make -> make install (http://xmlsoft.org/xml.html) (can be used for reading Collada Dae(.dae) and Scalable Vector Graphics(.svg)) (tutorial: http://www.linuxfromscratch.org/blfs/view/svn/general/libxml2.html)(consider http://rapidxml.sourceforge.net/)
-add_definitions(-DLIBXML_STATIC)
-set(openssl_src ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/openssl/libssl.a ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/openssl/libcrypto.a) # openssl-1.1.1 (https://www.openssl.org/source/)
 #############
 # unicode
 set(icu_src)
@@ -187,9 +181,8 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/dependencies
    ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/theora/include
    ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/sqlite
    ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/utf8/source
-   ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/xml
-   ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/xml/include
-   ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/xml/include/libxml
+   ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/xml2
+   ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/xml2/include
    ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/openal/include
    ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/openal-soft/include
    ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/jpeg
@@ -217,7 +210,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/dependencies
    ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/bullet3/Bullet3Common
    ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/portaudio/include
    ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/json/src
-   ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/glm # todo: remove glm and make a custom matrix library
+   ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/glm
    ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/openssl/include
 )
 #############
@@ -235,9 +228,9 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/src)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}    )
 #############
 # build dokun
-add_executable(dokun           ${dokun_src} ${lua_src} ${png_src} ${gif_src} ${jpeg_src} ${tiff_src} ${ogg_src} ${vorbis_src} ${theora_src} ${freetype_src} ${box2d_src} ${bullet3_src} ${sqlite_src} ${xml_src} ${zlib_src} ${glew_src} ${dokun_res}  )
-add_library   (libdokun STATIC ${dokun_src} ${lua_src} ${png_src} ${gif_src} ${jpeg_src} ${tiff_src} ${ogg_src} ${vorbis_src} ${theora_src} ${freetype_src} ${box2d_src} ${bullet3_src} ${sqlite_src} ${xml_src} ${zlib_src} ${glew_src}               )
-add_executable(editor          ${dokun_src} ${editor_src} ${lua_src} ${png_src} ${gif_src} ${jpeg_src} ${tiff_src} ${ogg_src} ${vorbis_src} ${theora_src} ${freetype_src} ${box2d_src} ${bullet3_src} ${sqlite_src} ${xml_src} ${zlib_src} ${glew_src} )
+add_executable(dokun           ${dokun_src} ${lua_src} ${png_src} ${gif_src} ${jpeg_src} ${tiff_src} ${ogg_src} ${vorbis_src} ${theora_src} ${freetype_src} ${box2d_src} ${sqlite_src} ${zlib_src} ${glew_src} ${dokun_res}              )
+add_library   (libdokun STATIC ${dokun_src} ${lua_src} ${png_src} ${gif_src} ${jpeg_src} ${tiff_src} ${ogg_src} ${vorbis_src} ${theora_src} ${freetype_src} ${box2d_src} ${sqlite_src} ${zlib_src} ${glew_src}                           )
+add_executable(editor          ${dokun_src} ${editor_src} ${lua_src} ${png_src} ${gif_src} ${jpeg_src} ${tiff_src} ${ogg_src} ${vorbis_src} ${theora_src} ${freetype_src} ${box2d_src} ${sqlite_src} ${zlib_src} ${glew_src}             )
 #############
 # set properties
 set_target_properties(dokun    PROPERTIES COMPILE_DEFINITIONS "DOKUN_BUILD_CONSOLE")
@@ -286,11 +279,6 @@ if(LINUX)
 		target_link_libraries(dokun  ${openal_src})
 		target_link_libraries(editor ${openal_src})
 	endif()
-    #find_package(OpenSSL)
-    #if(OPENSSL_FOUND)
-    #	target_link_libraries(dokun  ${openssl_src})
-    #	target_link_libraries(editor ${openssl_src})
-    #endif()
 	target_link_libraries(dokun  ${posix_src})
 	target_link_libraries(editor ${posix_src})
 endif(LINUX)

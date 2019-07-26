@@ -52,6 +52,7 @@ public:
 	#endif
 	#ifdef __gnu_linux__
 	#endif
+        return 0;
 	}
 	static int get_monitor_width()
 	{
@@ -66,6 +67,7 @@ public:
         return scrn->width;
 	#endif	
 	#endif
+        return 0;
 	}
 	static int get_monitor_height()
 	{
@@ -80,6 +82,7 @@ public:
         return scrn->height;
 	#endif	
 	#endif		
+        return 0;
 	}
     static Vector2i get_monitor_size()
 	{
@@ -96,14 +99,16 @@ public:
 	#endif
 	#ifdef __gnu_linux__
 	#endif	
+        return false;
 	}
 	static int get_mouse_button_count()
 	{
-	#ifdef __windows__
+#ifdef __windows__
 	    return GetSystemMetrics(SM_CMOUSEBUTTONS); // returns 0 if no mouse is installed
-	#endif
-	#ifdef __gnu_linux__
-	#endif
+#endif
+#ifdef __gnu_linux__
+#endif
+        return 0;
 	}
 	// keyboard
 	// time

@@ -994,7 +994,7 @@ struct Vector3
 	//////////////////
 	Vector3 shear(Vector3& vector)
 	{
-		shear(vector.x, vector.y, vector.z);
+		return shear(vector.x, vector.y, vector.z);
 	}
 	static Vector3 shear(Vector3& vector, double sx, double sy, double sz)
 	{

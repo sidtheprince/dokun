@@ -283,7 +283,7 @@ struct Matrix4 // 4 x 4   to use m[r][c] you have to use m.value[r][c] or m(r, c
 		Vector3 eye(eye_x, eye_y, eye_z);
 		Vector3 center(center_x, center_y, center_z);
 		Vector3 up(up_x, up_y, up_z);
-        look_at(eye, center, up);
+        return look_at(eye, center, up);
 	}
 	static Matrix4 look_at    (const Vector3& eye, const Vector3& center,const Vector3& up) 
 	{ // copied from glm-9.8  glm/gtc/matrix_transform.inl

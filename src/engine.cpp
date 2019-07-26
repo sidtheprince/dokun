@@ -50,9 +50,30 @@ bool Engine::get_status()
 //////////// 
 bool Engine::on_open()
 {
+    if(status == 1) return true; // engine is on (already) - ensures that the engine is not initialized more than once
 #ifdef __gnu_linux__
     std::atexit(Engine::close);
-#endif
+    std::at_quick_exit(Engine::close);
+#endif // start session
+    Logger::push("=======================================================================================================");
+	Logger::push("Started dokun at " + Logger::format("[%Y-%m-%d  %H:%M:%S %p]"));
+	Logger::push("=======================================================================================================");	
+    Logger::push("\n\n");	
+	Logger::push(String("Running dokun version  ") + String(ENGINE_VERSION));
+	Logger::push(String("Running Lua version    ") + String::to_string(LUA_VERSION_MAJOR) + "." + String::to_string(LUA_VERSION_MINOR) + "." + String::to_string(LUA_VERSION_RELEASE));//Logger::push("\n\n");
+#ifdef DOKUN_PRINT_ALL_LIB_VERSIONS
+    Logger::push(String("Using freetype version ") + String(FREETYPE_MAJOR).str() + "." + String(FREETYPE_MINOR).str() +  "." + String(FREETYPE_PATCH).str());
+    Logger::push(String("Using giflib version   ") + String(GIFLIB_MAJOR).str() + "." + String(GIFLIB_MINOR).str() +  "." + String(GIFLIB_RELEASE).str());
+#endif    
+    // create dir for logfiles
+	if(!File::checkdir("log"))
+        File::makedir("log");
+	// save in append mode
+	if(!Logger::save("log/dokun_log.txt")) 
+        Logger("Failure to save log");
+	// pop a number of times after saving first section
+	for(int i = 0; i < 6; i++) Logger::pop();
+	/////////////////////////////////////////
 #ifdef DOKUN_VULKAN
 #ifdef __windows__
 	HMODULE vulkan = LoadLibrary("vulkan-1.dll");
@@ -99,7 +120,7 @@ bool Engine::on_open()
 		status = 0;
 		return false;
 	}
-#endif
+#endif // end of ifdef DOKUN_VULKAN
     if(!FONT::open())
 	{
 		Logger("Could not start FreeType");
@@ -121,67 +142,45 @@ bool Engine::on_open()
 		return false;
 	}
     /////////////////////////////////////////
-    Renderer::start(); // initializes Renderer by setting default values
+    //Renderer::start(); // initializes Renderer by setting default values
     // load the default font (ONLY once so that you do not have to load it a hundred times)
     if(!Label::default_font->load(DEFAULT_FONT_PATH)) Logger("Could not load default font from " + String(DEFAULT_FONT_PATH).str());
-	/////////////////////////////////////////
-    Logger::push("=======================================================================================================");
-	Logger::push("Started dokun at " + Logger::format("[%Y-%m-%d  %H:%M:%S %p]"));
-	Logger::push("=======================================================================================================");	
-    Logger::push("\n\n");	
-	Logger::push(String("Running dokun version  ") + String(ENGINE_VERSION));
-	Logger::push(String("Running Lua version    ") + String::to_string(LUA_VERSION_MAJOR) + "." + String::to_string(LUA_VERSION_MINOR) + "." + String::to_string(LUA_VERSION_RELEASE));
-	Logger::push("\n\n");
-//#define DOKUN_DEBUG_VERSION
-#ifdef DOKUN_DEBUG_VERSION
-    Logger::push(String("Using freetype version ") + String(FREETYPE_MAJOR).str() + "." + String(FREETYPE_MINOR).str() +  "." + String(FREETYPE_PATCH).str());
-    Logger::push(String("Using giflib version   ") + String(GIFLIB_MAJOR).str() + "." + String(GIFLIB_MINOR).str() +  "." + String(GIFLIB_RELEASE).str());
-#endif    
-    // create dir for logfiles
-	if(!File::checkdir("log")) File::makedir("log");
-	// save in append mode
-	if(!Logger::save("log/doklog.txt")) Logger("Failure to save log");
-	// pop a number of times after saving first section
-	for(int i = 0; i < 6; i++) Logger::pop();
-	/////////////////////////////////////////
+
 	// set status to 1 (proof that engine has been initialized)
 	status = 1;
+    Logger("engine initialized.");
 	return true;
 }
 ////////////
 void Engine::on_close()
 {
-	if(status != 0) // if engine is not off
-	{
-	    FONT::close(); // close freetype
+    if(status == 0) return; // engine is off (already)
+	FONT::close(); // close freetype
 #ifdef DOKUN_VULKAN
-        if(Renderer::get_instance() != VK_NULL_HANDLE ) {
-            vkDestroyInstance (Renderer::get_instance(), nullptr);
-        }
+    if(Renderer::get_instance() != VK_NULL_HANDLE ) { vkDestroyInstance (Renderer::get_instance(), nullptr);}
 #endif
 #ifdef __windows__
 #ifdef DOKUN_VULKAN
-        //FreeLibrary(vulkan);
+    //FreeLibrary(vulkan);
 #endif
-	    WSACleanup ();  // close winsocket
+	WSACleanup ();  // close winsocket
 #endif
 #ifdef __gnu_linux__
 #ifdef DOKUN_VULKAN
-        //dlclose(vulkan);
+    //dlclose(vulkan);
 #endif        
 #endif    
-        Audio::close(); // close openal
-		/////////////////////////////////////////
-        Logger::push("\n=======================================================================================================");
-        Logger::push("Closed dokun at " + Logger::format("[%Y-%m-%d  %H:%M:%S %p]"));
-        Logger::push("=======================================================================================================\n");
-		if(!Logger::save("log/doklog.txt")) Logger("Failure to save log");// save session
-		/////////////////////////////////////////
-        // exit message
-		Logger("Exiting with code 0 ...");
-	    // reset status to its default
-		status = 0;		
-	}
+    Audio::close(); // close openal
+	/////////////////////////////////////////
+    /////////////////////////////////////////
+    // save session
+    Logger::push("\n=======================================================================================================");
+    Logger::push("Closed dokun at " + Logger::format("[%Y-%m-%d  %H:%M:%S %p]"));
+    Logger::push("=======================================================================================================\n");
+	if(!Logger::save("log/dokun_log.txt")) Logger("Could not save log");
+	// reset status to its default (turns engine off)
+	status = 0;
+    Logger("Exiting engine with code 0 ..."); // exit message
 }
 ////////////
 ////////////
@@ -196,7 +195,7 @@ int Engine::test(lua_State *L)
     //=================== misc
     //=================== sprite
 	Sprite * sprite = new Sprite();
-	Texture * texture = new Texture();//("res/image.png");
+	Texture * texture = new Texture();//("res/SVG_logo.svg");//("res/image.png");
 	sprite->set_texture(*texture); // set empty texture to sprite
 	sprite->set_color(0, 51, 102);
 	sprite->set_position(200, 200);
@@ -217,7 +216,7 @@ int Engine::test(lua_State *L)
     //===================
 	//Voice * voice = new Voice();
     std::vector<Sprite *> sprite_array;
-    for(int i = 0; i < 10; i++)
+    for(int i = 0; i < 100; i++)
     {
         Sprite * sprite_obj = new Sprite();
         sprite_obj->set_position((rand() % 1000) + 1, (rand() % 100) + 1); // rand
@@ -230,12 +229,23 @@ int Engine::test(lua_State *L)
 	widget->set_title_bar(true);
 	widget->set_title_bar_size(20); // update titlebar_size before doing any operations with it
     widget->set_title_bar_button_close(true);
+    widget->set_outline(true);
+    widget->set_size(200, 50);
     widget->set_position(0, 0 + widget->get_title_bar_size().y); // box_position should also include titlebar_position if "has_title_bar()" (or else the box's titlebar will be overlaped by the window's titlebar) // So basically the titlebar is a seperate entity with its own size and position though a part/extension of box
+    // ---
 
     Label * label = new Label();
-    label->set_string("Sid"); 
-    label->set_background_color(32, 32, 32);
-    label->set_position(window.get_client_width() / 2, 10);
+    label->set_string("Sid");
+    label->set_position(10, window.get_client_height() - 50);
+    //Label * label2 = new Label();
+    //label2->set_string("No data");
+    //label2->set_position(window.get_client_width() / 3, 10);
+    //Grid * grid = new Grid(2,2);
+    //grid->set_position(100, 400);
+	//grid->set_row(2);
+	//grid->set_column(2);
+	//grid->get_block(0, 0)->set_color(255, 51, 51);
+	//std::cout << "Grid: " << grid->get_row_count() << " x " << grid->get_column_count() << std::endl;
 	//===================
     while(window.is_open()) // main loop
     {
@@ -253,8 +263,6 @@ int Engine::test(lua_State *L)
         Vector3 cam_pos    = camera->get_position();
         Vector3 model_pos  = model->get_position();
         Vector3 sprite_pos = Vector3(sprite->get_position(), -1);
-
-        sprite->scale(3, 3);
         ////////////////////////////////////////////////////// Camera
         // camera follow sprite test
         int camera_height = -(window.get_client_height() / 2);// keep camera at center height of screen;  negative = up   positive = down
@@ -267,10 +275,10 @@ int Engine::test(lua_State *L)
 	    {
             if(music->is_paused()) music->play();
 
-			if(Keyboard::is_pressed(DOKUN_KEY_UP   )){/*label->set_position( label->get_x(), label->get_y()-1 );*/ model->translate(0, 0, -1);sprite->translate(0       ,-5 * 0.5);}
-			if(Keyboard::is_pressed(DOKUN_KEY_DOWN )){/*label->set_position( label->get_x(), label->get_y()+1 );*/ model->translate(0, 0, 1); sprite->translate(0       , 5 * 0.5);}
-			if(Keyboard::is_pressed(DOKUN_KEY_LEFT )){/*label->set_position( label->get_x()-1, label->get_y() );*/ model->translate(1, 0, 0); sprite->translate(-5 * 0.5, 0 );}
-			if(Keyboard::is_pressed(DOKUN_KEY_RIGHT)){/*label->set_position( label->get_x()+1, label->get_y() );*/ model->translate(-1, 0, 0);sprite->translate(5 * 0.5 , 0 );}
+			if(Keyboard::is_pressed(DOKUN_KEY_UP   )){ model->translate(0, 0, -1);sprite->translate(0       ,-5 * 0.5);}
+			if(Keyboard::is_pressed(DOKUN_KEY_DOWN )){ model->translate(0, 0, 1); sprite->translate(0       , 5 * 0.5);}
+			if(Keyboard::is_pressed(DOKUN_KEY_LEFT )){ model->translate(1, 0, 0); sprite->translate(-5 * 0.5, 0 );}
+			if(Keyboard::is_pressed(DOKUN_KEY_RIGHT)){ model->translate(-1, 0, 0);sprite->translate(5 * 0.5 , 0 );}
 			
 			if(Keyboard::is_pressed(DOKUN_KEY_1)) camera->set_zoom(camera->get_zoom() + 1); // zoom_out
 			if(Keyboard::is_pressed(DOKUN_KEY_2)) camera->set_zoom(camera->get_zoom() - 1); // zoom_in
@@ -308,11 +316,15 @@ int Engine::test(lua_State *L)
         // draw multiple sprites
         for(int i = 0; i < sprite_array.size(); i++) {
             sprite_array[i]->draw();
-            if(Sprite::collide(*sprite, *sprite_array[i])) label->set_string("Sprite " + String(sprite).str() + " has collided with another Sprite " + String(sprite_array[i]).str()); //std::cout << "Sprite " << String(sprite) << " has collided with another Sprite " << String(sprite_array[i]) << "!\n";
+            //if(Sprite::collide(*sprite, *sprite_array[i])) label2->set_string("Sprite " + String(sprite).str() + " has collided with another Sprite " + String(sprite_array[i]).str()); //std::cout << "Sprite " << String(sprite) << " has collided with another Sprite " << String(sprite_array[i]) << "!\n";
         }
         //model->draw();
         widget->draw();
+        //label->set_string(String(sprite->get_position()).str());
         label->draw();
+        //label2->draw();
+
+        //grid->draw();
 		// update window
 		window.update();
 	}
@@ -336,7 +348,7 @@ int Engine::test(lua_State *L)
 #ifdef __cplusplus // if c++
 extern "C" {
 #endif	
-int Engine::regstr(lua_State *L)
+int Engine::reg(lua_State *L)
 {	
     static const luaL_Reg module[] = 
     {
@@ -347,15 +359,13 @@ int Engine::regstr(lua_State *L)
     };	
 	
     // -----------------------------------------------------------
-    Script::global(L, "_ENGINE", "Dokun");
+    Script::global(L, "_ENGINE", "dokun");
 	Script::global(L, "DOKUN_VERSION", std::string(ENGINE_VERSION));
 	Script::global(L, "DOKUN_VERSION_MAJOR", std::string(ENGINE_VERSION_MAJOR));
 	Script::global(L, "DOKUN_VERSION_MINOR", std::string(ENGINE_VERSION_MINOR));
 	Script::global(L, "DOKUN_VERSION_PATCH", std::string(ENGINE_VERSION_PATCH));
 	Script::global(L, "DOKUN_STATUS", (Engine::get_status() != 0));
 	Script::global(L, "DOKUN_PLATFORM",         dokun::platform());
-	Script::global(L, "set_current_API", Renderer::set_current_API);
-	Script::global(L, "lua_error_test", Logger::lua_error_test    );
 	// window -----------------------------------------------------------
 	Script::table   (L, "Window");
 	Script::function(L, "Window", "new"   ,  WINDOW::window_new );
@@ -767,7 +777,7 @@ int Engine::regstr(lua_State *L)
 	Script::table   (L, "Label"                                 ); // create a table Label with a Label_mt metatable
 	Script::attach  (L, "GUI"  , "Label"                        ); // attach Label to GUI : GUI.Label
 	Script::inherit (L, "GUI"  , "Label"                        ); // inherit from GUI (Label inherits GUI functions)
-	Script::function(L, "Label", "new"       , Label::new_      );
+	Script::function(L, "Label", "new"       , Label::label_new );
 	Script::function(L, "Label", "draw"      , Label::draw      );
 	Script::function(L, "Label", "set_font"  , Label::set_font  );	
 	Script::function(L, "Label", "set_string", Label::set_string);
@@ -869,12 +879,14 @@ int Engine::regstr(lua_State *L)
 	//Script::function(L, "Grid", ""        , Grid::);
 	// font -----------------------------------------------------------
 	Script::table   (L, "Font"                          );
-	Script::function(L, "Font", "new"    , FONT::create );
-	Script::function(L, "Font", "load"   , FONT::load   );
-	Script::function(L, "Font", "destroy", FONT::destroy);
+	Script::function(L, "Font", "new"     , FONT::font_new);
+	Script::function(L, "Font", "load"    , FONT::load   );
+    Script::function(L, "Font", "generate", FONT::generate);
+	Script::function(L, "Font", "destroy" , FONT::destroy);
 	Script::function(L, "Font", "get_size", FONT::get_size);
 	Script::function(L, "Font", "get_rect", FONT::get_rect);
 	Script::function(L, "Font", "get_data", FONT::get_data);
+    Script::function(L, "Font", "is_generated", FONT::is_generated);
 	//Script::function(L, "Font", ""        , FONT::);
 	// network -----------------------------------------------------------
 	//Script::global (L, "socket", Socket::new_); // returns a socket
@@ -917,6 +929,8 @@ int Engine::regstr(lua_State *L)
 	Script::function(L, "Camera", "move"        , Camera::move        );		
 	Script::function(L, "Camera", "rotate"      , Camera::rotate      );
 	Script::function(L, "Camera", "zoom"        , Camera::zoom        );
+    Script::function(L, "Camera", "zoom_in"     , Camera::zoom_in     );
+    Script::function(L, "Camera", "zoom_out"    , Camera::zoom_out    );
 	Script::function(L, "Camera", "strafe"      , Camera::strafe      );
 	Script::function(L, "Camera", "look"        , Camera::look        );
 	Script::function(L, "Camera", "draw"        , Camera::draw        );
@@ -1075,6 +1089,12 @@ int Engine::regstr(lua_State *L)
 	Script::function(L, "Console", "free", Console::destroy);   // destroys the console window
 	Script::function(L, "Console", "show", Console::create );	 // recreates the console window (and brings it forward)
 	//Script::function(L, "", ""        , ::);
+    // renderer ----------------------------------------------------------
+    Script::table   (L, "Renderer"                                    ); // static class (pass to function as 'self' without any instances)
+    Script::function(L, "Renderer", "set_camera", Renderer::set_camera);
+    Script::function(L, "Renderer", "set_light" , Renderer::set_light );
+    Script::global(L, "set_current_API", Renderer::set_current_API);
+    //Script::function(L, "Renderer", "", Renderer::);
     // vector3 -----------------------------------------------------------
 	Script::table   (L, "Vector"                                 ); // a vector class (3d)
 	Script::function(L, "Vector", "new"      , Vector3::new_     );
@@ -1098,7 +1118,7 @@ int Engine::regstr(lua_State *L)
 	// utilities
 	// conversion
 	Script::global(L, "tosprite", Sprite::to_sprite); // inspired by tonumber() and tostring()
-	Script::global(L, "tomodel",    Model::to_model);    // inspired by tonumber() and tostring()
+	Script::global(L, "tomodel",    Model::to_model); // inspired by tonumber() and tostring()
 	// entity
 	//Script::global(L, "set_shader", Entity::set_shader);
 	// global variables -----
@@ -1129,46 +1149,46 @@ int Engine::regstr(lua_State *L)
     Script::global(L,"KEY_ALT_L", DOKUN_KEY_ALT_L);
     Script::global(L,"KEY_ALT_R", DOKUN_KEY_ALT_R);
     Script::global(L,"KEY_MENU", DOKUN_KEY_MENU);
-    Script::global(L,"KEY_", DOKUN_KEY_PRINT_SCREEN);
-    Script::global(L,"KEY_", DOKUN_KEY_SCROLL_LOCK);
-    Script::global(L,"KEY_", DOKUN_KEY_PAUSE);
-    Script::global(L,"KEY_", DOKUN_KEY_INSERT);
-    Script::global(L,"KEY_", DOKUN_KEY_DELETE);
-    Script::global(L,"KEY_", DOKUN_KEY_HOME);
-    Script::global(L,"KEY_", DOKUN_KEY_END);
-    Script::global(L,"KEY_", DOKUN_KEY_PRIOR);
-    Script::global(L,"KEY_", DOKUN_KEY_NEXT);
-    Script::global(L,"KEY_", DOKUN_KEY_NUM_LOCK);
+    Script::global(L,"KEY_PRINT_SCREEN", DOKUN_KEY_PRINT_SCREEN);
+    Script::global(L,"KEY_SCROLL_LOCK", DOKUN_KEY_SCROLL_LOCK);
+    Script::global(L,"KEY_PAUSE", DOKUN_KEY_PAUSE);
+    Script::global(L,"KEY_INSERT", DOKUN_KEY_INSERT);
+    Script::global(L,"KEY_DELETE", DOKUN_KEY_DELETE);
+    Script::global(L,"KEY_HOME", DOKUN_KEY_HOME);
+    Script::global(L,"KEY_END", DOKUN_KEY_END);
+    Script::global(L,"KEY_PRIOR", DOKUN_KEY_PRIOR);
+    Script::global(L,"KEY_NEXT", DOKUN_KEY_NEXT);
+    Script::global(L,"KEY_NUM_LOCK", DOKUN_KEY_NUM_LOCK);
     // Numpad
-    Script::global(L,"KEY_KP_", DOKUN_KEY_KP_DIVIDE);
-    Script::global(L,"KEY_KP_", DOKUN_KEY_KP_MULTIPLY);
-    Script::global(L,"KEY_KP_", DOKUN_KEY_KP_SUBTRACT);
-    Script::global(L,"KEY_KP_", DOKUN_KEY_KP_ADD);
-    Script::global(L,"KEY_KP_", DOKUN_KEY_KP_ENTER);
-    Script::global(L,"KEY_KP_", DOKUN_KEY_KP_DECIMAL);
-    Script::global(L,"KEY_KP_", DOKUN_KEY_KP_DELETE);
-    Script::global(L,"KEY_KP_", DOKUN_KEY_KP_INSERT);
-    Script::global(L,"KEY_KP_", DOKUN_KEY_KP_DELETE);
-    Script::global(L,"KEY_KP_", DOKUN_KEY_KP_INSERT);
-    Script::global(L,"KEY_KP_", DOKUN_KEY_KP_END);
-    Script::global(L,"KEY_KP_", DOKUN_KEY_KP_DOWN);
-    Script::global(L,"KEY_KP_", DOKUN_KEY_KP_NEXT);
-    Script::global(L,"KEY_KP_", DOKUN_KEY_KP_LEFT);
-    Script::global(L,"KEY_KP_", DOKUN_KEY_KP_BEGIN);
-    Script::global(L,"KEY_KP_", DOKUN_KEY_KP_RIGHT);
-    Script::global(L,"KEY_KP_", DOKUN_KEY_KP_HOME);
-    Script::global(L,"KEY_KP_", DOKUN_KEY_KP_UP);
-    Script::global(L,"KEY_KP_", DOKUN_KEY_KP_PRIOR);
-    Script::global(L,"KEY_KP_", DOKUN_KEY_KP_0);
-    Script::global(L,"KEY_KP_", DOKUN_KEY_KP_1);
-    Script::global(L,"KEY_KP_", DOKUN_KEY_KP_2);
-    Script::global(L,"KEY_KP_", DOKUN_KEY_KP_3);
-    Script::global(L,"KEY_KP_", DOKUN_KEY_KP_4);
-    Script::global(L,"KEY_KP_", DOKUN_KEY_KP_5);
-    Script::global(L,"KEY_KP_", DOKUN_KEY_KP_6);
-    Script::global(L,"KEY_KP_", DOKUN_KEY_KP_7);
-    Script::global(L,"KEY_KP_", DOKUN_KEY_KP_8);
-    Script::global(L,"KEY_KP_", DOKUN_KEY_KP_9);
+    Script::global(L,"KEY_KP_DIVIDE", DOKUN_KEY_KP_DIVIDE);
+    Script::global(L,"KEY_KP_MULTIPLY", DOKUN_KEY_KP_MULTIPLY);
+    Script::global(L,"KEY_KP_SUBTRACT", DOKUN_KEY_KP_SUBTRACT);
+    Script::global(L,"KEY_KP_ADD", DOKUN_KEY_KP_ADD);
+    Script::global(L,"KEY_KP_ENTER", DOKUN_KEY_KP_ENTER);
+    Script::global(L,"KEY_KP_DECIMAL", DOKUN_KEY_KP_DECIMAL);
+    Script::global(L,"KEY_KP_DELETE", DOKUN_KEY_KP_DELETE);
+    Script::global(L,"KEY_KP_INSERT", DOKUN_KEY_KP_INSERT);
+    Script::global(L,"KEY_KP_DELETE", DOKUN_KEY_KP_DELETE);
+    Script::global(L,"KEY_KP_INSERT", DOKUN_KEY_KP_INSERT);
+    Script::global(L,"KEY_KP_END", DOKUN_KEY_KP_END);
+    Script::global(L,"KEY_KP_DOWN", DOKUN_KEY_KP_DOWN);
+    Script::global(L,"KEY_KP_NEXT", DOKUN_KEY_KP_NEXT);
+    Script::global(L,"KEY_KP_LEFT", DOKUN_KEY_KP_LEFT);
+    Script::global(L,"KEY_KP_BEGIN", DOKUN_KEY_KP_BEGIN);
+    Script::global(L,"KEY_KP_RIGHT", DOKUN_KEY_KP_RIGHT);
+    Script::global(L,"KEY_KP_HOME", DOKUN_KEY_KP_HOME);
+    Script::global(L,"KEY_KP_UP", DOKUN_KEY_KP_UP);
+    Script::global(L,"KEY_KP_PRIOR", DOKUN_KEY_KP_PRIOR);
+    Script::global(L,"KEY_KP_0", DOKUN_KEY_KP_0);
+    Script::global(L,"KEY_KP_1", DOKUN_KEY_KP_1);
+    Script::global(L,"KEY_KP_2", DOKUN_KEY_KP_2);
+    Script::global(L,"KEY_KP_3", DOKUN_KEY_KP_3);
+    Script::global(L,"KEY_KP_4", DOKUN_KEY_KP_4);
+    Script::global(L,"KEY_KP_5", DOKUN_KEY_KP_5);
+    Script::global(L,"KEY_KP_6", DOKUN_KEY_KP_6);
+    Script::global(L,"KEY_KP_7", DOKUN_KEY_KP_7);
+    Script::global(L,"KEY_KP_8", DOKUN_KEY_KP_8);
+    Script::global(L,"KEY_KP_9", DOKUN_KEY_KP_9);
     // Symbols
     Script::global(L,"KEY_GRAVE", DOKUN_KEY_GRAVE);	
     Script::global(L,"KEY_ASCIITILDE", DOKUN_KEY_ASCIITILDE);	
@@ -1186,22 +1206,22 @@ int Engine::regstr(lua_State *L)
     Script::global(L,"KEY_UNDERSCORE", DOKUN_KEY_UNDERSCORE);	
     Script::global(L,"KEY_EQUAL", DOKUN_KEY_EQUAL);	
     Script::global(L,"KEY_PLUS", DOKUN_KEY_PLUS);	
-    Script::global(L,"KEY_", DOKUN_KEY_BRACKETLEFT);	
-    Script::global(L,"KEY_", DOKUN_KEY_BRACKETRIGHT);	
-    Script::global(L,"KEY_", DOKUN_KEY_BRACELEFT);	
-    Script::global(L,"KEY_", DOKUN_KEY_BRACERIGHT);	
-    Script::global(L,"KEY_", DOKUN_KEY_BACKSLASH);
-    Script::global(L,"KEY_", DOKUN_KEY_BAR);
-    Script::global(L,"KEY_", DOKUN_KEY_SEMICOLON);
-    Script::global(L,"KEY_", DOKUN_KEY_COLON);	
-    Script::global(L,"KEY_", DOKUN_KEY_APOSTROPHE);
+    Script::global(L,"KEY_BRACKETLEFT", DOKUN_KEY_BRACKETLEFT);	
+    Script::global(L,"KEY_BRACKETRIGHT", DOKUN_KEY_BRACKETRIGHT);	
+    Script::global(L,"KEY_BRACELEFT", DOKUN_KEY_BRACELEFT);	
+    Script::global(L,"KEY_BRACERIGHT", DOKUN_KEY_BRACERIGHT);	
+    Script::global(L,"KEY_BACKSLASH", DOKUN_KEY_BACKSLASH);
+    Script::global(L,"KEY_BAR", DOKUN_KEY_BAR);
+    Script::global(L,"KEY_SEMICOLON", DOKUN_KEY_SEMICOLON);
+    Script::global(L,"KEY_COLON", DOKUN_KEY_COLON);	
+    Script::global(L,"KEY_APOSTROPHE", DOKUN_KEY_APOSTROPHE);
     Script::global(L,"KEY_QUOTE", DOKUN_KEY_QUOTEDBL);
-    Script::global(L,"KEY_", DOKUN_KEY_COMMA);
-    Script::global(L,"KEY_", DOKUN_KEY_PERIOD);
-    Script::global(L,"KEY_", DOKUN_KEY_LESS);
-    Script::global(L,"KEY_", DOKUN_KEY_GREATER);
-    Script::global(L,"KEY_", DOKUN_KEY_SLASH);
-    Script::global(L,"KEY_", DOKUN_KEY_QUESTION);
+    Script::global(L,"KEY_COMMA", DOKUN_KEY_COMMA);
+    Script::global(L,"KEY_PERIOD", DOKUN_KEY_PERIOD);
+    Script::global(L,"KEY_LESS", DOKUN_KEY_LESS);
+    Script::global(L,"KEY_GREATER", DOKUN_KEY_GREATER);
+    Script::global(L,"KEY_SLASH", DOKUN_KEY_SLASH);
+    Script::global(L,"KEY_QUESTION", DOKUN_KEY_QUESTION);
     //Script::global(L,"KEY_", DOKUN_KEY_);
     // F1-F12
 	Script::global(L,"KEY_F1", DOKUN_KEY_F1);	
@@ -1272,22 +1292,22 @@ int Engine::regstr(lua_State *L)
 #ifdef DOKUN_BUILD_LIBRARY
     LUA_API int luaopen_dokun (lua_State *L)
     {
-		return Engine::regstr(L);
+		return Engine::reg(L);
     }
 #endif
 /////////////////////////////
 #ifdef DOKUN_BUILD_MODULE
     DOKUN_MODULE int luaopen_dokun (lua_State *L)
     {
-        return Engine::regstr(L);
+        return Engine::reg(L);
     }
 #endif
 /////////////////////////////
 #ifdef DOKUN_BUILD_CONSOLE
     LUA_API int luaopen_dokun (lua_State *L)
     {
-	    Engine::open          (L); // initialize engine by default in lua
-		return Engine::regstr(L);
+	    Engine::open      (L); // initialize engine by default in lua
+		return Engine::reg(L);
     }
 #endif
 #ifdef __cplusplus // if c++

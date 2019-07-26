@@ -141,6 +141,7 @@ KeySym Keyboard::KeycodeToKeysym(Display *d, KeyCode k, unsigned i, unsigned l)
     printf ("[ 7] KeySym = %d\n",(int)ks);
     return ks;
 #endif
+    return 0;
 } // to disable Xkblib use : XkbIgnoreExtension (true);
 /////////////
 /////////////

@@ -787,14 +787,14 @@ unsigned int Shader::get_program() const
 {
 	return program;
 }
-unsigned int Shader::get_shader(int index) const
-{
+//unsigned int Shader::get_shader(int index) const
+//{
 	//return shader_list[index];
-}
-unsigned int Shader::get_shader_count() const
-{
+//}
+//unsigned int Shader::get_shader_count() const
+//{
 	//return shader_list.size();
-}
+//}
 std::string Shader::get_source(int index)const
 {
 	if(source_list.empty()){Logger("No source found"); return "error";}

@@ -412,13 +412,17 @@ Vector4 Button::get_hover_color()const
 	return hover_color;
 }
 int Button::get_hover_color(lua_State *L)
-{}
+{
+	return 4;
+}
 Vector4 Button::get_press_color()const
 {
 	return press_color;
 }
 int Button::get_press_color(lua_State *L)
-{}
+{
+	return 4;
+}
 /////////////
 /////////////
 /////////////

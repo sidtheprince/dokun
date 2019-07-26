@@ -256,12 +256,14 @@ int Script::copy(lua_State *L)
 //////////
 bool Script::save(lua_State *L, const std::string& table) // saves a table and its keys to a text file
 {
+    if(table.empty()) return false;
 	std::string file_name = table + ".txt";
 	std::ofstream file(file_name.c_str());
 	if(!file.is_open())
 		return false;
 
 	lua_getglobal(L, table.c_str()); // get table    1
+    if(lua_type(L, -1) != LUA_TTABLE) return false; // not a valid table
 	lua_pushnil(L); // get first key
     while(lua_next(L, 2) != 0) // key at -2, value at -1
     {							
@@ -273,7 +275,7 @@ bool Script::save(lua_State *L, const std::string& table) // saves a table and i
 			lua_call(L, 1, 1);
 				
 			std::string value = lua_tostring(L, -1);
-			std::string thread = key + "     " + value + "      " + "thread\n";
+			std::string thread = key + " =    " + value + "    -- " + "thread\n";
 			file.write(thread.c_str(), thread.size());			
 			
 			lua_pop(L, 1); // pop string					
@@ -285,7 +287,7 @@ bool Script::save(lua_State *L, const std::string& table) // saves a table and i
 			lua_call(L, 1, 1);
 				
 			std::string value = lua_tostring(L, -1);
-			std::string function = key + "     " + value + "      " + "function\n";
+			std::string function = key + " =    " + value + "    -- " + "function\n";
 			file.write(function.c_str(), function.size());			
 			
 			lua_pop(L, 1); // pop string					
@@ -297,7 +299,7 @@ bool Script::save(lua_State *L, const std::string& table) // saves a table and i
 			lua_call(L, 1, 1);
 					
 			std::string value = lua_tostring(L, -1);
-			std::string udata = key + "     " + value + "     " + "userdata\n";
+			std::string udata = key + " =    " + value + "    -- " + "userdata\n";
 			file.write(udata.c_str(), udata.size());
 			
 			lua_pop(L, 1); // pop string					
@@ -309,7 +311,7 @@ bool Script::save(lua_State *L, const std::string& table) // saves a table and i
 			lua_call(L, 1, 1);
 				
 			std::string value = lua_tostring(L, -1);
-			std::string lightuserdata = key + "     " + value + "      " + "lightuserdata\n";
+			std::string lightuserdata = key + " =    " + value + "    -- " + "lightuserdata\n";
 			file.write(lightuserdata.c_str(), lightuserdata.size());			
 			
 			lua_pop(L, 1); // pop string					
@@ -321,7 +323,7 @@ bool Script::save(lua_State *L, const std::string& table) // saves a table and i
 			lua_call(L, 1, 1);
 			
 			std::string value = lua_tostring(L, -1);
-			std::string table_info = key + "     " + value + "      " + "table\n";
+			std::string table_info = key + " =    " + value + "    -- " + "table\n";
 			file.write(table_info.c_str(), table_info.size());			
 		
 			lua_pop(L, 1); // pop string	
@@ -330,7 +332,7 @@ bool Script::save(lua_State *L, const std::string& table) // saves a table and i
 		{
 			
 			std::string value = lua_tostring(L, -1);
-			std::string str_info = key + "     " + value + "      " + "string\n";
+			std::string str_info = key + " =    \"" + value + "\"    -- " + "string\n";
 			file.write(str_info.c_str(), str_info.size());	    
 		}
 	    if(lua_type(L, -1) == LUA_TBOOLEAN)
@@ -344,13 +346,13 @@ bool Script::save(lua_State *L, const std::string& table) // saves a table and i
 			{
 			    value = "false";
 			}
-			std::string bool_info = key + "     " + value + "      " + "boolean\n";
+			std::string bool_info = key + " =    " + value + "    -- " + "boolean\n";
 			file.write(bool_info.c_str(), bool_info.size());
 		}
 		if(lua_type(L, -1) == LUA_TNUMBER)
 		{
 			std::string value = lua_tostring(L, -1);
-			std::string number_info = key + "     " + value + "      " + "number\n";
+			std::string number_info = key + " =    " + value + "    -- " + "number\n";
 			file.write(number_info.c_str(), number_info.size());			
 		}
         lua_pop(L, 1); // pop key

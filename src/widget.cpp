@@ -116,6 +116,25 @@ Widget::~Widget(void)
 	//if(image) delete image; // call image destructor
 }
 /////////////
+int Widget::widget_new(lua_State *L)
+{
+    lua_settop(L, 0); // clear any value pushed on top
+	// create table (object)
+	lua_createtable(L, 0, 0);
+    // set mt
+	lua_getglobal(L, "Widget_mt");
+	lua_setmetatable(L, 1);
+	// set userdata
+	Widget ** widget = static_cast<Widget**>(lua_newuserdata(L, sizeof(Widget*)));
+	* widget = new Widget();
+    lua_setfield(L, 1, "udata");
+	// return widget
+	if(lua_istable(L, -1))
+	    return 1;
+	lua_pushnil(L); // if not table
+	    return 1; // return nil
+}
+/////////////
 void Widget::add(const GUI& gui) // for box widgets only
 {
 	const_cast<GUI&>(gui).set_parent(*this);
@@ -219,7 +238,7 @@ void Widget::draw(void)
                     if(label->get_alignment() == "free"  ) {}	
 					// set position to box_position + relative_position
                     label->set_position(get_x() + label->get_relative_x(), get_y() + label->get_relative_y());
-                    // set the label size manually				
+                    // set the label size manually
 					// and finally, draw the label
 					label->draw();
 			    }
@@ -295,7 +314,9 @@ void Widget::maximize(void)
 	}
 }
 int Widget::maximize(lua_State * L)
-{}
+{
+    return 0;
+}
 /////////////
 void Widget::iconify(void) // if maximized, keep maximized while iconified at the same time
 {
@@ -309,7 +330,9 @@ void Widget::iconify(void) // if maximized, keep maximized while iconified at th
 	}
 }
 int Widget::iconify(lua_State * L)
-{}
+{
+    return 0;
+}
 /////////////
 void Widget::restore(void)
 {
@@ -330,7 +353,9 @@ void Widget::restore(void)
 	}
 }
 int Widget::restore(lua_State * L)
-{}
+{
+    return 0;
+}
 /////////////
 /////////////
 // SETTERS
@@ -958,7 +983,9 @@ void Widget::set_alignment(const std::string& alignment)
 	this->alignment = alignment;
 }
 int Widget::set_alignment(lua_State * L)
-{}
+{
+    return 0;
+}
 /////////////
 /////////////
 // GETTERS
@@ -1109,7 +1136,9 @@ std::string Widget::get_alignment()const
 	return alignment;
 }
 int Widget::get_alignment(lua_State * L)
-{}
+{
+	return 1;
+}
 /////////////
 /////////////
 // BOOLEAN
@@ -1119,62 +1148,82 @@ bool Widget::is_box  ()const
 	return (String::lower(type) == "box");
 } 
 int Widget::is_box(lua_State * L)
-{}
+{
+	return 1;
+}
 bool Widget::is_icon ()const
 {
 	return (String::lower(type) == "icon");
 }
 int Widget::is_icon(lua_State * L)
-{}
+{
+	return 1;
+}
 bool Widget::has_title_bar()const
 {
 	return (title_bar == true);
 } 
 int Widget::has_title_bar(lua_State * L)
-{}
+{
+	return 1;
+}
 bool Widget::has_outline()const
 {
 	return (outline == true);
 }   
 int Widget::has_outline(lua_State * L)
-{}
+{
+	return 1;
+}
 bool Widget::has_border()const
 {
 	return (border == true);
 } 
 int Widget::has_border(lua_State * L)
-{}
+{
+	return 1;
+}
 bool Widget::has_shadow()const
 {
 	return (shadow == true);
 }
 int Widget::has_shadow(lua_State * L)
-{}
+{
+	return 1;
+}
 bool Widget::has_gradient()const
 {
 	return (gradient == true);
 }  
 int Widget::has_gradient(lua_State * L)
-{}
+{
+	return 1;
+}
 /////////////
 bool Widget::is_maximized()const
 {
 	return (maximized == true);
 }
 int Widget::is_maximized(lua_State * L)
-{}
+{
+	return 1;
+}
 bool Widget::is_iconified()const
 {
 	return (iconified == true);
 }
 int Widget::is_iconified(lua_State * L)
-{}
+{
+	return 1;
+}
 bool Widget::is_restored()const
 {
 	return (restored == true);
 }
 int Widget::is_restored(lua_State * L)
-{}
+{
+	return 1;
+}
 /////////////
 /////////////
 void Widget::on_titlebar(void)
@@ -1342,21 +1391,3 @@ void Widget::on_resize(void)
 /////////////
 /////////////
 /////////////
-int Widget::widget_new(lua_State *L)
-{
-    lua_settop(L, 0); // clear any value pushed on top
-	// create table (object)
-	lua_createtable(L, 0, 0);
-    // set mt
-	lua_getglobal(L, "Widget_mt");
-	lua_setmetatable(L, 1);
-	// set userdata
-	Widget ** widget = static_cast<Widget**>(lua_newuserdata(L, sizeof(Widget*)));
-	* widget = new Widget();
-    lua_setfield(L, 1, "udata");
-	// return widget
-	if(lua_istable(L, -1))
-	    return 1;
-	lua_pushnil(L); // if not table
-	    return 1; // return nil
-}

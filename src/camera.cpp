@@ -103,7 +103,7 @@ int Camera::zoom(lua_State *L)
 //////////////
 void Camera::zoom_in(double zoom) // works! tested! 7-15-2019
 {
-    set_zoom(get_zoom() - 1); // zoom_in
+    set_zoom(get_zoom() - zoom); // zoom_in
 }
 int Camera::zoom_in(lua_State *L)
 {
@@ -120,7 +120,7 @@ int Camera::zoom_in(lua_State *L)
 //////////////
 void Camera::zoom_out(double zoom) // works! tested! 7-15-2019
 {
-    set_zoom(get_zoom() + 1); // zoom_out
+    set_zoom(get_zoom() + zoom); // zoom_out
 }
 int Camera::zoom_out(lua_State *L)
 {
@@ -198,7 +198,7 @@ void Camera::draw()
 {
 	if(is_enabled()) // camera is enabled
 	{
-		Vector3 view_p = position + view;
+		//Vector3 view_p = position + view;
 	    // draw ..
 		/*
 		Renderer::draw_camera(position.x, position.y, position.z,

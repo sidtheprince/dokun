@@ -40,7 +40,9 @@ Scrollbar::Scrollbar(int x, int y, int width, int height)
 }
 //////////////
 int Scrollbar::new_(lua_State *L)
-{}
+{
+    return 1;
+}
 //////////////
 Scrollbar::~Scrollbar()
 {}
@@ -80,7 +82,9 @@ void Scrollbar::draw()
 	on_draw(); // callback for all gui
 }
 int Scrollbar::draw(lua_State *L)
-{}
+{
+    return 0;
+}
 //////////////
 //////////////
 void Scrollbar::set_color(int red, int green, int blue, int alpha)
@@ -124,7 +128,9 @@ void Scrollbar::set_value(double value)
 }
 //////////////
 int Scrollbar::set_value(lua_State *L)
-{}
+{
+    return 0;
+}
 //////////////
 void Scrollbar::set_step(double step)
 {} // number of items to scroll
@@ -134,7 +140,9 @@ void Scrollbar::set_handle_color(int layer, int red, int green, int blue)
 {}
 //////////////
 int Scrollbar::set_handle_color(lua_State *L)
-{}
+{
+    return 0;
+}
 //////////////
 //void set_handle_inner_color(int red, int green, int blue, int alpha); static int set_handle_inner_color(lua_State *L);// handle and beam parts of slider
 //void set_handle_outer_color(int red, int green, int blue, int alpha); static int set_handle_outer_color(lua_State *L);// handle and beam parts of slider
@@ -145,8 +153,10 @@ void Scrollbar::set_handle_height(int handle_height)
 void Scrollbar::set_radius(double radius)
 {}
 //////////////
-int set_radius(lua_State *L)
-{}// roundness of beam edges [===========]
+int Scrollbar::set_radius(lua_State *L)
+{
+    return 0;
+}// roundness of beam edges [===========]
 //////////////
 // button properties
 void Scrollbar::set_button(bool button)
@@ -184,7 +194,9 @@ void Scrollbar::set_outline(bool outline)
 }
 //////////////
 int Scrollbar::set_outline(lua_State *L)
-{}
+{
+    return 0;
+}
 //////////////
 void Scrollbar::set_outline_width(double width)
 {
@@ -192,7 +204,9 @@ void Scrollbar::set_outline_width(double width)
 }
 //////////////
 int Scrollbar::set_outline_width(lua_State *L)
-{}
+{
+    return 0;
+}
 //////////////
 void Scrollbar::set_outline_color(int red, int green, int blue, int alpha)
 {
@@ -200,7 +214,9 @@ void Scrollbar::set_outline_color(int red, int green, int blue, int alpha)
 }
 //////////////
 int Scrollbar::set_outline_color(lua_State *L)
-{}
+{
+    return 0;
+}
 //////////////
 void Scrollbar::set_outline_color(const Vector3& color)
 {
@@ -219,7 +235,9 @@ void Scrollbar::set_outline_antialiased(bool antialised)
 }
 //////////////
 int Scrollbar::set_outline_antialiased(lua_State *L)
-{}		
+{
+    return 0;
+}		
 //////////////
 // border properties
 void Scrollbar::set_border(bool border)
@@ -234,7 +252,9 @@ double Scrollbar::get_value() const
 }
 //////////////
 int Scrollbar::get_value(lua_State *L)
-{}
+{
+    return 1;
+}
 //////////////
 Vector2 Scrollbar::get_range() const
 {
@@ -242,7 +262,9 @@ Vector2 Scrollbar::get_range() const
 }
 //////////////
 int Scrollbar::get_range(lua_State *L)
-{}
+{
+    return 2;
+}
 //////////////
 double Scrollbar::get_minimum_value() const
 {
@@ -250,7 +272,9 @@ double Scrollbar::get_minimum_value() const
 }
 //////////////
 int Scrollbar::get_minimum_value(lua_State *L)
-{}
+{
+    return 1;
+}
 //////////////
 double Scrollbar::get_maximum_value() const
 {
@@ -258,10 +282,14 @@ double Scrollbar::get_maximum_value() const
 }
 //////////////
 int Scrollbar::get_maximum_value(lua_State *L)
-{}
+{
+    return 1;
+}
 //////////////
 double Scrollbar::get_step() const
-{} // how many steps the scrollbar can take
+{
+    return 10;
+} // how many steps the scrollbar can take
 //////////////
 Vector4 Scrollbar::get_color() const
 {
@@ -287,35 +315,55 @@ int Scrollbar::get_color(lua_State *L)
 //////////////
 // handle
 int Scrollbar::get_handle_x() const
-{}
+{
+    return 0;
+}
 //////////////
 int Scrollbar::get_handle_x(lua_State *L)
-{}
+{
+    return 1;
+}
 //////////////
 int Scrollbar::get_handle_y() const
-{}
+{
+    return 0;
+}
 //////////////
 int Scrollbar::get_handle_y(lua_State *L)
-{}
+{
+    return 1;
+}
 //////////////
 int Scrollbar::get_handle_width() const
-{}
+{
+    return 0;
+}
 //////////////
 int Scrollbar::get_handle_width(lua_State *L)
-{}
+{
+    return 1;
+}
 //////////////
 int Scrollbar::get_handle_height() const
-{}
+{
+    return 0;
+}
 //////////////
 int Scrollbar::get_handle_height(lua_State *L)
-{}
+{
+    return 1;
+}
 //////////////
 // boolean
 bool Scrollbar::is_moved() const
-{}
+{
+    return false;
+}
 //////////////
 int Scrollbar::is_moved(lua_State *L)
-{}
+{
+    return 1;
+}
 //////////////
 //////////////
 //////////////

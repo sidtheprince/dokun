@@ -96,15 +96,15 @@ void Level::add(Entity * entity)
 /////////////
 void Level::add(Camera * camera)
 {
-	if(camera == nullptr)
-	    return;	
+	//if(camera == nullptr)
+	//    return;	
 	camera_list.push_back(camera);
 }
 /////////////
 void Level::add(Light * light)
 {
-	if(light == nullptr)
-	    return;	
+	//if(light == nullptr)
+	//    return;	
 	light_list.push_back(light);
 }
 /////////////
@@ -849,7 +849,7 @@ bool Level::save(std::string file_name) // same file or seperate files
 			    if(entity_list[i]->get_component(j)->get_type() == 4)
 			    {
 				    if(entity_list[i]->get_component(j)->to_pointer() != nullptr) value = "userdata: " + String::to_string(entity_list[i]->get_component(j)->to_pointer());
-				    if(entity_list[i]->get_component(j)->to_pointer() == nullptr) value = "null"; // nullptr
+				    if(entity_list[i]->get_component(j)->to_pointer() == nullptr) value = "nil"; // nullptr
 			    }
 			    if(entity_list[i]->get_component(j)->get_type() == 5) value = "function: " + String::to_string(&entity_list[i]->get_component(j)->function); // function
                 if(entity_list[i]->get_component(j)->get_type() == 10) // boolean

@@ -39,7 +39,7 @@ struct String // String manipulation
 	// destructor
 	~String(void)                  { value.clear();             }
 	// conversion
-	static std::string to_unicode(const std::string& str) {}
+	static std::string to_unicode(const std::string& str) {return "";}
 	static std::wstring widen( const std::string& str )
 {
     std::wostringstream wstm ;

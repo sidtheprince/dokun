@@ -11,7 +11,7 @@ extern "C" {             // run as c code
     #include <png.h>     // libpng (png)
     #include <jpeglib.h> // libjpeg (jpeg)
     #include <gif_lib.h> // giflib (gif)
-    #include <tiffio.h>  // libtiff (tiff) // libxml (svg)
+    #include <tiffio.h>  // libtiff (tiff) // libxml (svg) (will be supported in future releases)
 #ifdef __cplusplus       // if c++
 }
 #endif

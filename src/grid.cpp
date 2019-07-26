@@ -14,6 +14,7 @@ highlight_color(0, 51, 102, 255)
 	set_size(50, 50); // size of each individual block in grid
 	set_orientation(0);
 }
+//////////////
 Grid::Grid(int row, int column) :  color(64, 64, 64, 255),
 // outline
 outline(true), 
@@ -30,6 +31,7 @@ highlight_color(0, 51, 102, 255)
 	set_column(column);
 	set_row(row);
 }
+//////////////
 int Grid::grid_new(lua_State *L)
 {
 	lua_settop(L, 0); // clear stack	
@@ -41,6 +43,7 @@ int Grid::grid_new(lua_State *L)
 	lua_setfield(L, 1, "udata");
 	return 1; 	// return the newly created table
 }
+//////////////
 Grid::~Grid()
 {
     block.clear();
@@ -70,13 +73,13 @@ void Grid::draw() // COMPLETE! :D
 					    image->get_aspect_ratio_correction(get_width(), get_height()));	// equivalent to Image::scale_to_fit
 				    image->draw();
 				}				
-				if(highlight)
+				/*if(highlight)
 				{
 				    // on hover
                     if(Mouse::is_over(block[i][j].get_position().x+j, block[i][j].get_position().y+i, get_width(), get_height()))
 					    block[i][j].set_color(highlight_color);
 				    else block[i][j].set_color(get_color());					
-				}
+				}*/
 			}
 		}	
 	}
@@ -109,7 +112,9 @@ void Grid::update()
 	}	
 }
 int Grid::update(lua_State *L)
-{}
+{
+    return 0;
+}
 /////////////
 /////////////
 void Grid::set_row(int rows)
@@ -204,25 +209,33 @@ Widget * Grid::get_block(int row, int column)
 	return &block[row][column];
 }              
 int Grid::get_block(lua_State *L)
-{}
+{
+    return 1;
+}
 int Grid::get_row_count()const
 {
 	return rows;
 }
 int Grid::get_row_count(lua_State *L)
-{}
+{
+    return 1;
+}
 int Grid::get_column_count()const
 {
 	return columns;
 }
 int Grid::get_column_count(lua_State *L)
-{}
+{
+    return 1;
+}
 Vector4 Grid::get_color()const
 {
 	return color;
 }              
 int Grid::get_color(lua_State *L)
-{}
+{
+    return 4;
+}
 /*
 	std::cout << "rows " << block.size() << "\n"; 
 	for(int k = 0; k < block.size(); k++)

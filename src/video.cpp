@@ -207,35 +207,45 @@ int Video::get_width()
 	return width;
 }
 int Video::get_width (lua_State *L)
-{}
+{
+    return 1;
+}
 ///////////
 int Video::get_height()
 {
 	return height;
 }
 int Video::get_height(lua_State *L)
-{}
+{
+    return 1;
+}
 ///////////
 void * Video::get_data()
 {
 	return &data[0];
 }
 void * Video::get_audio_data()
-{}
+{
+    return nullptr;
+}
 ///////////
 double Video::get_fps()
 {
 	return fps;
 }
 int Video::get_fps(lua_State *L)
-{}
+{
+    return 1;
+}
 ///////////
 int Video::get_format()
 {
 	return format;
 }
 int Video::get_format(lua_State *L)
-{}
+{
+    return 1;
+}
 ///////////
 ///////////
 bool Video::load_ogg(const std::string& file_name, int vidfmt)

@@ -621,7 +621,9 @@ void Image::set_filter(int min_filter, int mag_filter)
 	this->mag_filter = mag_filter;
 }
 int Image::set_filter(lua_State * L)
-{}
+{
+    return 0;
+}
 /////////////
 void Image::set_wrap(int wrap_s, int wrap_t)
 {
@@ -629,21 +631,27 @@ void Image::set_wrap(int wrap_s, int wrap_t)
 	this->wrap_t = wrap_t;
 }
 int Image::set_wrap(lua_State * L)
-{}
+{
+    return 0;
+}
 /////////////
 void Image::set_internal_format(int internal_format)
 {
 	this->internal_format = internal_format;
 }
 int Image::set_internal_format(lua_State * L)
-{}
+{
+    return 0;
+}
 /////////////
 void Image::set_format(unsigned int format)
 {
 	this->format = format;
 }
 int Image::set_format(lua_State * L)
-{}
+{
+    return 0;
+}
 /////////////
 void Image::set_param(int min_filter, int mag_filter, 
 	int wrap_s, int wrap_t, 
@@ -655,7 +663,9 @@ void Image::set_param(int min_filter, int mag_filter,
 	set_format(format);
 }
 int Image::set_param(lua_State *L)
-{}
+{
+    return 0;
+}
 /////////////
 /////////////
 // GETTERS
@@ -799,28 +809,36 @@ unsigned int Image::get_buffer()const
 	return buffer;
 }
 int Image::get_buffer(lua_State *L)
-{}
+{
+    return 1;
+}
 /////////////
 Vector2i Image::get_filter()const
 {
 	return Vector2i(min_filter, mag_filter);
 }
 int Image::get_filter(lua_State *L)
-{}
+{
+    return 1;
+}
 /////////////
 Vector2i Image::get_wrap()const
 {
 	return Vector2i(wrap_s, wrap_t);
 }
 int Image::get_wrap(lua_State * L)
-{}
+{
+    return 1;
+}
 /////////////
 int Image::get_internal_format() const
 {
 	return internal_format;
 }
 int Image::get_internal_format(lua_State *L)
-{}
+{
+    return 1;
+}
 /////////////
 unsigned int Image::get_format()         const
 {
@@ -1054,38 +1072,36 @@ int Image::get_new_width()        const // deprecated (delete soon)
 {
 	return new_width;
 }
-int Image::get_new_width(lua_State *L)
-{}
 /////////////
 int Image::get_new_height()       const // deprecated (delete soon)
 {
 	return new_height;
 }
-int Image::get_new_height(lua_State *L)
-{}	
 /////////////
 Vector2 Image::get_new_size()     const // deprecated (delete soon)
 {
 	return Vector2(get_new_width(), get_new_height());
 }
-int Image::get_new_size(lua_State *L)
-{}
 /////////////
 std::string Image::get_alignment() const
 {
 	return alignment;
 }
 int Image::get_alignment(lua_State *L)
-{}
+{
+    return 1;
+}
 /////////////
 Vector4 Image::get_rect() const
 {
-	int image_width  = is_resized() ? new_width  : get_width ();
-	int image_height = is_resized() ? new_height : get_height();
+	int image_width  = get_width ();
+	int image_height = get_height();
 	return Vector4(x, y, image_width, image_height);
 }
 int Image::get_rect(lua_State * L)
-{}
+{
+    return 4;
+}
 /////////////
 /////////////
 // BOOLEAN
@@ -1164,7 +1180,9 @@ bool Image::is_resized() const
 	return (resized == true);
 }
 int Image::is_resized(lua_State *L)
-{}
+{
+    return 1;
+}
 /////////////
 bool Image::is_generated()const
 {

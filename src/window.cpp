@@ -110,7 +110,7 @@ if(Renderer::get_current_API() == "OpenGL") {
     if(!(glx_major >= 1 && glx_minor >= 3)) {
        Logger("GLX version must be 1.3 or higher");
        exit(1);
-    } Logger::push(String("Running GLX version    ") + String(glx_major) + "." + String(glx_minor));
+    } //Logger::push(String("Running GLX version    ") + String(glx_major) + "." + String(glx_minor));
     
     // Get the default screen's GLX extension list
     const char *extensions = glXQueryExtensionsString(display, DefaultScreen(display));
@@ -198,8 +198,7 @@ if(Renderer::get_current_API() == "OpenGL") {
 #ifdef DOKUN_OPENGL
 	if(Renderer::get_current_API() == "OpenGL") {	// must set the current API before creating a window
 		set_context();
-        Logger::push(String("Running ") + Renderer::get_current_API() + " version " + Renderer::get_current_API_version()); // can ONLY check context version after creating the context
-        Logger::push(String("Maximum ") + Renderer::get_shader_language() + " version   " + Renderer::get_shader_language_version());//"3.30.6");
+        Logger::push(String("Running ") + Renderer::get_current_API() + " version " + Renderer::get_current_API_version()); // can ONLY check context version after creating the context //Logger::push(String("Maximum ") + Renderer::get_shader_language() + " version   " + Renderer::get_shader_language_version());//"3.30.6");
         Logger::push("\n\n");
 	}
 #endif	
@@ -647,9 +646,8 @@ int WINDOW::loop(lua_State * L) // int main ()
 		}
 		// quit before window closes
 		window->get_event()->on_quit(L);
-	}
+	}*/
 	return 0;
-*/	
 }
 ////////////
 //////////// 

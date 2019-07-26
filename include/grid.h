@@ -25,7 +25,7 @@ public:
 	int get_column_count()const;                  static int get_column_count(lua_State *L);	
 	Vector4 get_color()const;                     static int get_color(lua_State *L); //static int _(lua_State *L);
 private:
-	std::vector< std::vector<Widget > > block;
+	std::vector< std::vector< Widget > > block;
     int rows, columns;	
 	Vector4 color;
 	// outline

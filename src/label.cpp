@@ -63,6 +63,25 @@ Label::Label(const std::string& text, const FONT& font) : width(0), height(0), c
 	set_position(0, 0);
 }
 /////////////
+int Label::label_new(lua_State *L)
+{
+	lua_settop(L, 0);
+	// create table
+	lua_createtable(L, 0, 0);
+	// set mt
+	lua_getglobal(L, "Label_mt");
+	lua_setmetatable(L, 1);
+	// set userdata
+	Label **label = static_cast<Label **>(lua_newuserdata(L, sizeof(Label *)));
+	*label = new Label();
+	lua_setfield(L, 1, "udata");
+	// return table
+	if(lua_istable(L, -1))
+		return 1;
+	lua_pushnil(L);
+	return 1;
+}
+/////////////
 Label::~Label()
 {}
 /////////////
@@ -70,27 +89,16 @@ FONT * Label::default_font (new FONT());
 /////////////
 void Label::draw()
 {
-	if(!font) {Logger("Font is null");return;}
+	if(!font) return; // return if no font
     if(is_visible())
     {
-		//if(font->get_file().empty()) Logger("No file in font");
-		// STORE ALL CHARACTERS IN ARRAY BEFORE DRAWING
+		// STORE ALL CHARACTERS IN ARRAY BEFORE DRAWING!
 		font->generate();
         // Draw text
 		Renderer::draw_text(string, get_x(), get_y(), 
 		        get_width(), get_height(),
 		        get_angle(), get_scale().x, get_scale().y, 
 	            *font, get_color().x, get_color().y, get_color().z, get_color().w);
-		// Draw glyph
-		/*for(int i = 0; i < string.length(); i++)
-		{
-			unsigned char character = string[i];
-			Renderer::draw_glyph(character, get_x() + i * font->get_width(character), get_y(), get_angle(), get_scale().x, get_scale().y, 
-	            *font, get_color().x, get_color().y, get_color().z, get_color().w); // x = get_x + space_between_each_glyph
-		#ifdef DOKUN_DEBUG0
-			std::cout << "Glyph size: " << character << " " << font->get_size(character) << "\n"; // actual pixel_size of glyph
-		#endif
-		}*/
     }
 	on_draw(); // callback for all gui
 }
@@ -113,13 +121,17 @@ void Label::update(void)
 /////////////
 // SETTERS	
 /////////////
-void Label::set_string(const std::string& string)
+void Label::set_string(const std::string& string_)
 {
-	this->string = string;
+	this->string = string_;
 	// update label size whenever the string is changed
-	width = font->get_width (string);
-	height= font->get_height(string);
-} 
+    if(!font) return; // do not update if no font
+	width = font->get_width (string_);
+	height= font->get_height(string_);
+#ifdef DOKUN_DEBUG0
+    std::cout << "Label size updated: " << Vector2(width, height) << std::endl;
+#endif
+}
 /////////////
 int Label::set_string(lua_State *L)
 {
@@ -129,7 +141,13 @@ int Label::set_string(lua_State *L)
 	if(lua_isuserdata(L, -1))
 	{
 		Label * label = *static_cast<Label **>(lua_touserdata(L, -1));
-		label -> set_string (lua_tostring(L, 2));
+		label->set_string(lua_tostring(L, 2));
+        // set string in Lua
+        lua_pushvalue(L, 2);
+	    if(lua_istable(L, -1))
+		{
+	        lua_setfield(L, 1, "string");
+	    }        
 	}	
 	return 0;
 } 
@@ -166,7 +184,7 @@ int Label::set_font(lua_State *L)
 		if(lua_isuserdata(L, -1))
 		{
 		    Label * label = *static_cast<Label **>(lua_touserdata(L, -1));
-			label->font = (nullptr); // set font to nullptr instead of deleting it so it can be reused
+			label->font = nullptr; // set font to nullptr instead of deleting it so it can be reused
 		}
 		lua_pushvalue(L, 2); // push 2nd arg
 		lua_setfield(L, 1, "font"); // set font to nil
@@ -424,27 +442,6 @@ int Label::get_alignment(lua_State *L)
     return 1;	
 }
 /////////////
-/*
-double Label::get_relative_x() const
-{
-	return relative_position.x;
-}
-int Label::get_relative_x(lua_State * L)
-{}
-/////////////
-double Label::get_relative_y() const
-{
-	return relative_position.y;
-}
-int Label::get_relative_y(lua_State * L)
-{}
-/////////////
-Vector2 Label::get_relative_position() const
-{
-	return relative_position;
-}
-int Label::get_relative_position(lua_State * L)
-{}*/
 /////////////
 double Label::get_aspect_ratio_correction(int rect_width, int rect_height) const
 {
@@ -481,7 +478,7 @@ std::vector<Vector2> Label::get_character_size_array()
     {
         FONT::Character ch = get_font()->character_array[*c];  // will change Character
         double width  = get_font()->character_array[*c].width;
-        double height = get_font()->character_array[*c].width;
+        double height = get_font()->character_array[*c].height;
 		character_size_list.push_back(Vector2(width, height));
 	}		
 	return character_size_list;
@@ -502,7 +499,7 @@ int Label::get_default_font(lua_State *L)
 void Label::set_width(int width)
 {
 	int old_width  = (font ? font->get_width (string) : get_width()); // width of entire string
-	set_scale(width / (double)old_width, get_scale().y);
+	set_scale(width / static_cast<double>(old_width), get_scale().y);
 	this->width = width; // save width (in value)
 }
 int Label::set_width(lua_State * L)
@@ -521,7 +518,7 @@ int Label::set_width(lua_State * L)
 void Label::set_height(int height)
 {
 	int old_height = (font ? font->get_height(string) : get_height());
-	set_scale(get_scale().x, height / (double)old_height);
+	set_scale(get_scale().x, height / static_cast<double>(old_height));
 	this->height = height; // save height (in value)
 }
 int Label::set_height(lua_State * L)
@@ -564,7 +561,9 @@ int Label::get_width()const
 	return width * get_scale().x; // return width whether scaled or not
 }
 int Label::get_width(lua_State * L)
-{}
+{
+	return 1;
+}
 /////////////
 int Label::get_height()const
 {
@@ -573,42 +572,29 @@ int Label::get_height()const
 	return height * get_scale().y; // return height whether scaled or not
 }
 int Label::get_height(lua_State * L)
-{}
+{
+	return 1;
+}
 /////////////
 Vector2 Label::get_size() const
 {
 	return Vector2(get_width(), get_height());
 }
 int Label::get_size(lua_State * L)
-{}
+{
+	return 2;
+}
 /////////////
 Vector4 Label::get_rect() const
 {
 	return Vector4(get_x(), get_y(), get_width(), get_height());
 }
 int Label::get_rect(lua_State * L)
-{}
-/////////////
-/////////////
-/////////////
-int Label::new_(lua_State *L)
 {
-	lua_settop(L, 0);
-	// create table
-	lua_createtable(L, 0, 0);
-	// set mt
-	lua_getglobal(L, "Label_mt");
-	lua_setmetatable(L, 1);
-	// set userdata
-	Label **label = static_cast<Label **>(lua_newuserdata(L, sizeof(Label *)));
-	*label = new Label();
-	lua_setfield(L, 1, "udata");
-	// return table
-	if(lua_istable(L, -1))
-		return 1;
-	lua_pushnil(L);
-	return 1;
+	return 4;
 }
+/////////////
+/////////////
 ///////////////
 /*  
 std::cout << "Label position: " << label->get_position() << std::endl;

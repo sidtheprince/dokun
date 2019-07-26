@@ -52,8 +52,9 @@ bool Client::connect(unsigned int port, std::string address)
 		{
 			// error connecting to server
 			return false;
-		}
+		} else return true;
 	#endif
+    return false;
 }
 //////////
 void Client::write(const std::string& text)

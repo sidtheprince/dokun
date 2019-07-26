@@ -269,16 +269,23 @@ int Data::rename_table(lua_State *L)
 		Data * data = *(Data **)lua_touserdata(L, -1);
 		data->rename_table(lua_tostring(L, 2), lua_tostring(L, 3));
 	}	
+    return 0;
 }
 ////////////
 ////////////
 
 double Data::get_column_double()
-{}
+{
+    return 0;
+}
 int Data::get_column_integer()
-{}
+{
+    return 0;
+}
 std::string Data::get_column_text()
-{}
+{
+    return "";
+}
 ////////////
 ////////////
 void Data::close()

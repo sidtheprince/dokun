@@ -392,15 +392,15 @@ void Texture::destroy()
     if(!glXGetCurrentContext())
 	    return;
 #endif
+    int buffer_id = buffer;
     if(buffer != 0) // if buffer is valid, then delete, zero means its not valid
     {
-        glDeleteTextures(1, static_cast<GLuint *>(&buffer));
-        buffer = 0;
+        glDeleteTextures(1, static_cast<GLuint *>(&buffer)); // delete texture_buffer
+        buffer = 0;     // set texture_buffer to nullptr
+        data = nullptr; // set texture_data   to nullptr (actually its better to delete 'data' manually then set to nullptr I think; use Sprite.set_texture(nil) in Lua to set a texture to nullptr)
 #ifdef DOKUN_DEBUG
-	    Logger::push(DOKUN_LOGTAG + "Texture " + String(this).str() + " buffer destroyed");
+	    Logger::push(DOKUN_LOGTAG + "Texture " + String(this).str() + " buffer " + String(buffer_id).str() + " destroyed");
 #endif		
-        // delete texture_data as well?
-        data = nullptr;
     }   
 #endif	
 }
@@ -554,14 +554,18 @@ void Texture::set_target(unsigned int target)
 	this->target = target;
 }
 int Texture::set_target(lua_State * L)
-{}
+{
+    return 0;
+}
 /////////////
 void Texture::set_level (int level)
 {
 	this->level = level;
 }
 int Texture::set_level(lua_State * L)
-{}
+{
+    return 0;
+}
 /////////////
 void Texture::set_invert(bool invert)
 {
@@ -848,14 +852,18 @@ unsigned int Texture::get_target() const
 	return target;
 }
 int Texture::get_target(lua_State * L)
-{}
+{
+    return 1;
+}
 /////////////
 int Texture::get_level() const
 {
 	return level;
 }
 int Texture::get_level(lua_State * L)
-{}
+{
+    return 1;
+}
 /////////////
 void Texture::get_info(std::string name, int * data) //const// USAGE: int width; tex_ptr->get_info("width", &width); std::cout << width << std::endl;
 {
@@ -1050,28 +1058,36 @@ int Texture::is_png(lua_State *L)
 }
 
 bool Texture::is_jpeg()
-{}
+{
+    return false;
+}
 int Texture::is_jpeg(lua_State *L)
 {
 	return 1;
 }
 
 bool Texture::is_gif()
-{}
+{
+    return false;
+}
 int Texture::is_gif(lua_State *L)
 {
 	return 1;
 }
 
 bool Texture::is_bmp()
-{}
+{
+    return false;
+}
 int Texture::is_bmp(lua_State *L)
 {
 	return 1;
 }
 
 bool Texture::is_tiff()
-{}
+{
+    return false;
+}
 int Texture::is_tiff(lua_State *L)
 {
 	return 1;
@@ -1515,7 +1531,7 @@ bool Texture::load_tiff(const std::string& file_name) // void Texture::load_tiff
 	return true;
 }
 /////////////
-bool Texture::load_svg(const std::string& file_name)
+bool Texture::load_svg(const std::string& file_name) //char * chr = strdup(file_name.c_str());
 {
 	return false;
 }

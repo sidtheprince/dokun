@@ -100,19 +100,21 @@ void Renderer::update_vertex_array(const std::vector<float>& vertex_array)
     /*glBindBuffer(GL_ARRAY_BUFFER, sprite_vertex_buffer_obj);
 	    glBufferSubData(GL_ARRAY_BUFFER, 0, vertex_array.size() * sizeof(GLfloat), vertex_array.data());
 	glBindBuffer(GL_ARRAY_BUFFER, 0);*/
-	glNamedBufferSubData(sprite_vertex_buffer_obj, 0, vertex_array.size() * sizeof(GLfloat), vertex_array.data()); Logger("Sprite vertex data updated");// updates buffer_obj without having to bind it	
+	glNamedBufferSubData(sprite_vertex_buffer_obj, 0, vertex_array.size() * sizeof(GLfloat), vertex_array.data()); //Logger("Sprite vertex data updated");// updates buffer_obj without having to bind it	
 #endif	
 }
 ////////////
 void Renderer::destroy_vertex_array (void) // do not destroy vertex array until object is no longer in use or the endgine closes
 {
 #ifdef DOKUN_OPENGL	
+if(glIsVertexArray(sprite_vertex_array_obj)) {// if vao has been generated
 	// delete the buffers
 	glDeleteBuffers(1, &sprite_vertex_buffer_obj  );
 	glDeleteBuffers(1, &sprite_texcoord_buffer_obj);	
 	glDeleteBuffers(1, &sprite_element_buffer_obj );
     // delete the arrays
 	glDeleteVertexArrays(1, &sprite_vertex_array_obj);	Logger("Sprite vertex data destroyed");
+}
 #endif	
 }
 ////////////
@@ -222,7 +224,8 @@ void Renderer::draw_sprite_test(double x, double y, double angle, double scale_x
 	glm::vec3 up     = glm::vec3(camera->get_up().x  , camera->get_up().y  , camera->get_up().z);	
 	glm::mat4 view   = glm::lookAt(eye, center, up); // glm::lookAt(glm::vec3(0, 0, 0), glm::vec3(0, 0,-1), glm::vec3(0, 1, 0));
 	// projection (zoom) // WARNING: ALLOCATING IN LOOP CAUSES SLOW RENDERING!!
-	glm::mat4 proj = glm::ortho(static_cast<GLfloat>(camera->get_left()), static_cast<GLfloat>(window_width), static_cast<GLfloat>(window_height),
+	float zoom_factor = camera->get_zoom();
+    glm::mat4 proj = glm::ortho(static_cast<GLfloat>(camera->get_left()), static_cast<GLfloat>(window_width) + zoom_factor, static_cast<GLfloat>(window_height) + zoom_factor,
  	    static_cast<GLfloat>(camera->get_top()), static_cast<GLfloat>(camera->get_near()), static_cast<GLfloat>(camera->get_far()));//glm::ortho(0.0f, static_cast<float>(window_width), static_cast<float>(window_height), 0.0f, -1.0f, 1.0f);//glm::ortho(0.0f, static_cast<float>(window_width), 0.0f, static_cast<float>(window_height), -1.0f, 1.0f); /// bottom-left(0, width, 0, height), top-left(0, width, height, 0)=default for dokun	
 
 	if(shader.get_uniform("model") != -1) glUniformMatrix4fv(glGetUniformLocation(shader.get_program(), "model"), 1, false, glm::value_ptr(model));
@@ -251,7 +254,7 @@ void Renderer::draw_sprite_test(double x, double y, double angle, double scale_x
 	const_cast<Shader&>(shader).set_integer("map.diffuse", 0);
 	// Draw
 	glBindVertexArray(sprite_vertex_array_obj);                // bind vertex array
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);      //glDrawArrays(GL_TRIANGLES, 0, 6); // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); glDrawElements(GL_TRIANGLES, sizeof(indices), GL_UNSIGNED_INT, &indices);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);   //glDrawArrays(GL_TRIANGLES, 0, 6); // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); glDrawElements(GL_TRIANGLES, sizeof(indices), GL_UNSIGNED_INT, &indices);
     glBindVertexArray(0);                 // unbind vertex array
 	glBindTexture(GL_TEXTURE_2D, 0);      // unbind texture (base)
 	glActiveTexture(GL_TEXTURE0 + 0);
@@ -349,6 +352,8 @@ void Renderer::draw_sprite(const Texture& texture, double x, double y, double an
     glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA); // Enable transparent background
 	glEnable(GL_BLEND);	
 	//glEnable(GL_DEBUG_OUTPUT);
+    // Version
+    std::string version =  get_current_API_version().substr(0, 3);
 	// Shader
 	glUseProgram(shader.get_program()); // push program
 	// Transform
@@ -391,7 +396,7 @@ void Renderer::draw_sprite(const Texture& texture, double x, double y, double an
 
 	if(shader.get_uniform("model") != -1) glUniformMatrix4fv(glGetUniformLocation(shader.get_program(), "model"), 1, false, glm::value_ptr(model));
 	if(shader.get_uniform("proj" ) != -1) glUniformMatrix4fv(glGetUniformLocation(shader.get_program(), "proj" ), 1, false, glm::value_ptr(proj) );
-	if(shader.get_uniform("view" ) != -1) glUniformMatrix4fv(glGetUniformLocation(shader.get_program(), "view" ), 1, false, glm::value_ptr(view) );		
+	if(shader.get_uniform("view" ) != -1) glUniformMatrix4fv(glGetUniformLocation(shader.get_program(), "view" ), 1, false, glm::value_ptr(view) );
 #endif
 	// ..............
 	//glUniformMatrix4fv(shader.get_uniform("model"), 1, GL_TRUE, (const GLfloat *)&model0.matrix[0]);
@@ -415,7 +420,8 @@ void Renderer::draw_sprite(const Texture& texture, double x, double y, double an
 	// etc.
 	if(shader.get_uniform("color") != -1) glUniform4f(glGetUniformLocation(shader.get_program(), "color"), (red / 255), (green / 255), (blue / 255), (alpha / 255));
 	if(shader.get_uniform("map.is_texture") != -1) glUniform1i(shader.get_uniform("map.is_texture"), (texture.get_data() != nullptr)); 
-	if(shader.get_uniform("resolution") != -1) glUniform2f(shader.get_uniform("resolution"), Renderer::get_display_width(), Renderer::get_display_height());	
+	if(shader.get_uniform("resolution") != -1) glUniform2f(shader.get_uniform("resolution"), Renderer::get_display_width(), Renderer::get_display_height());
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Framebuffer
 	// phase0
 	/*
@@ -1668,7 +1674,7 @@ void Renderer::draw_text (const std::string& text, double x, double y, int width
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), 0);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0); 
+    glBindVertexArray(0); /*
 	// background rect - NEW! ---------------------------
 	GLuint background_vertex_array_obj;
 	glGenVertexArrays(1, &background_vertex_array_obj);
@@ -1709,7 +1715,7 @@ void Renderer::draw_text (const std::string& text, double x, double y, int width
 	    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, background_element_buffer_obj);
         GLuint indices[] = {0, 1, 3,  1, 2, 3,}; 		
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices)* sizeof(GLuint), indices, GL_STATIC_DRAW); 		
-    glBindVertexArray(0);	
+    glBindVertexArray(0);	*/
     //---------------------------------------	
     // enable
 	glEnable(GL_BLEND); // transparent background
@@ -1732,10 +1738,10 @@ void Renderer::draw_text (const std::string& text, double x, double y, int width
 	if(shader.get_uniform("view") != -1) glUniformMatrix4fv(glGetUniformLocation(shader.get_program(), "view" ),  1, false, glm::value_ptr(view) );
 #endif	
 	// Draw background ------------ NEW!!
-	shader.set_float("color", (0.0f / 255), (51.0f / 255), (102.0f / 255)); // alpha
+	/*shader.set_float("color", (0.0f / 255), (51.0f / 255), (102.0f / 255)); // alpha
 	glBindVertexArray(background_vertex_array_obj);
 	    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-	glBindVertexArray(0);
+	glBindVertexArray(0);*/
 	// Draw text
 	glUniform3f(glGetUniformLocation(shader.get_program(), "color"), (red / 255), (green / 255), (blue / 255)); // alpha
 	glActiveTexture(GL_TEXTURE0);
@@ -1776,12 +1782,12 @@ void Renderer::draw_text (const std::string& text, double x, double y, int width
 	// : text
 	glDeleteBuffers(1, & vertex_buffer_obj);
 	// : background
-	glDeleteBuffers(1, & background_vertex_buffer_obj);
+	/*glDeleteBuffers(1, & background_vertex_buffer_obj);
 	glDeleteBuffers(1, & background_tex_coord_buffer_obj);
-	glDeleteBuffers(1, & background_element_buffer_obj);
+	glDeleteBuffers(1, & background_element_buffer_obj);*/
 	// Clean arrays
 	glDeleteVertexArrays(1, & vertex_array_obj);
-	glDeleteVertexArrays(1, & background_vertex_array_obj);
+	//glDeleteVertexArrays(1, & background_vertex_array_obj);
 	// disable
 	glDisable(GL_BLEND);
 	// program
@@ -4948,9 +4954,35 @@ void Renderer::set_camera(const Camera& camera)
 	Renderer::camera = &const_cast<Camera&>(camera);
 }
 ////////////
+int Renderer::set_camera(lua_State *L) 
+{
+    luaL_checktype(L, 1, LUA_TTABLE); // renderer
+    luaL_checktype(L, 2, LUA_TTABLE); // camera
+	lua_getfield(L, 2, "udata");
+	if(lua_isuserdata(L, -1))
+	{
+        Camera * camera = *static_cast<Camera **>(lua_touserdata(L, -1));
+        Renderer::set_camera(* camera);
+    }
+    return 0;
+}
+////////////
 void Renderer::set_light(const Light& light)
 {
 	Renderer::light = &const_cast<Light&>(light);
+}
+////////////
+int Renderer::set_light(lua_State *L) 
+{
+    luaL_checktype(L, 1, LUA_TTABLE); // renderer
+    luaL_checktype(L, 2, LUA_TTABLE); // light
+    lua_getfield(L, 2, "udata");
+	if(lua_isuserdata(L, -1))
+	{
+        Light * light = *static_cast<Light **>(lua_touserdata(L, -1));
+        Renderer::set_light(* light);
+    }
+    return 0;
 }
 ////////////
 ////////////
@@ -5016,6 +5048,7 @@ int Renderer::set_current_API(lua_State *L)
 	{
 		Renderer::set_current_API(lua_tostring(L, -1));
 	}
+    return 0;
 }
 ////////////
 int Renderer::get_display_width () // returns the width of display area (client area), excluding the titlebar
@@ -5086,6 +5119,7 @@ std::string Renderer::get_current_API(void)
 	    return "Vulkan";
 	}    
 #endif
+    return "";
 }
 ////////////
 std::string Renderer::get_current_API_version(void)
@@ -5109,6 +5143,7 @@ std::string Renderer::get_current_API_version(void)
 	    return std::to_string(major) + "." + std::to_string(minor) + "." + std::to_string(patch);
     }	
 #endif	
+    return "";
 }
 ////////////
 int Renderer::get_current_API_version_major(void)
@@ -5128,7 +5163,7 @@ int Renderer::get_current_API_version_major(void)
 	    return major;
     }	
 #endif
-    return 1;
+    return 0;
 }
 ////////////
 int Renderer::get_current_API_version_minor(void)
@@ -5178,6 +5213,7 @@ std::string Renderer::get_shader_language(void)
 #ifdef DOKUN_VULKAN
     if(get_current_API() == "Vulkan") return "SPIR-V";
 #endif
+    return "";
 }
 ////////////
 std::string Renderer::get_shader_language_version(void)
@@ -5192,6 +5228,7 @@ std::string Renderer::get_shader_language_version(void)
     if(get_current_API() == "Vulkan") {
     }
 #endif
+    return "";
 }
 ////////////
 int Renderer::get_shader_language_version_major(void)
@@ -5210,6 +5247,7 @@ int Renderer::get_shader_language_version_major(void)
 #ifdef DOKUN_VULKAN
     if(get_current_API() == "Vulkan") {}
 #endif
+    return 0;
 }
 ////////////
 int Renderer::get_shader_language_version_minor(void)
@@ -5230,6 +5268,7 @@ int Renderer::get_shader_language_version_minor(void)
 #ifdef DOKUN_VULKAN
     if(get_current_API() == "Vulkan") {}
 #endif
+    return 0;
 }
 ////////////
 int Renderer::get_shader_language_version_patch(void)
@@ -5249,6 +5288,7 @@ int Renderer::get_shader_language_version_patch(void)
 #ifdef DOKUN_VULKAN
     if(get_current_API() == "Vulkan") {}
 #endif
+    return 0;
 }
 ////////////
 	// gpu
@@ -5266,6 +5306,7 @@ std::string Renderer::get_gpu(void)
 	    return Renderer::get_pointer()->device_prop.deviceName;
 	}
 #endif
+    return "";
 }
 ////////////
 std::string Renderer::get_gpu_vendor(void)
@@ -5282,6 +5323,7 @@ std::string Renderer::get_gpu_vendor(void)
         //return Renderer::get_pointer()->device_prop.vendorID; // uint32_t??
     }
 #endif
+    return "";
 }
 ////////////
 std::string Renderer::get_gpu_version(void)
@@ -5297,6 +5339,7 @@ std::string Renderer::get_gpu_version(void)
         device_check();
     }
 #endif
+    return "";
 }
 ////////////
 void Renderer::print_vulkan_info()

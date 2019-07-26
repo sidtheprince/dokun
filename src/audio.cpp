@@ -879,9 +879,8 @@ bool Audio::is_wav(const std::string& file_name)
     if (strcmp(reinterpret_cast<const char *>(id),"WAVE")) // no WAVE
     {
 	    return false;
-	}
+	}*/
     return true;
-    */
 }
 /////////////
 /////////////

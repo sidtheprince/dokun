@@ -7,7 +7,7 @@
 #define DOKUN_DATE      String(__DATE__).str()
 #define DOKUN_TIME      String(__TIME__).str()
 #define DOKUN_TAG       String("dokun: ") +
-#define DOKUN_LOGTAG    "(dokun): " + DOKUN_FILE.substr(DOKUN_FILE.find_last_of("\\/") + 1) + " (" + DOKUN_LINE + "): "      //+ "function (" + DOKUN_FUNCTION + "): "  // added on 10-1-2018
+#define DOKUN_LOGTAG    "dokun: " + DOKUN_FILE.substr(DOKUN_FILE.find_last_of("\\/") + 1) + " (" + DOKUN_LINE + "): "      //+ "function (" + DOKUN_FUNCTION + "): "  // added on 10-1-2018
 #define DOKUN_CLASS     String(typeid(*this).name()).str()
 #define DOKUN_LOGFILE   "doklog.txt"
 
@@ -17,241 +17,23 @@
 #include "string.h"
 #include "system.h"
 #include "factory.h"
-// for rendering text
-#ifdef __cplusplus // if c++ 
-extern "C" {       // run as c code
-#endif
-    #include <ft2build.h>
-    #include FT_FREETYPE_H
-#ifdef __cplusplus
-}
-#endif
-
 #ifdef __cplusplus // if c++
 #include <iostream>
 #include <typeinfo>
 #include <lua.hpp>
-// glm (temporary)
-//#define use_glm
-/*#ifdef use_glm
-#include <glm/glm.hpp>
-#include "glm/ext.hpp"
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#endif
-*/
+
 static std::vector<std::string> dokun_session = {};// stores all logs from current dokun_session
 struct Logger {
 	Logger() {}
 	Logger(int code) { std::cerr << print_error(code) << std::endl; }
 	Logger(const String& message, /*std::string function = DOKUN_FUNCTION,*/ std::string filename = DOKUN_FILE, std::string line = DOKUN_LINE) // set print_out to 0 if using std::cout << operator
 	{
-		std::cout << DOKUN_TAG message << std::endl; // print message on console
-        
-        String LOGTAG = "(dokun): " + filename.substr(filename.find_last_of("\\/") + 1) + " (" + line + "): ";
-		    //+ "function (" + function + "): ";
-		push(LOGTAG + message); // push message to log
-	}
-	Logger(int x, int y, int width, int height, const String& text, void * data = nullptr, int red = 255, int green = 255, int blue = 255, int alpha = 255)
-	{
-		draw(x, y, width, height, text, data, red, green, blue, alpha);
+		std::clog << DOKUN_TAG message << std::endl; // print message on console   
+#ifdef DOKUN_DEBUG0
+		push("dokun: " + filename.substr(filename.find_last_of("\\/") + 1) + " (" + line + "): " + "function (" + function + "): " + message); // push message to log (session)
+#endif
 	}
 	~Logger() {}
-	/////////	
-	static void draw(int x, int y, int width, int height, const String& text, void * data = nullptr, int red = 255, int green = 255, int blue = 255, int alpha = 255)
-	{/*
-		push(text); // push text
-		if(data == nullptr) {Logger("No font detected"); return;}
-	    if(text.empty()    ) {Logger("String is empty "); return;}
-		double sx = 0.5; double sy = 0.5;
-		int window_width, window_height;		
-    #ifdef DOKUN_OPENGL	// OpenGL is defined
-    #ifdef __windows__
-	    if(!wglGetCurrentContext())
-	    {
-		    Logger("Rendering Failed : No OpenGL Context found");
-		    return;
-	    }
-		RECT rect;
-        GetWindowRect(GetActiveWindow(), &rect);
-        window_width  = rect.right - rect.left;
-        window_height = rect.bottom - rect.top;
-    #endif	
-    #ifdef __gnu_linux__
-    #ifdef DOKUN_X11
-	    if(!glXGetCurrentContext())
-	    {
-		    Logger("Rendering failed : No OpenGL Context found");
-		    return;
-	    }
-		Window winFocus;
-        int    revert;
-        Display * display = XOpenDisplay(nullptr);
-		XGetInputFocus(display, &winFocus, &revert);
-		XWindowAttributes gwa;
-	    XGetWindowAttributes(display, winFocus, &gwa); // get attributes while app is running; only gets width and height no x and y
-	    window_width  = gwa.width ;
-	    window_height = gwa.height; 
-		XCloseDisplay(display);
-		display = nullptr;
-    #endif
-    #endif
-	    glDisable(GL_DEPTH_TEST);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
-		//glViewport(0, 0, window_width, window_height);
-        // vertex shader
-	    GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-	    const char * vertex_source[] =
-        {
-		    "#version 400\n"
-            "layout (location = 0) in vec4 vertex;\n"
-            "\n"
-		    "out vec2 Texcoord;\n"
-		    "\n"
-		    "uniform mat4 model;\n"
-		    "uniform mat4 proj;\n"
-		    "uniform mat4 view;\n"
-		    "\n"
-            "void main(void)\n"
-		    "{\n"
-			    "Texcoord    = vec2(vertex.z, 1.0-vertex.w);\n" // flip tex if top-left corner
-                "gl_Position = proj * vec4(vertex.xy, 0.0, 1.0);\n"
-		    "}\n"
-	    };
-	    glShaderSource(vertex_shader, sizeof(vertex_source)/sizeof(vertex_source), vertex_source, nullptr);
-	    glCompileShader(vertex_shader);
-	    // fragment shader
-	    GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-	    const char * fragment_source[] =
-        {
-	        "#version 400                                                          \n"
-            "\n"
-            "out vec4 out_color;\n"
-            "in vec2 Texcoord  ;\n"
-		    "\n"
-            "uniform sampler2D font;\n"
-            "uniform vec3 color    ;\n"
-            "\n"
-            "void main(void) {\n"
-                "\n"
-			    "out_color = vec4(color, 1.0) * vec4(1.0, 1.0, 1.0, texture(font, Texcoord).r);\n"
-            "}\n"
-	    };
-	    glShaderSource(fragment_shader, sizeof(fragment_source)/sizeof(fragment_source), fragment_source, nullptr);
-	    glCompileShader(fragment_shader);
-	    // program
-	    GLuint program = glCreateProgram();
-	    glAttachShader(program, vertex_shader  );
-	    glAttachShader(program, fragment_shader);
-	    glLinkProgram(program);
-	    GLint status; char buffer[512];
-	    glGetProgramiv(program, GL_LINK_STATUS, &status);
-        if (!status) 
-		{
-			glGetProgramInfoLog(program, 512, nullptr, buffer);
-            Logger(String("Program linking failed ") + String::to_string(buffer));
-        }
-	    glDetachShader(program, vertex_shader  );
-	    glDetachShader(program, fragment_shader);
-	    glDeleteShader(vertex_shader  );
-	    glDeleteShader(fragment_shader);
-	    glUseProgram(program);
-	    // uniform
-        glUniform3f(glGetUniformLocation(program, "color"), (red / 255), (green / 255), (blue / 255)); // alpha	
-	    glm::mat4 model;
-		model = glm::translate(model, glm::vec3(0, 0, -1));
-	    model = glm::rotate(model, 0.0f, glm::vec3(0, 0, 1));
-	    model = glm::scale(model, glm::vec3(1, 1, 1));
-	    glm::mat4 proj = glm::ortho(0.0f,  static_cast<float>(window_width), static_cast<float>(window_height), 0.0f);
-		glm::mat4 view = glm::lookAt(glm::vec3(0, 0, 0), glm::vec3(0, 0,-1), glm::vec3(0, 1, 0));
-	    glUniformMatrix4fv(glGetUniformLocation(program, "model"),  1, false, glm::value_ptr(model));
-	    glUniformMatrix4fv(glGetUniformLocation(program, "proj" ),  1, false, glm::value_ptr(proj) );
-	    glUniformMatrix4fv(glGetUniformLocation(program, "view" ),  1, false, glm::value_ptr(view) );
-	    /////////////////////////////////////
-	    std::map<char, dokun_Character> Characters;
-	    for (unsigned char c = 0; c < 128; c++) {
-            if (FT_Load_Char(static_cast<FT_Face>(data), c, FT_LOAD_RENDER)) { Logger("ERROR::FREETYTPE: Failed to load Glyph"); continue; }
-		// generate texture for each glyph (character)
-            GLuint texture;
-		    glGenTextures(1, &texture);
-            glBindTexture(GL_TEXTURE_2D, texture);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, static_cast<FT_Face>(data)->glyph->bitmap.width, static_cast<FT_Face>(data)->glyph->bitmap.rows, 0, GL_RED, GL_UNSIGNED_BYTE, static_cast<FT_Face>(data)->glyph->bitmap.buffer);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);        
-		    glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // Disable byte-alignment restriction
-		    glBindTexture(GL_TEXTURE_2D, 0);
-		    // Now store character for later use
-            dokun_Character character = { texture, Vector2(static_cast<FT_Face>(data)->glyph->bitmap.width, static_cast<FT_Face>(data)->glyph->bitmap.rows), Vector2(static_cast<FT_Face>(data)->glyph->bitmap_left, static_cast<FT_Face>(data)->glyph->bitmap_top), static_cast<FT_Face>(data)->glyph->advance.x };
-            Characters.insert(std::pair<GLchar, dokun_Character>(c, character));
-        }	
-	    // vertex array obj
-	    GLuint vertex_array_obj;
-        glGenVertexArrays(1, &vertex_array_obj);
-	    // vertex buffer obj
-        glBindVertexArray(vertex_array_obj);
-		    GLuint vertex_buffer_obj;
-			glGenBuffers(1, &vertex_buffer_obj);
-            glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_obj);
-            glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
-            glEnableVertexAttribArray(0);
-            glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), 0);
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);      
-	    glActiveTexture(GL_TEXTURE0);
-        glBindVertexArray(vertex_array_obj);
-        // Iterate through all characters
-        for (std::string::const_iterator c = text.begin(); c != text.end(); c++) // scan through all characters in string
-        {
-            dokun_Character ch = Characters[*c];  // will change Character
-
-            GLfloat xpos = x + ch.bearing.x               * sx;
-            GLfloat ypos = y - (ch.size.y - ch.bearing.y) * sy;
-
-            GLfloat w = ch.size.x * sx;
-            GLfloat h = ch.size.y * sy;
-		
-            // Update vertex_buffer_obj for each character
-            GLfloat vertices[6][4] = {
-            { xpos,     ypos + h,   0.0, 0.0 },            
-            { xpos,     ypos,       0.0, 1.0 },
-            { xpos + w, ypos,       1.0, 1.0 },
-
-            { xpos,     ypos + h,   0.0, 0.0 },
-            { xpos + w, ypos,       1.0, 1.0 },
-            { xpos + w, ypos + h,   1.0, 0.0 }           
-            };
-            // Render glyph texture over quad
-            glBindTexture(GL_TEXTURE_2D, ch.texture);
-            // Update content of vertex_buffer_obj memory
-            glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_obj);
-            glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices); 
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
-            // Render quad
-            glDrawArrays(GL_TRIANGLES, 0, 6);
-            // Now advance cursors for next glyph (note that advance is number of 1/64 pixels)
-            x += (ch.advance >> 6) * sx; // Bitshift by 6 to get value in pixels (2^6 = 64)
-	    }
-        glBindVertexArray(0);
-        glBindTexture(GL_TEXTURE_2D, 0);
-	    // Clean textures - delete all textures in Character list
-	    for(int i = 0; i < Characters.size(); i++)
-	        glDeleteTextures(1, & Characters[i].texture);
-	    Characters.clear(); // remove all elements from map
-	    // buffers
-	    glDeleteBuffers(1, & vertex_buffer_obj);
-	    // arrays
-	    glDeleteVertexArrays(1, & vertex_array_obj);
-	    // disable
-	    glDisable(GL_BLEND);
-	    // program
-	    glUseProgram(0);
-        glDeleteProgram(program);
-    #endif	
-    */
-	}
 	/////////	
 	static void box(const String& text, std::string caption = "dokun", unsigned int type = 0x00000000L)
 	{
@@ -287,6 +69,20 @@ struct Logger {
 #ifdef __gnu_linux__
 #endif	
 	}
+	static void push(const String& message) { dokun_session.push_back(message.str());} // stores a log message from current dokun_session
+	static void pop () { dokun_session.pop_back();}
+    static void pop(int index) { dokun_session.erase(dokun_session.begin() + index);}
+    static void pop(const String& content) {
+        for (unsigned int i = 0; i < dokun_session.size(); i++)
+        {
+            if(String::match(dokun_session[i], content.str(), true) || String::contains(dokun_session[i], content.str()) ) // case sensative by default  (if strings match or string contains specific words)
+            {
+                dokun_session.erase(dokun_session.begin() + i);
+            }
+        }
+    }
+    static std::string get_string(int index) { return dokun_session[index];} // get string at index
+    static int get_index(const String& content) { for (unsigned int i = 0; i < dokun_session.size(); i++) { if(String::match(dokun_session[i], content.str(), true) || String::contains(dokun_session[i], content.str()) ) return i;}return -1;} // get index from string
 	/////////
 	static std::string format(const std::string& fmt) // returns date and time as a string
 	{
@@ -562,15 +358,6 @@ struct Logger {
 		return os;
 	}
 private:
-	static void push(const String& message) // stores a log message from current dokun_session
-	{
-	    dokun_session.push_back(message.str());
-	}
-    //////////
-	static void pop()
-	{
-		dokun_session.pop_back();
-	}
 	/////////
 	static void open()
 	{/*
