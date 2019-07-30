@@ -40,7 +40,6 @@ class Label : public GUI {
 		Vector4 get_background_color()const;  static int get_background_color(lua_State *L);
 		std::string get_alignment() const;    static int get_alignment(lua_State *L);
 		double get_aspect_ratio_correction(int rect_x, int rect_y) const;     static int get_aspect_ratio_correction(lua_State * L);
-        static FONT * get_default_font(); static int get_default_font(lua_State *L);
 		// override	
 		void set_width(int width);static int set_width(lua_State * L);
 		void set_height(int height);static int set_height(lua_State * L);
@@ -64,8 +63,6 @@ class Label : public GUI {
 		Vector4 background_color;
 		std::string alignment;
         int width, height;		// original size of label
-        // default (global) font
-        static FONT * default_font;
 		//double sx, sy;
  };
 #endif

@@ -201,6 +201,7 @@ void Widget::draw(void)
                     if(title_bar_image->get_alignment() == "center") {title_bar_image->set_relative_position((get_title_bar_size().x - get_title_bar_size().y) / 2, 0);}			
                     if(title_bar_image->get_alignment() == "right" ) {title_bar_image->set_relative_position(get_title_bar_size().x - get_title_bar_size().y, 0);}								
 					if(title_bar_image->get_alignment() == "free"  ) {}
+                    // set title_bar_image position relative to title_bar
 				    title_bar_image->set_position(get_title_bar_position().x + title_bar_image->get_relative_x(), get_title_bar_position().y + title_bar_image->get_relative_y());
 				    // scale image to fit the title_bar
                     title_bar_image->scale_to_fit(get_title_bar_size().x, get_title_bar_size().y);
@@ -242,8 +243,21 @@ void Widget::draw(void)
 					// and finally, draw the label
 					label->draw();
 			    }
-			}
+			} else Logger("WARNING: Label is not the child of this box! Label has a different parent!");
        } // label not nullptr
+             // Draw multiple labels ... 
+            for(int l = 0; l < label_list.size(); l++)//for(int l = 1; l <= label_list.size()-1; l++)
+            {
+                label_list[0]->set_position(label->get_x(), (label->get_y() + label->get_height()) + 2);//(get_x() + label->get_relative_x(), (get_y() + label->get_relative_y()) - label->get_height() );
+                if(l != 0) { // label_list[0] is the default label, so exclude it
+                    Label * prev = label_list[l-1]; 
+				    if(label_list[l]->get_alignment() == "left"  ) {label_list[l]->set_position(0, 0);} // default
+					if(label_list[l]->get_alignment() == "center") {label_list[l]->set_position((get_width() - label_list[l]->get_width()) / 2, (get_height() - label_list[l]->get_height()) / 2);}						
+					if(label_list[l]->get_alignment() == "right" ) {label_list[l]->set_position(get_width() - label_list[l]->get_width(), 0);}	
+                    if(label_list[l]->get_alignment() == "free"  ) {}	            
+                    label_list[l]->set_position(prev->get_x(), (prev->get_y() + prev->get_height()));
+                } label_list[l]->draw();
+            }
             /////////////////////////////////////////////////////////////////////////
 			// Draw image (goes inside box) *******************************************
             if(image != nullptr)
@@ -264,7 +278,7 @@ void Widget::draw(void)
 				// and finally, draw the image ...	
 				image->draw();
 			}
-			// Chil
+			/////////////////////////////////////////////////////////////////////////
 		}
 	}
 	//-------------------------------
@@ -356,6 +370,19 @@ int Widget::restore(lua_State * L)
 {
     return 0;
 }
+/////////////
+/* // deallocating box
+// delete all labels
+for(l = 0; l < label_list.size(); l++) {
+    Label * label = label_list[l];
+    delete label;
+}
+// delete all images
+for(i = 0; i < image_list.size(); i++) {
+    Image * image = image_list[i];
+    delete image;
+}
+*/
 /////////////
 /////////////
 // SETTERS
@@ -803,6 +830,26 @@ void Widget::set_title_bar_label(const Label& label)
 {
 	title_bar_label = &const_cast<Label&>(label);
 }
+int Widget::set_title_bar_label(lua_State * L)
+{
+	luaL_checktype(L, 1, LUA_TTABLE);
+	luaL_checktype(L, 2, LUA_TTABLE);
+	lua_getfield(L, 2, "udata");
+	if(lua_isuserdata(L, -1))
+	{
+		Label * label = *static_cast<Label **>(lua_touserdata(L, -1));
+		lua_getfield(L, 1, "udata");
+	    if(lua_isuserdata(L, -1))
+	    {
+		    Widget * widget = *static_cast<Widget **>(lua_touserdata(L, -1));
+            widget->set_title_bar_label(* label);
+           // set in Lua as well
+           lua_pushvalue(L, 2);
+           lua_setfield(L, 1, "title_bar_label");
+        }
+    }
+    return 0;
+}
 //////////////
 void Widget::set_title_bar_icon(const Image& icon)
 {
@@ -821,6 +868,9 @@ int Widget::set_title_bar_icon(lua_State * L)
 	    {
 		    Widget * widget = *static_cast<Widget **>(lua_touserdata(L, -1));
 		    widget->set_title_bar_icon(*image);
+           // set in Lua as well
+           lua_pushvalue(L, 2);
+           lua_setfield(L, 1, "title_bar_image");
 	    }
 	}
 	return 0;	
@@ -900,6 +950,8 @@ int Widget::set_title_bar_button_close(lua_State * L)
 	}
 	return 0;	
 }
+/////////////
+/////////////
 // icon
 void Widget::set_as_icon(bool icon)
 {
@@ -907,7 +959,7 @@ void Widget::set_as_icon(bool icon)
 }
 void Widget::set_image(const Image& image) // images are not GUIs so they do not require a parent
 {
-	this->image = &const_cast<Image&>(image);
+	this->image = &const_cast<Image&>(image); // add image to box 
 }
 int Widget::set_image(lua_State *L)
 {
@@ -922,13 +974,39 @@ int Widget::set_image(lua_State *L)
 	    {
 		    Widget * widget = *static_cast<Widget **>(lua_touserdata(L, -1));
 		    widget->set_image(*image);
-			// set in lua
+			// set in Lua as well
 			lua_pushvalue(L, 2);
 			lua_setfield(L, 1, "image");
 	    }
 	}
 	return 0;	
 }
+void Widget::set_image_list(const Image& image)
+{
+    image_list.push_back(&const_cast<Image&>(image)); // store image in image_list (first image set will ALWAYS be in index 0)
+}
+int Widget::set_image_list(lua_State *L)
+{
+	luaL_checktype(L, 1, LUA_TTABLE);
+	luaL_checktype(L, 2, LUA_TTABLE);
+	lua_getfield(L, 2, "udata");
+	if(lua_isuserdata(L, -1))
+	{
+		Image * image = *static_cast<Image **>(lua_touserdata(L, -1));
+		lua_getfield(L, 1, "udata");
+	    if(lua_isuserdata(L, -1))
+	    {
+		    Widget * widget = *static_cast<Widget **>(lua_touserdata(L, -1));
+		    widget->set_image(*image);
+			// set in Lua as well
+            lua_pushvalue(L, 2);
+			lua_setfield(L, 1, std::string( std::string("image") + std::to_string((int)widget->image_list.size()) ).c_str());
+	    }
+	}
+	return 0;
+}
+/////////////
+/////////////
 // label		
 void Widget::set_text(const std::string& text)
 {
@@ -949,16 +1027,11 @@ int Widget::set_text(lua_State * L)
 /////////////
 void Widget::set_label(const Label& label) // Labels are GUI elements so they are drawn automatically once a parent is set
 {
-    if(this->label) { 
-#ifdef DOKUN_DEBUG0
-     std::cout << "This GUI already has a label | widget.cpp | line: 931" << std::endl;// if this widget already has a label     
-#endif
-    }
-	this->label = &const_cast<Label&>(label);
+	this->label = &const_cast<Label&>(label); // add label to box
 } 
 int Widget::set_label(lua_State * L)	
 {
-	luaL_checktype(L, 1, LUA_TTABLE); // widget
+	luaL_checktype(L, 1, LUA_TTABLE); // box
 	luaL_checktype(L, 2, LUA_TTABLE); // label
 	lua_getfield(L, 2, "udata");
 	if(lua_isuserdata(L, -1))
@@ -969,13 +1042,37 @@ int Widget::set_label(lua_State * L)
 	    {
 		    Widget * widget = *static_cast<Widget **>(lua_touserdata(L, -1));
 		    widget->set_label(*label);
-			// set in lua
+			// set in Lua as well
 			lua_pushvalue(L, 2);
-			lua_setfield(L, 1, "label");			
+			lua_setfield(L, 1, "label"); // box.label
 	    }
 	}
     return 0;	
 }	
+void Widget::set_label_list(const Label& label) // Labels are GUI elements so they are drawn automatically once a parent is set
+{
+    label_list.push_back(&const_cast<Label&>(label)); // store label in label_list (first label set will always be in index 0)
+}
+int Widget::set_label_list(lua_State *L)
+{
+	luaL_checktype(L, 1, LUA_TTABLE); // box
+	luaL_checktype(L, 2, LUA_TTABLE); // label
+	lua_getfield(L, 2, "udata");
+	if(lua_isuserdata(L, -1))
+	{
+		Label * label = *static_cast<Label **>(lua_touserdata(L, -1));
+        lua_getfield(L, 1, "udata");
+	    if(lua_isuserdata(L, -1))
+	    {
+		    Widget * widget = *static_cast<Widget **>(lua_touserdata(L, -1));
+		    widget->set_label_list(*label);
+            // set in Lua
+            lua_pushvalue(L, 2);
+            lua_setfield(L, 1, std::string( std::string("label") + std::to_string((int)widget->label_list.size()) ).c_str()); // box.label1, box.label2, box.label3, and so on ...        // lua_getfield(L, 1, "label_list");if(!lua_istable(L, -1)){lua_newtable(L); lua_setfield(L, 1, "label_list");} // check is box.label_list exists. If not create it
+        }
+    }    
+    return 0;
+}
 /////////////
 /////////////
 void Widget::set_alignment(const std::string& alignment)
@@ -1025,6 +1122,23 @@ int Widget::get_image(lua_State * L)
 	lua_getfield(L, 1, "image");
 	return 1;
 }
+Image * Widget::get_image_list(int index) const
+{
+	return image_list[index];
+}
+int Widget::get_image_list(lua_State * L)
+{
+	luaL_checktype(L, 1, LUA_TTABLE); // box (arg:1)
+    luaL_checktype(L, 2, LUA_TNUMBER); // index (arg:2)
+    lua_getfield(L, 1, "image_list"); // image_list (arg:3)
+    if(lua_istable(L, -1))
+    {
+	    lua_rawgeti(L, -1, lua_tointeger(L, 2));
+        return 1;
+    }
+    lua_pushnil(L);
+	return 1;	
+}
 /////////////
 Label * Widget::get_label() const
 {
@@ -1034,6 +1148,23 @@ int Widget::get_label(lua_State * L)
 {
 	luaL_checktype(L, 1, LUA_TTABLE);
 	lua_getfield(L, 1, "label");
+	return 1;	
+}
+Label * Widget::get_label_list(int index) const
+{
+	return label_list[index];
+}
+int Widget::get_label_list(lua_State * L)
+{
+	luaL_checktype(L, 1, LUA_TTABLE); // box (arg:1)
+    luaL_checktype(L, 2, LUA_TNUMBER); // index (arg:2)
+    lua_getfield(L, 1, "label_list"); // label_list (arg:3)
+    if(lua_istable(L, -1))
+    {
+	    lua_rawgeti(L, -1, lua_tointeger(L, 2));
+        return 1;
+    }
+    lua_pushnil(L);
 	return 1;	
 }
 /////////////

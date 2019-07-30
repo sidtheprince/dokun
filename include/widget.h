@@ -31,7 +31,7 @@ class Widget : public GUI { // A box ui - ui element that can act as a container
 		void set_fill(bool fill);                                                      static int set_fill(lua_State * L);
 		// outline - is line drawn around border?
 		void set_outline(bool outline);                                                static int set_outline(lua_State * L);
-		void set_outline_width(double width);                                                      static int set_outline_width(lua_State * L);
+		void set_outline_width(double width);                                          static int set_outline_width(lua_State * L);
 		void set_outline_color(int red, int green, int blue, int alpha = 255);         static int set_outline_color(lua_State * L);
 		void set_outline_color(const Vector3& color);
 		void set_outline_color(const Vector4& color);
@@ -41,15 +41,15 @@ class Widget : public GUI { // A box ui - ui element that can act as a container
 		void set_border(bool border);                                                  static int set_border(lua_State * L);
 		void set_border_size(int width, int height);                                   static int set_border_size(lua_State * L);
 		void set_border_width(int width, int side = 0);                                static int set_border_width(lua_State * L);
-		void set_border_color(int red, int green, int blue, int alpha = 255);                           static int set_border_color(lua_State * L);
+		void set_border_color(int red, int green, int blue, int alpha = 255);          static int set_border_color(lua_State * L);
 		void set_border_color(const Vector3& color);
 		void set_border_color(const Vector4& color);
 		void set_border_style(int style, int side = 0);                                static int set_border_style(lua_State * L);
 		void set_border_radius(int radius, int side = 0);                              static int set_border_radius(lua_State * L);
 		// radius - how round are the edges?
-		void set_radius(double radius, int side = 0);                                      static int set_radius(lua_State * L);
-		void set_trim(double trim, int side = 0);                                          static int set_trim(lua_State * L);
-	    void set_alignment(const std::string& alignment); static int set_alignment(lua_State * L);
+		void set_radius(double radius, int side = 0);                                  static int set_radius(lua_State * L);
+		void set_trim(double trim, int side = 0);                                      static int set_trim(lua_State * L);
+	    void set_alignment(const std::string& alignment);                              static int set_alignment(lua_State * L);
 		// shadow -  does it have a shadow around it?
 	    void set_shadow(bool shadow);                                                  static int set_shadow(lua_State * L);
 		// gradient - do the colors mix?
@@ -62,31 +62,37 @@ class Widget : public GUI { // A box ui - ui element that can act as a container
 		// title_bar - does it have a title_bar
 		void set_title_bar(bool has_title_bar);                                        static int set_title_bar(lua_State * L);
 		void set_title_bar_size(int height);                                           static int set_title_bar_size(lua_State * L);
-		void set_title_bar_text(const std::string& text);                                     static int set_title_bar_text(lua_State * L);
+		void set_title_bar_text(const std::string& text);                              static int set_title_bar_text(lua_State * L);
 		void set_title_bar_text_color(int red, int green, int blue, int alpha = 255);  static int set_title_bar_text_color(lua_State * L);
 		void set_title_bar_text_color(const Vector3& color);
 		void set_title_bar_text_color(const Vector4& color);
-		void set_title_bar_label(const Label& label);
+		void set_title_bar_label(const Label& label);                                  static int set_title_bar_label(lua_State * L);
 		void set_title_bar_icon(const Image& icon);                                    static int set_title_bar_icon(lua_State * L);
 		void set_title_bar_color(int red, int green, int blue, int alpha = 255);       static int set_title_bar_color(lua_State * L);
         void set_title_bar_color(const Vector3& color);
 		void set_title_bar_color(const Vector4& color);		
 		void set_title_bar_button_iconify(bool button_iconify);                        static int set_title_bar_button_iconify(lua_State * L);
 		void set_title_bar_button_maximize(bool button_maximize);                      static int set_title_bar_button_maximize(lua_State * L);
-		void set_title_bar_button_close(bool button_close);                         static int set_title_bar_button_close(lua_State * L);
+		void set_title_bar_button_close(bool button_close);                            static int set_title_bar_button_close(lua_State * L);
 		void set_forbidden_area(int x, int y, int width, int height);
 		void set_forbidden_area(const Vector4& rect);
 		// icon
 		void set_as_icon(bool icon);
 		void set_image(const Image& image);                                            static int set_image(lua_State *L);
+        void set_image_list(const Image& image);                                       static int set_image_list(lua_State *L);
 		// label
 		void set_text(const std::string& text);                                        static int set_text(lua_State * L);
+        void set_text_list(const std::string& text, int index);                        static int set_text_list(lua_State * L);
 		void set_label(const Label& label);                                            static int set_label(lua_State * L);
+        void set_label_list(const Label& label);                                       static int set_label_list(lua_State * L);
 		// getters
 		Vector4 get_color() const;                                                     static int get_color(lua_State * L);
 		Image * get_image () const;                                                    static int get_image(lua_State * L);	
+        Image * get_image_list (int index) const;                                      static int get_image_list(lua_State * L);
 		Label * get_label() const;                                                     static int get_label(lua_State * L);
+        Label * get_label_list(int index) const;                                       static int get_label_list(lua_State * L);
 		std::string get_text() const;                                                  static int get_text(lua_State * L);
+        std::string get_text_list(int index) const;                                    static int get_text_list(lua_State * L);
 		std::string get_alignment()const;                                              static int get_alignment(lua_State * L);
 		// title_bar
 		Vector2 get_title_bar_position()const;
@@ -143,9 +149,12 @@ class Widget : public GUI { // A box ui - ui element that can act as a container
 		std::string alignment;
 		Vector4 forbidden_area;
 		// Box : contents
-		Label * label;
-		Image * image;
+		Label * label; // default label
+		Image * image; // default image
 		std::vector<GUI *> box; // can store lists
+        // NEW! 2019-07-27. Widgets can now have multiple labels and images. The default label and image will be push_back to 0 index.
+        std::vector<Label *> label_list;
+        std::vector<Image *> image_list;
 		// Box : title_bar
 		bool title_bar;
 		int title_bar_height;

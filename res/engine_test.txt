@@ -234,7 +234,74 @@ bool FONT::is_generated() const // checks if a texture has been generated for ea
     return false; */ // return false otherwise
 }
 ////////////////////////////////////////////
+/*
+move_raster_x(cdata->left);
+move_raster_y(cdata->move_up);
+
+move_raster_y(-cdata->move_up);
+move_raster_x(cdata->advance - cdata->left);
+
+
+move_raster_x(cdata.left);
+	move_raster_y(cdata.move_up);
+
+	if(text[i+1] == '\n'){
+		i += 1;
+		isNewline = true;
+	}
+
+	glDrawPixels(cdata.w, cdata.h, GL_LUMINANCE_ALPHA,
+			GL_UNSIGNED_BYTE, cdata.data);
+
+	if(isNewline){
+		move_raster_y(-cdata.h - 5);
+		move_raster_x(-(cdata.advance + 1) * i);
+		isNewline = false;
+	}else{
+		move_raster_y(-cdata.move_up);
+		move_raster_x(cdata.advance + 1);
+	}
+*/
 ////////////////////////////////////////////
+// returns width of string (width of all glyphs combined)
+/*
+    if(text.empty()) return 0; // if the string is empty then return 0 for width
+	int width_ = 0; int spaces = 0;
+	for(int i = 0; i < text.size(); i++)
+	{
+		char character = text[i];	
+		// add width of all characters
+		int character_width = get_width(character); // white space " " width is 0, need to fix that // if there is white space " ", set width to 10 (TEMPORARILY)
+		width_ = width_ + character_width;
+		// get number of spaces
+		if(character == ' ') spaces += 1; // increment spaces by 1
+#ifdef DOKUN_DEBUG0
+    std::cout << "character [" << text[i] << "] width is " << get_width(text[i]) << std::endl;//std::cout << "\"" << text << "\" without spaces length is " << (text.size() - spaces) << "\n";
+#endif
+	}
+#ifdef DOKUN_DEBUG0
+	Logger("Width of string \"" + text + "\" is: " + String(static_cast<int>(width_)).str());
+#endif	
+	return width_;*/
+////////////////////////////////////////////
+// returns biggest height found in font
+/*
+	int height_ = 0;
+	for(int i = 0; i < text.size(); i++) // loop through all glyphs
+	{
+		char character = text[i];
+		// get height from character with biggest height
+		int character_height = get_height(character); // this line crashes in Lua
+		if (character_height > height_) {height_ = character_height;}
+	#ifdef DOKUN_DEBUG0
+		std::cout << character_height << " character_height [" << text[i] << "]" << std::endl;//Logger("Glyph heights " + String(static_cast<int>(character_height)).str());
+	#endif
+	}
+#ifdef DOKUN_DEBUG0
+	Logger("Height of string \"" + text + "\" is: " + String(static_cast<int>(height_)).str());
+#endif		
+	return height_;	
+*/
 ////////////////////////////////////////////
 ////////////////////////////////////////////
 ////////////////////////////////////////////

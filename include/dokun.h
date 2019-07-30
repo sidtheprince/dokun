@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2015-2018 Sid Lartey Doku
+    Copyright (c) 2015-2019 Sid Lartey Doku
 
     This file is part of the Dokun Library.
 
@@ -19,7 +19,7 @@
 #include "math.h"
 #include "vector.h"
 #include "matrix_test.h"
-//#include "quaternion.h" // not in using right now
+//#include "quaternion.h" // not using right now
 #include "string.h"
 #include "logger.h"
 #include "utility.h"

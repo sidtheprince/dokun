@@ -1,0 +1,289 @@
+//////////////////////////////////////////////
+// embeding a custom library into the Lua interpreter
+lualib.h:
+#define LUA_ENGINELIBNAME "dokun"
+LUAMOD_API int (luaopen_dokun) (lua_State *L);
+
+linit.c:
+{"dokun", luaopen_dokun},
+
+lua.c : surround "main()" function with :
+#ifdef DOKUN_BUILD_CONSOLE
+#endif
+
+luac.c: surround "main" function with:
+#ifdef DOKUN_BUILD_COMPILER
+#endif
+/////////////////////////////////////////////
+
+engine.cpp: 
+// register engine functions to Lua (dokun.start, dokun.close, dokun.test, etc.)
+    static const luaL_Reg module[] = 
+    {
+		{"start" , Engine::open  },
+	    {"close" , Engine::close },
+		{"test"  , Engine::test  },
+        {nullptr , nullptr       },
+    };	
+
+#ifdef __cplusplus // if c++
+extern "C" {       // run code as c  (if you do not do this, dokun will not work in Lua)
+#endif		
+	
+static int register_dokun_module_to_lua(lua_State *L)	{
+#ifndef DOKUN_LUA51
+    luaL_newlibtable(L, module);
+    luaL_setfuncs   (L, module, 0);	// luaL_newlib(L, module) is equivalent to (luaL_newlibtable(L,l), luaL_setfuncs(L,l,0))
+#endif
+#ifdef DOKUN_LUA51
+	lua_newtable (L);
+	luaL_register(L, "dokun", module);
+#endif	
+	return 1;	// return table library	
+}	
+
+LUA_API int luaopen_dokun (lua_State *L)
+{
+	Engine::open          (L);              // initialize engine by default in Lua (so user does not have to do it manually)
+	return register_dokun_module_to_lua(L);
+}
+
+#ifdef __cplusplus // if c++
+}
+#endif
+/////////////////////////////////////////////
+registering table and table_functions:
+	Script::table   (L, "Sprite");                                       // same as: Sprite = {} Sprite_mt = {__index=Sprite}
+	Script::function(L, "Sprite", "new"         , Sprite::sprite_new  ); // Sprite:new() : creates a C++ Sprite obj and attaches it to a table as 'udata'
+	Script::function(L, "Sprite", "destroy"     , Sprite::destroy     ); // Sprite:destroy() : calls on the C++ Sprite destructor
+/////////////////////////////////////////////
+/////////////////////////////////////////////
+/////////////////////////////////////////////
+/////////////////////////////////////////////
+/////////////////////////////////////////////
+
+
+
+
+int Engine::test(lua_State *L)
+{
+	WINDOW window;
+	window.create("Test", 1280, 720, 0); // titlebar is 16x39 //window.set_size(1500, 900);
+	window.show();
+    //=================== script
+	//Script * script = new Script(L, "config.lua"); // load script
+    //=================== sprite
+	Sprite * sprite = new Sprite();
+	Texture * texture = new Texture();//("res/image.png");
+	sprite->set_texture(*texture); // set empty texture to sprite
+	sprite->set_color(0, 51, 102);
+	sprite->set_position(200, 200);
+    //=================== image
+    //=================== widget
+	Widget * widget = new Widget();
+	widget->set_position(500, 500);
+	widget->set_title_bar(true);
+	widget->set_title_bar_size(20);
+    widget->set_title_bar_button_close(true);
+	widget->set_outline(true);
+    //=================== label
+	Label * label = new Label();
+	//label->set_parent(*widget);
+	label->set_string("Hello Dokun!"); // size set on 'set_string'
+	label->set_scale(0.5, 0.5);//size(276, 34);//label->set_size(100, 32);//size(100, 32);
+	//===================
+    //===================
+	double fps_desired = 60;
+    //=================== fixed time step
+    double t = 0.0;
+    double dt = 1.0 / 60.0;
+    //t += dt;
+    //=================== variable time step (recommended)
+    double old_time = 0; 
+    double new_time = (clock() / (double)CLOCKS_PER_SEC);
+    double delta_time;
+    //===================
+    //Renderer::get_light()->set_enabled(true);
+	// SPRITE VERTICES
+	std::vector<float> sprite_vertex_array; 
+    sprite_vertex_array.clear();
+	sprite_vertex_array.push_back(sprite->get_position().x);
+	sprite_vertex_array.push_back(sprite->get_position().y);
+	sprite_vertex_array.push_back(sprite->get_position().x + sprite->get_texture()->get_width());
+	sprite_vertex_array.push_back(sprite->get_position().y);
+	sprite_vertex_array.push_back(sprite->get_position().x + sprite->get_texture()->get_width());
+	sprite_vertex_array.push_back(sprite->get_position().y + sprite->get_texture()->get_height());
+	sprite_vertex_array.push_back(sprite->get_position().x);
+	sprite_vertex_array.push_back(sprite->get_position().y + sprite->get_texture()->get_height());	
+    //===================
+    while(window.is_open()) // main loop
+    {
+		window.set_viewport(window.get_client_width(), window.get_client_height());
+		window.clear(32, 32, 32);
+		
+        old_time = new_time;
+        new_time = (clock() / (double)CLOCKS_PER_SEC) * 1000;// get time in milliseconds or something; increments by the 100s
+        delta_time = new_time - old_time;
+        //std::cout << "delta_time: " << delta_time << "\n";
+        //std::cout << "time(ms): " << Timer::milliseconds() << "\n";
+		std::cout << "window: "         << window.get_size       () << "\n";
+        std::cout << "window_client: "  << window.get_client_size() << "\n";
+        std::cout << "renderer_client: "<< Renderer::get_display_size() << "\n";
+		
+	    if(window.is_focused()) // if window is focused
+	    {
+			if(Keyboard::is_pressed(DOKUN_KEY_UP   )) sprite->translate(0, -1 * delta_time);
+			if(Keyboard::is_pressed(DOKUN_KEY_DOWN )) sprite->translate(0, 1 * delta_time );
+			if(Keyboard::is_pressed(DOKUN_KEY_LEFT )) sprite->translate(-1 * delta_time, 0);
+			if(Keyboard::is_pressed(DOKUN_KEY_RIGHT)) sprite->translate(1 * delta_time, 0 );
+		}
+		//  draw here
+        sprite->draw();
+		widget->draw();
+		
+		window.update();
+	}
+	window.destroy();       // destroy window
+	//====================
+	if(!window.is_open()) { // window is closed
+		Engine::close(L);   // close engine too
+	}
+	/*
+	Matrix4 m = Matrix4(0); // new matrix allocated with all values set to 0
+	m = Matrix4::translate(m, 0, 0, -1.0);
+	m = Matrix4::rotate(m, 0 * 0.0174533, 0, 0, 1);
+	m = Matrix4::scale(m, 1, 1, 0.0);
+	m = Matrix4::translate(m, -0, -0, 1.0);
+	//m = Matrix4::ortho(0.0f, 1280, 720, 0.0f, -1.0f, 1.0f);
+	//m = Matrix4::perspective(67.5f, static_cast<float>(1280 / 720), 1.0f, 10024.0f);
+	m = Matrix4::look_at(0, 0, 0,   0, 0,-1,   0, 1, 0);*/
+	return 0;
+}
+/////////////////////////////////////////////
+/*#ifdef __gnu_linux__
+#ifdef DOKUN_X11
+	Window winFocus;
+    int    revert;
+    Display * display = XOpenDisplay(nullptr);
+	XGetInputFocus(display, &winFocus, &revert);
+	XWindowAttributes gwa;
+	XGetWindowAttributes(display, winFocus, &gwa); // get attributes while app is running; only gets width and height no x and y
+	window_width  = gwa.width ;
+	XCloseDisplay(display);
+#endif
+#endif */
+////////////////////////////////////////////
+			// Draw default_button images
+			//if(close_button) {
+			    //Image * closeb = new Image(*Resource::get_image("close_button")); // do NOT allocate an image object in a loop
+	            //closeb->set_position(widget->get_title_bar_button_close_position());
+	            //closeb->resize(widget->get_title_bar_button_close_size());//scale_to_fit(widget->get_title_bar_button_close_size());
+	            //closeb->set_color(widget->get_color());
+				//if(Mouse::is_over(title_bar_button_close->get_position(), title_bar_button_close->get_size()))
+					//title_bar_button_close_color->set_color(227,38,54); else title_bar_button_close_color->set_color(color);
+			//}
+////////////////////////////////////////////
+library installation guide: http://www.linuxfromscratch.org/blfs/view/svn/general/
+#set(freevr_src)#set(biosig_src)
+
+#set(xml2_src   dependencies/xml2/buf.c dependencies/xml2/SAX.c dependencies/xml2/uri.c dependencies/xml2/c14n.c dependencies/xml2/dict.c dependencies/xml2/hash.c dependencies/xml2/list.c dependencies/xml2/SAX2.c dependencies/xml2/tree.c dependencies/xml2/error.c dependencies/xml2/valid.c dependencies/xml2/xlink.c dependencies/xml2/xmlIO.c dependencies/xml2/xpath.c dependencies/xml2/xzlib.c dependencies/xml2/legacy.c dependencies/xml2/parser.c dependencies/xml2/catalog.c dependencies/xml2/chvalid.c dependencies/xml2/globals.c dependencies/xml2/nanoftp.c dependencies/xml2/pattern.c dependencies/xml2/relaxng.c dependencies/xml2/testdso.c dependencies/xml2/threads.c dependencies/xml2/xmlsave.c dependencies/xml2/debugXML.c dependencies/xml2/encoding.c dependencies/xml2/entities.c dependencies/xml2/HTMLtree.c dependencies/xml2/nanohttp.c dependencies/xml2/xinclude.c dependencies/xml2/xpointer.c dependencies/xml2/xmlmemory.c dependencies/xml2/xmlmodule.c dependencies/xml2/xmlreader.c dependencies/xml2/xmlregexp.c dependencies/xml2/xmlstring.c dependencies/xml2/xmlwriter.c dependencies/xml2/HTMLparser.c dependencies/xml2/schematron.c dependencies/xml2/xmlschemas.c dependencies/xml2/xmlunicode.c dependencies/xml2/parserInternals.c dependencies/xml2/xmlschemastypes.c) # libxml2-2.9.9   install with ./configure --help ->  make -> make install (http://xmlsoft.org/xml.html) (can be used for reading Collada Dae(.dae) and Scalable Vector Graphics(.svg)) (tutorial: http://www.linuxfromscratch.org/blfs/view/svn/general/libxml2.html)(consider http://rapidxml.sourceforge.net/) # sudo apt-get install libxml2-dev
+#add_definitions(-DLIBXML_THREAD_ENABLED) #threads.o works fine #threads.c - missing definitions for xmlMutexLock, xmlNewMutex, xmlFreeMutex (to fix, add definition: LIBXML_THREAD_ENABLED) ("The failure is because HAVE_PTHREAD_H is defined but LIBXML_THREAD_ENABLED flag is not." : https://github.com/google/shaka-packager/issues/561)
+#add_definitions(-DLIBXML_STATIC        ) # libxml.a found in dependencies/xml2/.libs
+set(openssl_src ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/openssl/libssl.a ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/openssl/libcrypto.a) # openssl-1.1.1 (https://www.openssl.org/source/)
+
+    #find_package(LibXml2) # for .svg and .dae  # /usr/local/lib/libxml2.so
+    #if(LIBXML2_FOUND)
+    #    target_link_libraries(dokun  ${LIBXML2_LIBRARIES})
+    #    target_link_libraries(editor ${LIBXML2_LIBRARIES})
+    #endif()
+    #find_package(OpenSSL)
+    #if(OPENSSL_FOUND)
+    #	target_link_libraries(dokun  ${openssl_src})
+    #	target_link_libraries(editor ${openssl_src})
+    #endif()
+////////////////////////////////////////////
+		// Draw glyph
+		/*for(int i = 0; i < string.length(); i++)
+		{
+			unsigned char character = string[i];
+			Renderer::draw_glyph(character, get_x() + i * font->get_width(character), get_y(), get_angle(), get_scale().x, get_scale().y, 
+	            *font, get_color().x, get_color().y, get_color().z, get_color().w); // x = get_x + space_between_each_glyph
+		#ifdef DOKUN_DEBUG0
+			std::cout << "Glyph size: " << character << " " << font->get_size(character) << "\n"; // actual pixel_size of glyph
+		#endif
+		}*/
+////////////////////////////////////////////
+bool FONT::is_generated() const // checks if a texture has been generated for each glyph
+{
+	//return !character_array.empty(); // bad
+/*#ifdef DOKUN_OPENGL
+#ifdef __windows__
+	if(!wglGetCurrentContext())
+		return false;
+#endif
+#ifdef __gnu_linux__
+    if(!glXGetCurrentContext())
+		return false;
+#endif	
+#endif
+    for(unsigned char c = 0; c < 128; c++) 
+    {
+		if(glIsTexture(character_array.find(c)->second.id)) // if it is a texture   .find(glyph)   character_array[c].id     std::map.first is the char, std::map.second is the Character
+	        return true;
+    }
+    return false; */ // return false otherwise
+}
+////////////////////////////////////////////
+/*
+move_raster_x(cdata->left);
+move_raster_y(cdata->move_up);
+
+move_raster_y(-cdata->move_up);
+move_raster_x(cdata->advance - cdata->left);
+
+
+move_raster_x(cdata.left);
+	move_raster_y(cdata.move_up);
+
+	if(text[i+1] == '\n'){
+		i += 1;
+		isNewline = true;
+	}
+
+	glDrawPixels(cdata.w, cdata.h, GL_LUMINANCE_ALPHA,
+			GL_UNSIGNED_BYTE, cdata.data);
+
+	if(isNewline){
+		move_raster_y(-cdata.h - 5);
+		move_raster_x(-(cdata.advance + 1) * i);
+		isNewline = false;
+	}else{
+		move_raster_y(-cdata.move_up);
+		move_raster_x(cdata.advance + 1);
+	}
+*/
+////////////////////////////////////////////
+// returns biggest height found in font
+/*
+	int height_ = 0;
+	for(int i = 0; i < text.size(); i++) // loop through all glyphs
+	{
+		char character = text[i];
+		// get height from character with biggest height
+		int character_height = get_height(character); // this line crashes in Lua
+		if (character_height > height_) {height_ = character_height;}
+	#ifdef DOKUN_DEBUG0
+		std::cout << character_height << " character_height [" << text[i] << "]" << std::endl;//Logger("Glyph heights " + String(static_cast<int>(character_height)).str());
+	#endif
+	}
+#ifdef DOKUN_DEBUG0
+	Logger("Height of string \"" + text + "\" is: " + String(static_cast<int>(height_)).str());
+#endif		
+	return height_;	
+*/
+////////////////////////////////////////////
+////////////////////////////////////////////
+////////////////////////////////////////////
+////////////////////////////////////////////
+////////////////////////////////////////////
+////////////////////////////////////////////

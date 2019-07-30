@@ -7,17 +7,6 @@
 #include "font.h"
 #include "audio.h"
 #include "model.h"
-
-#ifdef __windows__
-#define DEFAULT_FONT_PATH "C:/Windows/Fonts/ariblk.ttf"
-#endif
-#ifdef __gnu_linux__
-#define DEFAULT_FONT_PATH "/usr/share/fonts/X11/Type1/c0583bt_.pfb"
-#endif
-#ifdef __macosx__
-#define DEFAULT_FONT_PATH "System/Library/Fonts/HelveticaNeue.dfont"
-#endif
-
 #ifdef __cplusplus // if c++
 #include <iostream>
 #include <fstream>

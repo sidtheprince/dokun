@@ -12,7 +12,7 @@ if(WIN32) # tested on Windows 10 with MinGW (GNU 6.3.0)   8MB
     message("WIN32 device detected")
     set(WINDOWS TRUE)
 endif()
-if(${CMAKE_SYSTEM_NAME} MATCHES "Linux") # tested on Ubuntu 14.04(with GCC/G++4.8), 16.04(GCC/G++5.4.0)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Linux") # tested on Ubuntu 14.04(with GCC/G++4.8), 16.04(GCC/G++5.4.0), 19.04 (GCC 8.3.0)
     message("Linux device detected")
     set(LINUX TRUE)
     set(CMAKE_C_COMPILER   /usr/bin/gcc)
@@ -130,8 +130,15 @@ set(theora_src dependencies/theora/lib/analyze.c dependencies/theora/lib/apiwrap
 # video (playback)
 #############
 # font
-set(freetype_src dependencies/freetype/src/autofit/autofit.c dependencies/freetype/src/base/ftbase.c dependencies/freetype/src/base/ftbbox.c dependencies/freetype/src/base/ftbdf.c dependencies/freetype/src/base/ftbitmap.c dependencies/freetype/src/base/ftcid.c dependencies/freetype/src/base/ftfntfmt.c dependencies/freetype/src/base/ftfstype.c dependencies/freetype/src/base/ftgasp.c dependencies/freetype/src/base/ftglyph.c dependencies/freetype/src/base/ftgxval.c dependencies/freetype/src/base/ftinit.c dependencies/freetype/src/base/ftlcdfil.c dependencies/freetype/src/base/ftmm.c dependencies/freetype/src/base/ftotval.c dependencies/freetype/src/base/ftpatent.c dependencies/freetype/src/base/ftpfr.c dependencies/freetype/src/base/ftstroke.c dependencies/freetype/src/base/ftsynth.c dependencies/freetype/src/base/ftsystem.c dependencies/freetype/src/base/fttype1.c dependencies/freetype/src/base/ftwinfnt.c dependencies/freetype/src/bdf/bdf.c dependencies/freetype/src/bzip2/ftbzip2.c dependencies/freetype/src/cache/ftcache.c dependencies/freetype/src/cff/cff.c dependencies/freetype/src/cid/type1cid.c dependencies/freetype/src/gzip/ftgzip.c dependencies/freetype/src/lzw/ftlzw.c dependencies/freetype/src/pcf/pcf.c dependencies/freetype/src/pfr/pfr.c dependencies/freetype/src/psaux/psaux.c dependencies/freetype/src/pshinter/pshinter.c dependencies/freetype/src/psnames/psnames.c dependencies/freetype/src/raster/raster.c dependencies/freetype/src/sfnt/sfnt.c dependencies/freetype/src/smooth/smooth.c dependencies/freetype/src/truetype/truetype.c dependencies/freetype/src/type1/type1.c dependencies/freetype/src/type42/type42.c dependencies/freetype/src/winfonts/winfnt.c) #freetype-2.8.0 (https://www.freetype.org/download.html) (https://download.savannah.gnu.org/releases/freetype/)
-add_definitions(-DFT2_BUILD_LIBRARY)
+set(freetype_src dependencies/freetype/src/autofit/autofit.c dependencies/freetype/src/base/ftbase.c dependencies/freetype/src/base/ftbbox.c dependencies/freetype/src/base/ftbdf.c dependencies/freetype/src/base/ftbitmap.c dependencies/freetype/src/base/ftcid.c dependencies/freetype/src/base/ftfstype.c dependencies/freetype/src/base/ftgasp.c dependencies/freetype/src/base/ftglyph.c dependencies/freetype/src/base/ftgxval.c dependencies/freetype/src/base/ftinit.c dependencies/freetype/src/base/ftmm.c dependencies/freetype/src/base/ftotval.c dependencies/freetype/src/base/ftpatent.c dependencies/freetype/src/base/ftpfr.c dependencies/freetype/src/base/ftstroke.c dependencies/freetype/src/base/ftsynth.c dependencies/freetype/src/base/ftsystem.c dependencies/freetype/src/base/fttype1.c dependencies/freetype/src/base/ftwinfnt.c dependencies/freetype/src/bdf/bdf.c dependencies/freetype/src/bzip2/ftbzip2.c dependencies/freetype/src/cache/ftcache.c dependencies/freetype/src/cff/cff.c dependencies/freetype/src/cid/type1cid.c dependencies/freetype/src/gzip/ftgzip.c dependencies/freetype/src/lzw/ftlzw.c dependencies/freetype/src/pcf/pcf.c dependencies/freetype/src/pfr/pfr.c dependencies/freetype/src/psaux/psaux.c dependencies/freetype/src/pshinter/pshinter.c dependencies/freetype/src/psnames/psnames.c dependencies/freetype/src/raster/raster.c dependencies/freetype/src/sfnt/sfnt.c dependencies/freetype/src/smooth/smooth.c dependencies/freetype/src/truetype/truetype.c dependencies/freetype/src/type1/type1.c dependencies/freetype/src/type42/type42.c dependencies/freetype/src/winfonts/winfnt.c) #freetype-2.10.1 - 2019-07-01 (https://www.freetype.org/download.html) (https://download.savannah.gnu.org/releases/freetype/)
+if(WIN32)
+    #list(APPEND freetype_src dependencies/freetype/builds/windows/ftdebug.c dependencies/freetype/src/base/ftver.rc)
+    #add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_WARNINGS)
+endif()
+if(LINUX)
+    list(APPEND freetype_src dependencies/freetype/builds/windows/ftdebug.c) # fixes the undefined reference to `FT_Trace_Disable' error in Ubuntu
+endif()
+add_definitions(-DFT2_BUILD_LIBRARY) # removed dependencies/freetype/src/base/ftfntfmt.c, dependencies/freetype/src/base/ftlcdfil.c  # define 'DLL_EXPORT' for freetype2 sharedlib (.dll); other defines: -DFT_WITH_ZLIB=ON, -DFT_WITH_BZIP2=ON, -DFT_WITH_PNG=ON
 #############
 # network
 set(winsocket_src ws2_32.lib)
@@ -172,9 +179,10 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/dependencies
    ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/glew/include 
    ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/png
    ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/zlib
-   ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/freetype/include
-   ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/freetype/include/freetype
-   ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/freetype/include/freetype/config
+   ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/freetype/include                   # public headers - ft2build.h
+   ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/freetype/include/freetype          # public headers
+   ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/freetype/include/freetype/config   # public config headers
+   ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/freetype/include/freetype/internal # private headers - added 2019-07-29
    ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/ogg/include
    ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/vorbis/include
    ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/vorbis/lib
@@ -220,7 +228,7 @@ link_directories(${CMAKE_CURRENT_SOURCE_DIR}/src) # stored in 'src' since librar
 #############
 # API definitions
 add_definitions(-DDOKUN_OPENGL) # add_definitions(-DDOKUN_VULKAN)
-add_definitions(-DDOKUN_DEBUG ) # dokun debug mode
+add_definitions(-DDOKUN_DEBUG ) # dokun debug mode. Use DOKUN_DEBUG0 for more intense debug
 #############
 # output folder - '.a' and '.lib' will go in folder "src"
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/src)
