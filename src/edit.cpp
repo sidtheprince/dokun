@@ -522,14 +522,14 @@ void Edit::on_mousepress()
 /////////////
 void Edit::on_keypress()
 {
-    if(Keyboard::is_down())
+    for(unsigned char key = 0; key < 128; key++) //if(Keyboard::is_down())
 	{
-		char key = static_cast<char>(Keyboard::key);
+		//char key = static_cast<char>(Keyboard::key);
 		if(Keyboard::is_pressed(key))
 		{   
 		#ifdef DOKUN_DEBUG0
 		    std::cout << key << " pressed\n";
-		#endif    
+		#endif
 		    //if(isascii(key)) {  set_text(get_text() + std::to_string(int(key))); set_cursor_x(cursor_x + 10); return; }
 			// number or letter or punctuation or space
 			if(isalnum(key) ||  ispunct(key) || isspace(key))
