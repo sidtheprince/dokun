@@ -79,9 +79,11 @@ class Edit : public GUI {// can be a line edit or text edit or search field
 	    Vector4 color;
 	    bool   cursor;
 		double cursor_x, cursor_y;
+		int cursor_height;
 		double zoom_factor; 
 		unsigned int character_limit;
 		bool multilined;
+		int num_newlines;
 		Label * label;
 		// other
 		//std::map<std::string, Vector3& color> syntax_list;

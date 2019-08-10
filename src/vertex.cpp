@@ -369,7 +369,7 @@ int Vertex::new_(lua_State *L)
 	// create table
 	lua_createtable(L, 0, 0);
 	// set metatable
-	lua_getglobal(L, "Vertex_mt");
+	lua_getglobal(L, "Vertex");
 	lua_setmetatable(L, 1);
 	// set userdata
 	Vertex ** vertex = static_cast<Vertex**>(lua_newuserdata(L, sizeof(Vertex*)));

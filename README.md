@@ -97,7 +97,7 @@ int main()
 
 `operating systems`
 
-<a href="https://www.microsoft.com/en-us/windows" target="_blank"><img src="res/icon/windows-orig.png" title="Windows" width="32"></img></a>         <a href="http://www.ubuntu.com/" target="_blank"><img src="res/icon/ubuntu.png" width="32" title="Ubuntu"></img></a>  
+<a href="https://www.microsoft.com/en-us/windows" target="_blank"><img src="res/icon/windows-orig.png" title="Windows" width="32"></img></a>         <a href="http://www.ubuntu.com/" target="_blank"><img src="res/icon/ubuntu.png" width="32" title="Ubuntu 16.04+"></img></a>  
 <!-- <a href="https://www.apple.com/osx/"><img src="res/icon/mac.png" width="32"></img></a>   <a href="https://www.android.com/"><img src="res/icon/android.png" width="32"></img></a>  <a href="https://www.apple.com/ios/"><img src="res/icon/apple.png" width="32"></img></a>
 -->
 

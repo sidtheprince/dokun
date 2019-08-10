@@ -90,7 +90,7 @@
 #define ENGINE_NAME      "dokun"
 #define ENGINE_AUTHOR    "Sid Lartey Doku"
 #define ENGINE_LICENSE   "MIT License" 
-#define ENGINE_COPYRIGHT "Copyright (C) 2015 Studio Blue" // just a placeholder name
+#define ENGINE_COPYRIGHT "Copyright (C) 2019 Sid Lartey Doku" // just a placeholder name
 /////////////
 #define ENGINE_VERSION_MAJOR "1"
 #define ENGINE_VERSION_MINOR "0"

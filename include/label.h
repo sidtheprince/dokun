@@ -52,6 +52,7 @@ class Label : public GUI {
 		std::vector<Vector2> get_character_size_array();
 		//Vector2 get_scale()const;
 		// boolean		
+		bool is_label() const;                static int is_label(lua_State *L);
         // allow engine to access the default font and other private members of class Label
         friend class Engine;
 	private:

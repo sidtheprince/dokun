@@ -1,13 +1,11 @@
 #include "../include/edit.h"
 
-Edit::Edit() : color(160, 160, 160, 255), character_limit(10),
-    cursor(true), cursor_x(0), cursor_y(0), zoom_factor(0), multilined(false)
+Edit::Edit() : color(160, 160, 160, 255), character_limit(20),
+    cursor(true), cursor_x(0), cursor_y(0), cursor_height(20), zoom_factor(0), multilined(false), num_newlines(0), label(nullptr)
 {
 	set_position(0, 0);
 	set_size(200, 20); // 150, 20
 	set_orientation(0);
-	
-	label = new Label();
 }
 /////////////
 Edit::~Edit()
@@ -29,6 +27,12 @@ void Edit::draw()
 	{
 		if(is_active()) // is it disabled?
 		{}
+		// callbacks
+		on_hover();// if mouse over edit, change mouse to I-beam
+		//on_mousepress();// edit is pressed, set cursor at position_pressed
+        on_keypress();
+        on_backspace();
+        on_enter();
 		double x = get_position().x;
 		double y = get_position().y;
 		double angle = get_angle();
@@ -44,23 +48,15 @@ void Edit::draw()
 		Vector4 text_color = get_text_color();
 		// Draw edit
 		Renderer::draw_edit(get_text(), x, y, width, height, angle, scale_x, scale_y,
-		    red, green, blue, alpha, multilined, cursor, cursor_x, cursor_y);
+		    red, green, blue, alpha, multilined, cursor, cursor_x, cursor_y, cursor_height);
         // Draw text
-		if(!label->get_string().empty())
+		if(label) // ->get_string().empty()
 		{
-			label->draw();
-			label->set_position(x, y + cursor_y);
-			label->set_scale(0.5, 0.5);
-			label->set_color(text_color);
+		    label->set_relative_position(label->get_relative_position());
+			label->set_position(get_x() + label->get_relative_x(), get_y() + label->get_relative_y()); // label position stays the same - on the edit, but the cursor is the only thing that moves
 		}
-		// if mouse over edit, change mouse to I-beam	
-		// edit is pressed, set cursor at position_pressed	
-		on_hover();
-		on_mousepress();
-        on_keypress();
-        on_backspace();
-        on_enter();		
-	}	
+        on_draw(); // draw children
+	}
 }
 /////////////
 int Edit::draw(lua_State *L)
@@ -86,13 +82,13 @@ int Edit::copy(lua_State *L)
 /////////////
 void Edit::paste()
 {
-	#ifdef __windows__
-	    if( !OpenClipboard(nullptr)) // open clipboard
-	    {
-		    return;
-	    }
-        append( (const char *)GetClipboardData(CF_TEXT) );
-	#endif
+#ifdef __windows__
+	if(!OpenClipboard(nullptr)) // open clipboard
+	{
+		return;
+	}
+    append( (const char *)GetClipboardData(CF_TEXT) );
+#endif
 }
 /////////////
 int Edit::paste(lua_State *L)
@@ -222,7 +218,8 @@ int Edit::set_cursor_position(lua_State *L)
 /////////////
 void Edit::set_label(const Label& label)
 {
-	(this)->label = &const_cast<Label&>(label);
+	this->label = &const_cast<Label&>(label);
+	this->label->set_parent(* this);
 }
 /////////////
 int Edit::set_label(lua_State *L)
@@ -235,13 +232,45 @@ int Edit::set_label(lua_State *L)
 void Edit::set_text(const std::string& text)
 {
 	std::string string0 (text);
-	if(string0.length() > get_character_limit()) 
+	if(string0.length() > get_character_limit()) // character limit has been reached
 	{
 		string0 = string0.erase(string0.length() - string0.length() + get_character_limit());
-	}	
+	#ifdef DOKUN_DEBUG
+	    std::cout << "Cannot exceed " <<  get_character_limit() << " character limit!" << std::endl;
+	#endif	
+	    return; // exit function
+	}
+	int edit_capacity = get_width() / 10; // number of characters the edit can hold
+	if(cursor_x >= get_width()) // cursor cannot go past edit
+	{
+	    // keep label from going past edit. Set character limit to 50
+	    if(!is_multilined()) {
+	        string0.resize(edit_capacity);
+	    #ifdef DOKUN_DEBUG1    
+	        std::cout << "Text Edit can only hold " << edit_capacity << " characters based on its size!" << std::endl;
+	        std::cout << "Characters in text: " << get_text().size() << std::endl;
+	    #endif
+	    }
+		if(is_multilined())  // if multilined=true, create a new line // a multilined editor
+		{
+	        char last_char = String::get_last_character(string0);
+	        // remove last (51th) chatracter
+	        string0 = string0.erase(string0.length() - 1);//std::cout << last_char << " removed\n";		
+		
+		    int char_height = label->get_font()->get_height();
+		    // double the height of the edit
+			set_height(get_height() + char_height); // GOOD!
+			// add a newline in text (basically replaces last_char with a newline)
+			string0.append("\n"); num_newlines = num_newlines + 1;
+			// also append the last character
+			string0.append(String::to_string(last_char)); // finally append last (51th) character to the newline
+			// reset cursor x position - try to get location of newline
+			set_cursor_x(0);
+			// set cursor y position (bring it down)
+			set_cursor_y(cursor_y + char_height);
+	    }
+	}		
 	get_label()->set_string(string0);
-	int char_width = 10; // estimated glyph width
-	set_cursor_x(cursor_x + (get_width() / char_width)); // set cursor at end of string
 }
 /////////////
 int Edit::set_text(lua_State *L)
@@ -261,7 +290,7 @@ int Edit::set_font(lua_State *L)
 /////////////
 void Edit::set_text_color(int red, int green, int blue, int alpha)
 {
-	get_label()->set_color(red, green, blue, alpha);
+	label->set_color(red, green, blue, alpha);
 } 
 /////////////
 void Edit::set_text_color(const Vector3& color)
@@ -451,7 +480,7 @@ void Edit::on_hover()
 		{
 		#ifdef __windows__
 		    HCURSOR ibeam = LoadCursor(nullptr, IDC_IBEAM);
-		    SetClassLong(window->get_handle(), GCL_HCURSOR, (DWORD)ibeam); // DWORD = unsigned long
+		    //SetCursor(HCURSOR hCursor);//SetClassLong(window->get_handle(), GCL_HCURSOR, (DWORD)ibeam); // DWORD = unsigned long
         #endif		
 		#ifdef __gnu_linux__		
 		    Cursor cursor = XCreateFontCursor(window->get_display(), XC_xterm); 
@@ -465,7 +494,7 @@ void Edit::on_hover()
 		{
 	    #ifdef __windows__
 		    HCURSOR arrow = LoadCursor(nullptr, IDC_ARROW);
-		    SetClassLong(window->get_handle(), GCL_HCURSOR, (DWORD)arrow);
+		    //SetCursor(HCURSOR hCursor);//SetClassLong(window->get_handle(), GCL_HCURSOR, (DWORD)arrow);
 		#endif
 		#ifdef __gnu_linux__	
 		    Cursor cursor = XCreateFontCursor(window->get_display(), XC_left_ptr); 
@@ -478,13 +507,15 @@ void Edit::on_hover()
 /////////////
 void Edit::on_mousepress()
 {
-	if(Mouse::is_over(get_position(), get_size()))
+    if(!Mouse::is_over(get_rect())) return; // mouse_not_over_edit, return
+	if(Mouse::is_over(get_position(), (get_text().size() * 10)+10)) // mouse_over_text
 	{
 		if(Mouse::is_pressed(1))
 		{
 		    WINDOW * window = WINDOW::get_active();
-		    if(window != nullptr)
-		        set_cursor_position(Mouse::get_position(*window).x, cursor_y);
+		    if(window == nullptr) return;
+		    int x = fabs(round((double)Mouse::get_position(*window).x - (double)(get_x() + cursor_x))); // abs() for int, fabs() for decimals//if(x < 0) x = -x; = makes negative numbers into a positive
+		    set_cursor_position(x, cursor_y);//round to the nearest tenth//get_y() - Mouse::get_position(*window).y);//cursor_changed_by_mouse = true; // add chars to location of cursor : get_text().size() / cursor_x
 		}
 	}
 }
@@ -493,34 +524,53 @@ void Edit::on_keypress()
 {
     if(Keyboard::is_down())
 	{
-		for(unsigned char i = 0; i < 128; i++)
-		{
-			if(Keyboard::is_pressed(i))
+		char key = static_cast<char>(Keyboard::key);
+		if(Keyboard::is_pressed(key))
+		{   
+		#ifdef DOKUN_DEBUG0
+		    std::cout << key << " pressed\n";
+		#endif    
+		    //if(isascii(key)) {  set_text(get_text() + std::to_string(int(key))); set_cursor_x(cursor_x + 10); return; }
+			// number or letter or punctuation or space
+			if(isalnum(key) ||  ispunct(key) || isspace(key))
 			{
-					// number or letter or punctuation or space
-				if(isalnum(i) ||  ispunct(i) || isspace(i)) 
-				{
-					set_text(get_text() + String::to_string(i));
-				}
+				set_text(get_text() + String::to_string(key)); //if(std::string(get_text()).length() > get_character_limit()) return; // exit if character limit has been reached	
+				set_cursor_x(cursor_x + 10);//increment by 10 for each character//10 * get_text().size();// label_width does not give accurate results so DO NOT use!
+				return;
 			}
 		}
-	}			
+	}
 }
 /////////////
 void Edit::on_backspace()
 {
+    if(get_text().empty()) return; // empty string, return (so it does not crash engine)
 #ifdef __windows__
     if(Keyboard::is_pressed(0x08))
-#endif	
-#ifdef __gnu_linux__	
+#endif
+#ifdef __gnu_linux__
     if(Keyboard::is_pressed(0xff08))
-#endif		
+#endif
 	{
+	    char last_char = String::get_last_character(label->get_string()); // get last character in text (before erasing it) // make sure text is not empty so you can operate on it (to prevent crash) if(get_text().empty()) return;
 		// erase last character in string
-		if(get_text().length()!=0) set_text(get_text().erase(get_text().length() - 1));
-		// move cursor back
-		int char_width = 10;
-		set_cursor_x(get_cursor_x() - char_width);
+		if(get_text().length() > 0) set_text(get_text().erase(get_text().length() - 1));
+		// bring cursor_x back on character deletion //if(!get_text().empty()) 
+		set_cursor_x(cursor_x - 10);		
+	#ifdef DOKUN_DEBUG0
+		std::cout << "\"" << last_char << "\" deleted" << std::endl;
+	#endif
+		// if a newline is removed, decrease the size of the edit
+		if(last_char == '\n' && multilined) {
+		    int char_height = label->get_font()->get_height();
+		    set_height(get_height() - char_height);
+		    // decrease num_newlines
+		    num_newlines = num_newlines - 1;
+		    // bring cursor_y back up (if erasing newline)
+		    set_cursor_y(cursor_y - char_height);
+		}
+		// reset cursor position if text is empty
+		if(get_text ().empty()) set_cursor_position(0, 0);
 	}	
 }
 /////////////
@@ -535,20 +585,16 @@ void Edit::on_enter()
 	{
 		if(is_multilined()) // a multilined editor
 		{
-			if(get_text().length() >= get_character_limit()) // if text length has reached character_limit
-			{
-				// double the height of the edit
-				set_height(get_height() * 2); // GOOD!
-				// add to the character_limit (new character_limit)
-				set_character_limit(get_character_limit() + get_character_limit());  // ???
-				// newline???
-				set_text(get_text() + "\n");
-				// reset cursor x position
-				set_cursor_x(0);
-				// set cursor y position
-				int char_height = 12;
-				set_cursor_y(get_cursor_y() + char_height);
-			}
+		    int char_height = label->get_font()->get_height();
+		    // double the height of the edit
+			set_height(get_height() + char_height); // GOOD!
+			// add a newline in text
+			set_text(get_text() + "\n");
+			num_newlines = num_newlines + 1;
+			// reset cursor x position - try to get location of newline
+			set_cursor_x(0);
+			// set cursor y position (bring it down)
+			set_cursor_y(cursor_y + char_height);
 		}
 	}	
 }

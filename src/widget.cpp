@@ -122,7 +122,7 @@ int Widget::widget_new(lua_State *L)
 	// create table (object)
 	lua_createtable(L, 0, 0);
     // set mt
-	lua_getglobal(L, "Widget_mt");
+	lua_getglobal(L, "Widget");
 	lua_setmetatable(L, 1);
 	// set userdata
 	Widget ** widget = static_cast<Widget**>(lua_newuserdata(L, sizeof(Widget*)));
@@ -200,10 +200,10 @@ void Widget::draw(void)
 					if(title_bar_image->get_alignment() == "left"  ) {title_bar_image->set_relative_position(0, 0);} // relative: child_position = parent_position + relative_position
                     if(title_bar_image->get_alignment() == "center") {title_bar_image->set_relative_position((get_title_bar_size().x - get_title_bar_size().y) / 2, 0);}			
                     if(title_bar_image->get_alignment() == "right" ) {title_bar_image->set_relative_position(get_title_bar_size().x - get_title_bar_size().y, 0);}								
-					if(title_bar_image->get_alignment() == "free"  ) {}
+					if(title_bar_image->get_alignment() == "none"  ) {}
                     // set title_bar_image position relative to title_bar
 				    title_bar_image->set_position(get_title_bar_position().x + title_bar_image->get_relative_x(), get_title_bar_position().y + title_bar_image->get_relative_y());
-				    // scale image to fit the title_bar
+				    // scale image to fit the title_bar - ???
                     title_bar_image->scale_to_fit(get_title_bar_size().x, get_title_bar_size().y);
                     // and finally, draw the title_bar_image
 				    title_bar_image->draw();// will crash engine if not assigned to nullptr or any value
@@ -215,48 +215,41 @@ void Widget::draw(void)
 			        if(title_bar_label->get_alignment() == "left"  ) {title_bar_label->set_position(0, 0);} // default
                     if(title_bar_label->get_alignment() == "center") {title_bar_label->set_position((get_title_bar_size().x - get_title_bar_size().y) / 2, 0);}			
                     if(title_bar_label->get_alignment() == "right" ) {title_bar_label->set_position(get_title_bar_size().x - get_title_bar_size().y, 0);}
-                    if(title_bar_label->get_alignment() == "free"  ) {}
-                    // set title_bar_label position to title_bar_position + relative_position
-					title_bar_label->set_position(get_title_bar_position().x + title_bar_label->get_relative_x(), get_title_bar_position().y + title_bar_label->get_relative_y());
+                    if(title_bar_label->get_alignment() == "none"  ) {}
+                    // set title_bar_label position to title_bar_position + title_bar_label_position
+					title_bar_label->set_position(get_title_bar_position().x + title_bar_label->get_x(), get_title_bar_position().y + title_bar_label->get_y());
 				    // scale label to fit titlebar
-                    double aspect = title_bar_label->get_aspect_ratio_correction(get_title_bar_size().x, get_title_bar_size().y);
-					title_bar_label->set_scale(aspect, aspect); // find a way to scale to fit
+                    //double aspect = title_bar_label->get_aspect_ratio_correction(get_title_bar_size().x, get_title_bar_size().y);
+					//title_bar_label->set_scale(aspect, aspect); // find a way to scale to fit
                     // and finally, draw the title_bar_label
-                    title_bar_label->draw();// will crash engine if not assigned to nullptr or any value
+                    title_bar_label->draw(); // title_bar_label's parent is not the Box but the Box's titlebar, so use set_position NOT set_relative_position // will crash engine if not assigned to nullptr or any value
                     }
                 }
 			} // end of titlebar image *********************************************
             /////////////////////////////////////////////////////////////////////////
 			// Draw label (goes inside box) **********************************************************
-        if(label) {// make sure Widget has a (initialized) label first (regardless of whether it has a default label or a set label)
-			if(!label->get_parent() || label->get_parent() == this) // if label does not have a parent yet or "this" is its parent (GUI elements with parents are automatically drawn)
-			{
-                if(!get_text().empty()) // if text is not empty  // label does not show when I set "relative_position". Instead use "set_position" for label!!!!
-			    {
-				    if(label->get_alignment() == "left"  ) {label->set_position(0, 0);} // default
-					if(label->get_alignment() == "center") {label->set_position((get_width() - label->get_width()) / 2, (get_height() - label->get_height()) / 2);}						
-					if(label->get_alignment() == "right" ) {label->set_position(get_width() - label->get_width(), 0);}	
-                    if(label->get_alignment() == "free"  ) {}	
-					// set position to box_position + relative_position
-                    label->set_position(get_x() + label->get_relative_x(), get_y() + label->get_relative_y());
-                    // set the label size manually
-					// and finally, draw the label
-					label->draw();
-			    }
-			} else Logger("WARNING: Label is not the child of this box! Label has a different parent!");
-       } // label not nullptr
+            if(label) {// make sure Widget has a (initialized) label first (regardless of whether it has a default label or a set label)
+		        if(label->get_alignment() == "left"  ) { label->set_relative_position(0                                    , 0); } // default - relative_position will always be (0, 0) unless you change the alignment
+				if(label->get_alignment() == "center") { label->set_relative_position((get_width()-label->get_width())/2   , (get_height()-label->get_height())/2); }						
+				if(label->get_alignment() == "right" ) { label->set_relative_position(get_width() - label->get_width()     , 0); }	
+                if(label->get_alignment() == "none"  ) {} // with this you are free to set the label's relative position to whatever you want         
+                label->set_position(get_x() + label->get_relative_x(), get_y() + label->get_relative_y()); // set actual position
+			#ifdef DOKUN_DEBUG1		
+				std::cout << "Label0 position:                 " << label->get_position() << std::endl;
+				std::cout << "Label0 position relative to box: " << label->get_relative_position() << std::endl;
+			#endif		
+				// NO need to draw label since child GUI are automatically drawn //if(!label->get_string().empty()) label->draw(); // child objects are drawn automatically. So DO NOT call draw function!!!
+            }
              // Draw multiple labels ... 
             for(int l = 0; l < label_list.size(); l++)//for(int l = 1; l <= label_list.size()-1; l++)
             {
-                label_list[0]->set_position(label->get_x(), (label->get_y() + label->get_height()) + 2);//(get_x() + label->get_relative_x(), (get_y() + label->get_relative_y()) - label->get_height() );
+                label_list[0]->set_position(label->get_x(), (label->get_y() + label->get_height()) + 2);//if(label ) label_list[0]->set_position(label->get_x(), (label->get_y() + label->get_height()) + 2);
+                //if(!label) label_list[0]->set_position(get_x() + label_list[0]->get_relative_x(), get_y() + label_list[0]->get_relative_y());
                 if(l != 0) { // label_list[0] is the default label, so exclude it
-                    Label * prev = label_list[l-1]; 
-				    if(label_list[l]->get_alignment() == "left"  ) {label_list[l]->set_position(0, 0);} // default
-					if(label_list[l]->get_alignment() == "center") {label_list[l]->set_position((get_width() - label_list[l]->get_width()) / 2, (get_height() - label_list[l]->get_height()) / 2);}						
-					if(label_list[l]->get_alignment() == "right" ) {label_list[l]->set_position(get_width() - label_list[l]->get_width(), 0);}	
-                    if(label_list[l]->get_alignment() == "free"  ) {}	            
-                    label_list[l]->set_position(prev->get_x(), (prev->get_y() + prev->get_height()));
-                } label_list[l]->draw();
+                    Label * prev = label_list[l-1];                          
+                    label_list[l]->set_position(prev->get_x(), (prev->get_y() + prev->get_height())); // set the sub labels position based on label0's position. Don't worry about alignments and whatnot       
+                }
+                // NO need to draw label since child GUI are automatically drawn //if(!label_list[l]->get_string().empty()) label_list[l]->draw(); // draw the label (ONLY if the string is not empty!)
             }
             /////////////////////////////////////////////////////////////////////////
 			// Draw image (goes inside box) *******************************************
@@ -269,14 +262,14 @@ void Widget::draw(void)
 				if(image->get_alignment() == "left"  ) {image->set_relative_position(0, 0);}					
                 if(image->get_alignment() == "center") {image->set_relative_position((get_width() - image_width) / 2, (get_height() - image_height) / 2);}
 				if(image->get_alignment() == "right" ) {image->set_relative_position(get_width() - image_width, 0);}
-                if(image->get_alignment() == "free"  ) {}
+                if(image->get_alignment() == "none"  ) {}
                 // set image position relative to GUI
 				image->set_position(get_x() + image->get_relative_x(), get_y() + image->get_relative_y());
 				// make sure image is within widget bounds
 				if(image_width > get_width  ()) image->resize(get_width(), image->get_height());// if image is wider than widget, make width equal
 				if(image_height > get_height()) image->resize(image->get_width(), get_height());// if image is taller than widget, make height equal
 				// and finally, draw the image ...	
-				image->draw();
+				image->draw(); // Image is not a GUI so you cannot set its parent and it must be drawn manually
 			}
 			/////////////////////////////////////////////////////////////////////////
 		}
@@ -851,11 +844,11 @@ int Widget::set_title_bar_label(lua_State * L)
     return 0;
 }
 //////////////
-void Widget::set_title_bar_icon(const Image& icon)
+void Widget::set_title_bar_image(const Image& image)
 {
-	title_bar_image = &const_cast<Image&>(icon);
+	title_bar_image = &const_cast<Image&>(image);
 }                                  
-int Widget::set_title_bar_icon(lua_State * L)
+int Widget::set_title_bar_image(lua_State * L)
 {
 	luaL_checktype(L, 1, LUA_TTABLE);
 	luaL_checktype(L, 2, LUA_TTABLE);
@@ -874,6 +867,10 @@ int Widget::set_title_bar_icon(lua_State * L)
 	    }
 	}
 	return 0;	
+}
+void Widget::set_title_bar_icon(const Image& icon)
+{
+	set_title_bar_image(icon);
 }
 void Widget::set_title_bar_color(int red, int green, int blue, int alpha)
 {
@@ -1027,7 +1024,8 @@ int Widget::set_text(lua_State * L)
 /////////////
 void Widget::set_label(const Label& label) // Labels are GUI elements so they are drawn automatically once a parent is set
 {
-	this->label = &const_cast<Label&>(label); // add label to box
+	this->label = &const_cast<Label&>(label); // add label to box 
+	this->label->set_parent(* this); // set parent to Widget
 } 
 int Widget::set_label(lua_State * L)	
 {
@@ -1043,8 +1041,11 @@ int Widget::set_label(lua_State * L)
 		    Widget * widget = *static_cast<Widget **>(lua_touserdata(L, -1));
 		    widget->set_label(*label);
 			// set in Lua as well
-			lua_pushvalue(L, 2);
-			lua_setfield(L, 1, "label"); // box.label
+			lua_pushvalue(L, 2); // label
+			lua_setfield(L, 1, "label"); // box.label = label
+			// set Box as parent for Label
+			lua_pushvalue(L, 1); // box
+			lua_setfield(L, 2, "parent"); // label.parent = box
 	    }
 	}
     return 0;	
@@ -1052,6 +1053,7 @@ int Widget::set_label(lua_State * L)
 void Widget::set_label_list(const Label& label) // Labels are GUI elements so they are drawn automatically once a parent is set
 {
     label_list.push_back(&const_cast<Label&>(label)); // store label in label_list (first label set will always be in index 0)
+    label_list[label_list.size()-1]->set_parent(* this); // set Box as parent - C++ indexes start from 0
 }
 int Widget::set_label_list(lua_State *L)
 {

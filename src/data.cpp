@@ -375,7 +375,7 @@ int Data::new_(lua_State *L)
 	// table
 	lua_createtable(L, 0, 0);
 	// mt
-	lua_getglobal(L, "Data_mt");
+	lua_getglobal(L, "Data");
 	lua_setmetatable(L, 1);
 	// udata
 	Data ** data = static_cast<Data **>(lua_newuserdata(L, sizeof(Data *)));

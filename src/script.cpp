@@ -838,7 +838,7 @@ std::string Script::get_type(lua_State * L, const std::string& object)
 //////////
 //////////
 //////////
-int Script::table(lua_State *L, std::string class_name)
+int Script::table_not_mt(lua_State *L, std::string class_name) // soon to be replaced by Script::table_as_mt
 {
 	lua_newtable(L);
 	lua_newtable(L); 
@@ -847,6 +847,15 @@ int Script::table(lua_State *L, std::string class_name)
 	std::string mt(class_name + "_mt");
 	lua_setglobal(L, mt.c_str()); 
     lua_setglobal(L, class_name.c_str());	
+	return 0;
+}
+////////////
+int Script::table(lua_State *L, std::string class_name) // the base table itself will also be a metatable
+{
+	lua_newtable(L); // create {} table: 0x242e040
+	lua_pushvalue(L, -1); // push the same table again {} table: 0x242e040
+	lua_setfield(L, -2, "__index"); // {__index = {}} 
+	lua_setglobal(L, class_name.c_str()); // Monster = {__index= {}}
 	return 0;
 }
 ////////////
@@ -973,7 +982,7 @@ int Script:: inherit (lua_State *L, std::string base_table, std::string sub_tabl
 		lua_pop(L, 1);
 	    luaL_error(L, "Table %s not found", sub_table.c_str()); 
 	}
-	lua_getglobal(L, base_table.append("_mt").c_str());
+	lua_getglobal(L, base_table/*.append("_mt")*/.c_str()); // _mt soon to be removed
 	if(!lua_istable(L, -1))	
 	{
 		lua_pop(L, 2);
@@ -1006,7 +1015,7 @@ int Script::attach(lua_State *L, std::string base_table, std::string sub_table)
 			lua_newtable(L);
 			lua_getfield(L, -2, sub_table.c_str());
 			lua_setfield(L, -2, "__index");
-			lua_setglobal(L, sub_table.append("_mt").c_str());
+			lua_setglobal(L, sub_table/*.append("_mt")*/.c_str()); // _mt soon to be removed
 			lua_pop(L, 1);
 	}	
 	return 0;
@@ -1102,7 +1111,7 @@ int Script::new_(lua_State *L)
 	// create table
 	lua_createtable(L, 0, 0);
 	// create mt
-	lua_getglobal(L, "Script_mt");
+	lua_getglobal(L, "Script");
 	lua_setmetatable(L, 1);
 	// create udata
 	Script **script = static_cast<Script **>(lua_newuserdata(L, sizeof(Script *)));

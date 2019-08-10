@@ -102,9 +102,7 @@ public:
 	static void draw_edit(const std::string& text, int x, int y, int width, int height, double angle, double scale_x, double scale_y, double red, double green, double blue, double alpha,
 	    bool multilined,
 		// cursor
-		bool cursor,
-		double cursor_x,
-		double cursor_y
+		bool cursor, double cursor_x, double cursor_y, int cursor_height
 	);
 	//--------------------------
 	static void draw_slider(int x, int y, int width, int height, double angle, double scale_x, double scale_y, double red, double green, double blue, double alpha,  // good!

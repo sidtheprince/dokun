@@ -1,7 +1,7 @@
 #include "../include/image.h"
 /////////////
 Image::Image() : width(0), height(0), depth(1), channel(4), data (nullptr), x(0), y(0), angle(0), scale(1, 1), color(255, 255, 255, 255), 
-    relative_x(0), relative_y(0), alignment("left"), visible(true)
+    relative_x(0), relative_y(0), alignment("none"), visible(true)
 {
 #ifdef DOKUN_OPENGL	
 	buffer          = 0;	
@@ -16,21 +16,21 @@ Image::Image() : width(0), height(0), depth(1), channel(4), data (nullptr), x(0)
 }
 /////////////
 Image::Image(const Image& image) : x(0), y(0), angle(0), scale(1, 1), color(255, 255, 255, 255), 
-    relative_x(0), relative_y(0), alignment("left"), visible(true)
+    relative_x(0), relative_y(0), alignment("none"), visible(true)
 {
 	copy(image);
 	Factory::get_image_factory()->store(this);
 }
 /////////////
 Image::Image(const Texture& texture) : x(0), y(0), angle(0), scale(1, 1), color(255, 255, 255, 255), 
-    relative_x(0), relative_y(0), alignment("left"), visible(true)
+    relative_x(0), relative_y(0), alignment("none"), visible(true)
 {
 	copy(texture);
     Factory::get_image_factory()->store(this);
 }
 /////////////
 Image::Image(const std::string& file_name) : x(0), y(0), angle(0), scale(1, 1), color(255, 255, 255, 255), 
-    relative_x(0), relative_y(0), alignment("left"), visible(true)
+    relative_x(0), relative_y(0), alignment("none"), visible(true)
 {
 	if(!load(file_name))
 	{
@@ -49,7 +49,7 @@ Image::Image(const std::string& file_name) : x(0), y(0), angle(0), scale(1, 1), 
 }
 /////////////
 Image::Image(void * data, int width, int height, int depth, int channel) : width(0), height(0), depth(1), data (nullptr), x(0), y(0), angle(0), scale(1, 1), color(255, 255, 255, 255), 
-    relative_x(0), relative_y(0), alignment("left"), visible(true)
+    relative_x(0), relative_y(0), alignment("none"), visible(true)
 {
 	if(!load(data, width, height, depth, channel))
 		Logger("Could not load image from data");
@@ -1572,7 +1572,7 @@ int Image::new_(lua_State *L)
 	// create table
 	lua_createtable(L, 0, 0);
 	// set metatable
-	lua_getglobal(L, "Image_mt");
+	lua_getglobal(L, "Image");
 	lua_setmetatable(L, 1);
 	// set userdata
 	Image **image = static_cast<Image **>(lua_newuserdata(L, sizeof(Image *)));

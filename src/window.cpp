@@ -988,7 +988,7 @@ void WINDOW::set_cursor(int cursor) // DWORD = unsigned long
 		{
 			#ifdef __windows__
 		        HCURSOR arrow = LoadCursor(nullptr, IDC_ARROW);
-		        SetClassLong(get_handle(), GCL_HCURSOR, (DWORD)arrow);
+		        //SetClassLong(get_handle(), GCL_HCURSOR, (DWORD)arrow); // HCURSOR SetCursor(HCURSOR hCursor);
 				this->cursor = cursor;
             #endif	
 		    break;
@@ -997,7 +997,7 @@ void WINDOW::set_cursor(int cursor) // DWORD = unsigned long
 		{
 			#ifdef __windows__
 		        HCURSOR start = LoadCursor(nullptr, IDC_APPSTARTING);
-		        SetClassLong(get_handle(), GCL_HCURSOR, (DWORD)start);
+		        //SetClassLong(get_handle(), GCL_HCURSOR, (DWORD)start); // HCURSOR SetCursor(HCURSOR hCursor);
 				this->cursor = cursor;
             #endif	
 		    break;
@@ -1006,7 +1006,7 @@ void WINDOW::set_cursor(int cursor) // DWORD = unsigned long
 		{
 			#ifdef __windows__
 		        HCURSOR cross = LoadCursor(nullptr, IDC_CROSS);
-		        SetClassLong(get_handle(), GCL_HCURSOR, (DWORD)cross);
+		        //SetClassLong(get_handle(), GCL_HCURSOR, (DWORD)cross); // HCURSOR SetCursor(HCURSOR hCursor);
 				this->cursor = cursor;
             #endif				
 		    break;
@@ -1015,7 +1015,7 @@ void WINDOW::set_cursor(int cursor) // DWORD = unsigned long
 		{
 			#ifdef __windows__
 		        HCURSOR hand = LoadCursor(nullptr, IDC_HAND);
-		        SetClassLong(get_handle(), GCL_HCURSOR, (DWORD)hand);
+		        //SetClassLong(get_handle(), GCL_HCURSOR, (DWORD)hand); // HCURSOR SetCursor(HCURSOR hCursor);
 				this->cursor = cursor;
             #endif	
 		    break;
@@ -1024,7 +1024,7 @@ void WINDOW::set_cursor(int cursor) // DWORD = unsigned long
 		{
 			#ifdef __windows__
 		        HCURSOR help = LoadCursor(nullptr, IDC_HELP);
-		        SetClassLong(get_handle(), GCL_HCURSOR, (DWORD)help);
+		        //SetClassLong(get_handle(), GCL_HCURSOR, (DWORD)help); // HCURSOR SetCursor(HCURSOR hCursor);
 				this->cursor = cursor;
             #endif	
 		    break;
@@ -1033,7 +1033,7 @@ void WINDOW::set_cursor(int cursor) // DWORD = unsigned long
 		{
 			#ifdef __windows__
 		        HCURSOR lbeam = LoadCursor(nullptr, IDC_IBEAM);
-		        SetClassLong(get_handle(), GCL_HCURSOR, (DWORD)lbeam);
+		        //SetClassLong(get_handle(), GCL_HCURSOR, (DWORD)lbeam); // HCURSOR SetCursor(HCURSOR hCursor);
 				this->cursor = cursor;
             #endif	
 		    break;
@@ -1042,7 +1042,7 @@ void WINDOW::set_cursor(int cursor) // DWORD = unsigned long
 		{
 			#ifdef __windows__
 		        HCURSOR icon = LoadCursor(nullptr, IDC_ICON);
-		        SetClassLong(get_handle(), GCL_HCURSOR, (DWORD)icon);
+		        //SetClassLong(get_handle(), GCL_HCURSOR, (DWORD)icon); // HCURSOR SetCursor(HCURSOR hCursor);
 				this->cursor = cursor;
             #endif
 		    break;
@@ -1051,7 +1051,7 @@ void WINDOW::set_cursor(int cursor) // DWORD = unsigned long
 		{
 			#ifdef __windows__
 		        HCURSOR no = LoadCursor(nullptr, IDC_NO);
-		        SetClassLong(get_handle(), GCL_HCURSOR, (DWORD)no);
+		        //SetClassLong(get_handle(), GCL_HCURSOR, (DWORD)no); // HCURSOR SetCursor(HCURSOR hCursor);
 				this->cursor = cursor;
             #endif
 		    break;		
@@ -1060,7 +1060,7 @@ void WINDOW::set_cursor(int cursor) // DWORD = unsigned long
 		{
 			#ifdef __windows__
 		        HCURSOR size_all = LoadCursor(nullptr, IDC_SIZEALL);
-		        SetClassLong(get_handle(), GCL_HCURSOR, (DWORD)size_all);
+		        //SetClassLong(get_handle(), GCL_HCURSOR, (DWORD)size_all); // HCURSOR SetCursor(HCURSOR hCursor);
 				this->cursor = cursor;
             #endif				
 		    break;	
@@ -1069,7 +1069,7 @@ void WINDOW::set_cursor(int cursor) // DWORD = unsigned long
 		{
 			#ifdef __windows__
 		        HCURSOR size_nesw = LoadCursor(nullptr, IDC_SIZENESW);
-		        SetClassLong(get_handle(), GCL_HCURSOR, (DWORD)size_nesw);
+		        //SetClassLong(get_handle(), GCL_HCURSOR, (DWORD)size_nesw); // HCURSOR SetCursor(HCURSOR hCursor);
 				this->cursor = cursor;
             #endif	
 		    break;
@@ -1080,7 +1080,7 @@ void WINDOW::set_cursor(int cursor) // DWORD = unsigned long
 			#ifndef DOKUN_SDL2
             #ifndef DOKUN_GLFW
 		        HCURSOR size_ns = LoadCursor(nullptr, IDC_SIZENS);
-		        SetClassLong(get_handle(), GCL_HCURSOR, (DWORD)size_ns);
+		        //SetClassLong(get_handle(), GCL_HCURSOR, (DWORD)size_ns); // HCURSOR SetCursor(HCURSOR hCursor);
 				this->cursor = cursor;
 			#endif	
             #endif
@@ -1091,7 +1091,7 @@ void WINDOW::set_cursor(int cursor) // DWORD = unsigned long
 		{
 			#ifdef __windows__
 		        HCURSOR size_nwse = LoadCursor(nullptr, IDC_SIZENWSE);
-		        SetClassLong(get_handle(), GCL_HCURSOR, (DWORD)size_nwse);
+		        //SetClassLong(get_handle(), GCL_HCURSOR, (DWORD)size_nwse); // HCURSOR SetCursor(HCURSOR hCursor);
 				this->cursor = cursor;
             #endif
 		    break;	
@@ -1100,7 +1100,7 @@ void WINDOW::set_cursor(int cursor) // DWORD = unsigned long
 		{
 			#ifdef __windows__
 		        HCURSOR size_we = LoadCursor(nullptr, IDC_SIZEWE);
-		        SetClassLong(get_handle(), GCL_HCURSOR, (DWORD)size_we);
+		        //SetClassLong(get_handle(), GCL_HCURSOR, (DWORD)size_we); // HCURSOR SetCursor(HCURSOR hCursor);
 				this->cursor = cursor;
             #endif				
 		    break;	
@@ -1109,7 +1109,7 @@ void WINDOW::set_cursor(int cursor) // DWORD = unsigned long
 		{
 			#ifdef __windows__
 		        HCURSOR up_arrow = LoadCursor(nullptr, IDC_UPARROW);
-		        SetClassLong(get_handle(), GCL_HCURSOR, (DWORD)up_arrow);
+		        //SetClassLong(get_handle(), GCL_HCURSOR, (DWORD)up_arrow); // HCURSOR SetCursor(HCURSOR hCursor);
 				this->cursor = cursor;
             #endif	
 		    break;
@@ -1118,7 +1118,7 @@ void WINDOW::set_cursor(int cursor) // DWORD = unsigned long
 		{
 			#ifdef __windows__
 		        HCURSOR wait = LoadCursor(nullptr, IDC_WAIT); 
-		        SetClassLong(get_handle(), GCL_HCURSOR, (DWORD)wait);
+		        //SetClassLong(get_handle(), GCL_HCURSOR, (DWORD)wait); // HCURSOR SetCursor(HCURSOR hCursor);
                 this->cursor = cursor;			
 			#endif		
 		    break;
@@ -1141,8 +1141,6 @@ void WINDOW::set_cursor(std::string file_name, int width, int height) // from a 
 			    std::cerr <<"Could not open cursor " << file_name <<  std::endl;
 		    }
 			SetCursor(cursor);
-		    ///SetClassLong
-			    //(get_handle(), GCL_HCURSOR, (DWORD)cursor);
 	    }
 	    else
 	    {
@@ -1153,8 +1151,6 @@ void WINDOW::set_cursor(std::string file_name, int width, int height) // from a 
 			    std::cerr <<"Could not open cursor " << file_name << std::endl;
 		    }
 			SetCursor(cursor);
-		    //SetClassLong
-			    //(get_handle(), GCL_HCURSOR, (DWORD)cursor);		
 	    }
 #endif
 	
@@ -1361,7 +1357,13 @@ void WINDOW::set_context()
 	{
 		Logger("Could not start GLEW ");
 		std::cerr << glewGetErrorString(error) << std::endl;
-    }/*
+		exit(1);
+    }
+#ifdef DOKUN_PRINT_ALL_LIB_VERSIONS    
+    std::string version = reinterpret_cast<char *>(const_cast<unsigned char*>(glewGetString(GLEW_VERSION)));
+    Logger::push(String("Running GLEW") + " version   " + version);
+#endif    
+    /*
 	if(!Program::get_default())
 	{
 		Program * program = new Program();
@@ -1854,6 +1856,7 @@ long WINDOW::get_style()const
 	return style;
 #endif
 #endif
+    return 0;
 }
 ////////////
 int WINDOW::get_style(lua_State *L)
@@ -1884,7 +1887,7 @@ WINDOW * WINDOW::get_active() // returns window with current focus
 			return window;
 		}
 	}	
-	return (nullptr);
+	return nullptr;
 }
 ////////////
 int WINDOW::get_active(lua_State *L)
@@ -2282,8 +2285,12 @@ LRESULT CALLBACK WINDOW::MouseProc(int nCode, WPARAM wParam, LPARAM lParam)
 		    case WM_MOUSEHOVER:
 			    break;
 		    case WM_KEYDOWN :
+		        Keyboard::down = true;
+		        Keyboard::up = false;
 		        break;
             case WM_KEYUP:
+                Keyboard::up = true;
+                Keyboard::down = false;
 		        break;	
             default:
 			{
@@ -2317,7 +2324,7 @@ int WINDOW::window_new(lua_State *L)
 	// create table
 	lua_createtable(L, 0, 0);
 	// set metatable
-	lua_getglobal(L, "Window_mt");
+	lua_getglobal(L, "Window");
 	lua_setmetatable(L, 1);
 	// set userdata
 	WINDOW ** window = static_cast<WINDOW **>(lua_newuserdata(L, sizeof(WINDOW*)));

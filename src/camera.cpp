@@ -734,7 +734,7 @@ int Camera::new_(lua_State *L)
 	// create table (object)
 	lua_createtable(L, 0, 0); // #1
     // set mt
-	lua_getglobal(L, "Camera_mt");
+	lua_getglobal(L, "Camera");
 	lua_setmetatable(L, 1);
 	// set userdata
 	Camera **camera = static_cast<Camera**>(lua_newuserdata(L, sizeof(Camera*)));

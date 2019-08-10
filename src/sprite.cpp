@@ -67,7 +67,7 @@ int Sprite::sprite_new(lua_State *L)
 		file_name = lua_tostring(L, -1); // keep it at -1 just in case base class is pushed into "new" function Sprite:new()
 	lua_settop(L, 0); // clear stack	
 	lua_createtable(L, 0, 0);      // create table
-	lua_getglobal(L, "Sprite_mt"); // set metatable
+	lua_getglobal(L, "Sprite"); // set metatable
 	lua_setmetatable(L, 1);
 	Sprite ** sprite = static_cast<Sprite **>(lua_newuserdata(L, sizeof(Sprite*))); // set userdata
 	if(!file_name.empty()) 
@@ -1036,7 +1036,7 @@ Sprite * Sprite::to_sprite(Entity * entity)
 int Sprite::to_sprite(lua_State *L) 
 {
 	luaL_checktype(L, 1, LUA_TTABLE);
-	lua_getglobal(L, "Sprite_mt");
+	lua_getglobal(L, "Sprite");
 	lua_setmetatable(L, 1);
 	Sprite **sprite = static_cast<Sprite **>(lua_newuserdata(L, sizeof(Sprite*)));
 	*sprite = new Sprite;

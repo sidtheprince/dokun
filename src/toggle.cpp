@@ -51,7 +51,10 @@ void Toggle::draw()
 			);	
 		}
         if(is_checkbox())
-		{}	
+		{
+		    //Renderer::draw_box(x, y, width, height, angle, scale_x, scale_y,
+		    //    red, green, blue, alpha, 0, false, false, 0, Vector4(255, 255, 255, 255), false, false, false, Vector4(255, 255, 255, 255), outline, outline_width, outline_color, outline_antialiased, false, 0, Vector4(255, 255, 255, 255), false, Vector4(255, 255, 255, 255), false);
+		}	
 	    // mouse is over toggle
 	    if(Mouse::is_over(get_rect()))
 		{

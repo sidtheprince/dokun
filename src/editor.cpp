@@ -789,8 +789,8 @@ void Editor::setup(void) // create then initialize Window and UI Elements
 	// menubar
 	menubar = new Menubar();
 	if(titlebar->is_visible()) menubar->set_position(0, titlebar->get_y() + titlebar->get_height()); // menubar would be underneath custom titlebar
-	//menubar->set_size(window->get_client_width(), 20);
-    menubar->add("File"); menubar->get_menu(0)->get_label()->hide();// file
+	menubar->set_size(window->get_client_width(), 20);
+    menubar->add("File"); //menubar->get_menu(0)->get_label()->hide();// file
     menubar->add("Edit"); // edit
     menubar->add("View"); // view
 	// submenu

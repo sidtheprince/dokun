@@ -18,7 +18,6 @@ Progressbar::Progressbar() : value(0), range(0, 100), direction(0),
 	set_position(0, 0);
 	set_size(200, 10);
 	set_orientation(0);
-	label = new Label();
 }
 /////////////
 Progressbar::Progressbar(int x, int y) : value(0), range(0, 100), direction(0), 
@@ -38,8 +37,7 @@ Progressbar::Progressbar(int x, int y) : value(0), range(0, 100), direction(0),
 {
 	set_position(x, y);
 	set_size(200, 10);
-	set_orientation(0);
-	label = new Label();	
+	set_orientation(0);	
 }
 /////////////
 Progressbar::Progressbar(int x, int y, int width, int height) : value(0), range(0, 100), direction(0), 
@@ -60,7 +58,6 @@ Progressbar::Progressbar(int x, int y, int width, int height) : value(0), range(
 	set_position(x, y);
 	set_size(width, height);
 	set_orientation(0);
-	label = new Label();
 }
 /////////////
 Progressbar::~Progressbar()
@@ -91,16 +88,15 @@ void Progressbar::draw()
 			min_val, max_val, value, background_color,
 			outline, outline_width, outline_color, outline_antialiased
 			);
-		if(!get_text().empty())
+		if(label) // as long as label is not nullptr. Does not matter if text is empty, still need to set proper x and y positions
 		{
             // set label_position relative to progressbar_position // label will not show when I set "relative_position" for some reason. Instead use "set_position" for label
-			if(label->get_alignment() == "left"  ) {label->set_position(0, 0);} // default
-			if(label->get_alignment() == "center") {label->set_position((get_width() - label->get_width()) / 2, (get_height() - label->get_height()) / 2);}						
-			if(label->get_alignment() == "right" ) {label->set_position(get_width() - label->get_width(), 0);}	
+			if(label->get_alignment() == "left"  ) {label->set_relative_position(0, 0);} // default
+			if(label->get_alignment() == "center") {label->set_relative_position((get_width() - label->get_width()) / 2, (get_height() - label->get_height()) / 2);}						
+			if(label->get_alignment() == "right" ) {label->set_relative_position(get_width() - label->get_width(), 0);}	
             if(label->get_alignment() == "free"  ) {}
 			label->set_position(get_x() + label->get_relative_x(), get_y() + label->get_relative_y());
-            // and finally, draw the label
-			label->draw();//Renderer::draw_label(get_text(), x, y, angle, 0.5, 0.5, get_label()->get_font()->get_data(), get_label()->get_color().x, get_label()->get_color().y, get_label()->get_color().z, get_label()->get_color().w);
+            // NO need to draw label since child GUI are automatically drawn //label->draw();//Renderer::draw_label(get_text(), x, y, angle, 0.5, 0.5, get_label()->get_font()->get_data(), get_label()->get_color().x, get_label()->get_color().y, get_label()->get_color().z, get_label()->get_color().w);
 		}
     }
     on_draw(); // callback for all gui	
@@ -142,6 +138,7 @@ int Progressbar::set_text(lua_State *L)
 void Progressbar::set_label(const Label& label)
 {
 	(this)->label = &const_cast<Label&>(label);
+	this->label->set_parent(* this); // also set as child
 }   
 /////////////
 int Progressbar::set_label(lua_State *L)
@@ -694,7 +691,7 @@ int Progressbar::new_(lua_State *L)
 	// create table (object)
 	lua_createtable(L, 0, 0); 
 	// set metatable
-	lua_getglobal(L, "Progressbar_mt"); 
+	lua_getglobal(L, "Progressbar"); 
 	lua_setmetatable(L, 1); 
     // set userdata
 	Progressbar ** progressbar = static_cast<Progressbar **>(lua_newuserdata(L, sizeof(Progressbar *)));	

@@ -121,6 +121,7 @@ class GUI: public Entity
 		GUI * parent;
 		double scale_x, scale_y;
 		double angle;
+		Vector2 relative; // position relative to parent
 		////////////////
 		// states
 		bool visible; // if gui is visible or not

@@ -487,7 +487,7 @@ int Factory::new_(lua_State *L)
 	// create table
 	lua_createtable(L, 0, 0);
 	// set mt
-	lua_getglobal(L, "Factory_mt");
+	lua_getglobal(L, "Factory");
 	lua_setmetatable(L, 1);
 	// set udata
 	Factory **factory = (Factory **)lua_newuserdata(L, sizeof(Factory*));

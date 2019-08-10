@@ -67,7 +67,8 @@ class Widget : public GUI { // A box ui - ui element that can act as a container
 		void set_title_bar_text_color(const Vector3& color);
 		void set_title_bar_text_color(const Vector4& color);
 		void set_title_bar_label(const Label& label);                                  static int set_title_bar_label(lua_State * L);
-		void set_title_bar_icon(const Image& icon);                                    static int set_title_bar_icon(lua_State * L);
+		void set_title_bar_image(const Image& image);                                  static int set_title_bar_image(lua_State * L);
+		void set_title_bar_icon(const Image& icon);
 		void set_title_bar_color(int red, int green, int blue, int alpha = 255);       static int set_title_bar_color(lua_State * L);
         void set_title_bar_color(const Vector3& color);
 		void set_title_bar_color(const Vector4& color);		
@@ -125,6 +126,7 @@ class Widget : public GUI { // A box ui - ui element that can act as a container
         bool is_restored()const;                                                            static int is_restored(lua_State * L);
 	private:
 	    // callbacks
+	    //void on_draw(void); // not needed for now
 		void on_titlebar(void);
 		void on_drag(void);
 		void on_resize(void);

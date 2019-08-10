@@ -503,7 +503,7 @@ int Button::new_(lua_State *L)
 	// create table (object)
 	lua_createtable(L, 0, 0); 
 	// set metatable
-	lua_getglobal(L, "Button_mt"); 
+	lua_getglobal(L, "Button"); 
 	lua_setmetatable(L, 1); 
     // set userdata
 	Button **button = static_cast<Button **>(lua_newuserdata(L, sizeof(Button *)));

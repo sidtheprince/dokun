@@ -200,8 +200,8 @@ int Texture::load(lua_State *L)
 		{
 			luaL_checktype(L, 3, LUA_TNUMBER); // get width		
 			luaL_checktype(L, 4, LUA_TNUMBER); // get height
-			void * data = (void *)lua_touserdata(L, 2); // get data
-			//lua_pushboolean(L, static_cast<int>(texture->load(data, static_cast<int>(lua_tonumber(L, 3)), static_cast<int>(lua_tonumber(L, 4)))));
+			void * data = static_cast<void *>(lua_touserdata(L, 2)); // get data
+			lua_pushboolean(L, static_cast<int>(texture->load(data, static_cast<int>(lua_tonumber(L, 3)), static_cast<int>(lua_tonumber(L, 4)))));
 			return 1;
 		}
 	    if(lua_type(L, 2) == LUA_TSTRING)
@@ -1834,7 +1834,7 @@ int Texture::texture_new(lua_State *L)
 	// create a new table
 	lua_createtable(L, 0, 0);
 	// set the metatable
-	lua_getglobal(L, "Texture_mt");
+	lua_getglobal(L, "Texture");
 	lua_setmetatable(L, 1);
 	// create a new userdata
 	Texture ** texture = static_cast<Texture **>(lua_newuserdata(L, sizeof(Texture*)));

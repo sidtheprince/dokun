@@ -3,4 +3,3 @@ todo:
 - replace glm::mat4 with custom Matrix4 class and discard glm from dependencies
 - implement openssl (Passwords should be hashed with either PBKDF2, bcrypt or scrypt) (bcrypt is better than PBKDF2 slow enough that brute-force attacks are not feasible; scrypt is newer but still needs to prove itself) bcrypt format is .bfe (bcrypt uses Blowfish)
 - finish working on editor (will convert editor projects to a lua script which can be compiled into an executable)
-- upgrade to the latest glsl version

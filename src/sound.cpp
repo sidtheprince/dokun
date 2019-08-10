@@ -91,7 +91,7 @@ int Sound::new_(lua_State *L)
     
 	lua_createtable(L, 0, 0);
 	
-    lua_getglobal(L, "Sound_mt"); // #2
+    lua_getglobal(L, "Sound"); // #2
     lua_setmetatable(L, 1); // pop mt
 	
     Sound **sound = static_cast<Sound**>(lua_newuserdata(L, sizeof(Sound*)));

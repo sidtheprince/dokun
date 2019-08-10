@@ -64,7 +64,7 @@ class Script
 		bool is_script();
 		static bool is_script(std::string file_name);              static int is_script(lua_State *L); // checks if file has been loaded previously
 	    // register globals, tables, functions, etc.
-		static int table   (lua_State *L, std::string class_name);
+		static int table   (lua_State *L, std::string class_name); 
 		static int function(lua_State *L, std::string table_name, std::string function_name, lua_CFunction function                );
 		static int member  (lua_State *L, std::string table_name, std::string value_name, std::string value, int type = LUA_TSTRING);
 		static int member  (lua_State *L, std::string table_name, std::string value_name, int value, int type = LUA_TNUMBER        );
@@ -74,6 +74,7 @@ class Script
 		static int global  (lua_State *L, std::string variable_name, bool value            );	
 		static int inherit (lua_State *L, std::string base_table, std::string sub_table    );
 		static int attach  (lua_State *L, std::string base_table, std::string sub_table    );
+		static int table_not_mt(lua_State *L, std::string class_name); // soon to be deprecated
 	private:
 	    static std::vector<std::string> cache;
 		std::string content;

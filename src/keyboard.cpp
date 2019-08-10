@@ -94,9 +94,10 @@ int Keyboard::is_released(lua_State *L)
 bool Keyboard::is_down()
 {
 #ifdef __window__
+    return Keyboard::down;
 #endif
 #ifdef __gnu_linux__
-    return (Keyboard::down);
+    return Keyboard::down;
 #endif
 	return false;
 }
@@ -115,8 +116,10 @@ int Keyboard::is_down(lua_State *L)
 bool Keyboard::is_up()
 {
 #ifdef __window__
+    return Keyboard::up;
 #endif	
-#ifdef __gnu_linux__    
+#ifdef __gnu_linux__
+    return Keyboard::up;
 #endif
 	return false;
 }

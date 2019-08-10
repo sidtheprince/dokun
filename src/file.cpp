@@ -384,7 +384,7 @@ std::vector<std::string> File::getdir  (const std::string& path, std::string fil
 		#ifdef DOKUN_DEBUG0
             std::cout << ent->d_name << std::endl;
 		#endif
-		    if(!String::contains(ent->d_name, "." + File::extension(filter))) // if filename does not contain the extenstion from filter
+		    if(!String::contains(ent->d_name, "." + String::remove_all(File::extension(filter), "*"))) // if filename does not contain the extenstion from filter
 				continue;
 			file.push_back(ent->d_name);
         }

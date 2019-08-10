@@ -26,7 +26,7 @@ int FONT::font_new(lua_State *L)
 	// create table (object)
 	lua_createtable(L, 0, 0); // #1
     // set mt
-	lua_getglobal(L, "Font_mt");
+	lua_getglobal(L, "Font");
 	lua_setmetatable(L, 1);
 	// set userdata
 	FONT **font = static_cast<FONT**>(lua_newuserdata(L, sizeof(FONT*)));
@@ -109,7 +109,7 @@ int FONT::load(lua_State *L)
 void FONT::generate() // load each character and store it in array for later use
 {
 	if(is_generated()) return; // return if previously generated
-	for (unsigned char c = 0; c < /*face->num_glyphs*/128; c++) {
+	for (unsigned char c = 0; c < face->num_glyphs/*128*/; c++) {
         if (FT_Load_Char(static_cast<FT_Face>(face), c, FT_LOAD_RENDER)) //Load and render glyph
 	    {
 	        Logger("Could not load glyph from font");
@@ -174,6 +174,7 @@ void FONT::generate() // load each character and store it in array for later use
 			face->glyph->bitmap_left , // bearing_x 
 			face->glyph->bitmap_top  , // bearing_y
 			face->glyph->advance.x   , // advance_x
+			face->glyph->advance.y   , // advance_y
             face->glyph->bitmap.buffer,// buffer (data)
             //line_height = static_cast((face->size->metrics.ascender - face->size->metrics.descender) >> 6);
 		};
@@ -232,10 +233,10 @@ void FONT::destroy()
 		{
 	        glDeleteTextures(1, &texture); // delete each character's GL_texture
             character_array[i].id = 0;         // set to nullptr
-        }
-	#ifdef DOKUN_DEBUG 
-        if(!glIsTexture(texture)) {std::cout << "GL_texture: " << texture << " deleted" << std::endl;} // check if GL_texture is actually deleted
-    #endif	 
+	    #ifdef DOKUN_DEBUG 
+            if(!glIsTexture(texture)) {std::cout << "GL_texture: " << texture << " deleted" << std::endl;} // check if GL_texture is actually deleted
+        #endif	            
+        } 
 	}
     // clear character_array so you can push_back new glyphs
     character_array.clear(); 
@@ -376,6 +377,7 @@ int FONT::get_width(const std::string& text) const // returns biggest font_width
     double pixel_size = font_size * resolution.x / 72; // 16
     int font_width = round((face->bbox.xMax - face->bbox.xMin) * pixel_size / face->units_per_EM); //Font width in pixels (returns the biggest width of a glyph in the font (rounded))
     // -------------------------------------------------------------------------------------------
+    // -------------------------------------------------------------------------------------------
     int num_newline = String::occurrences(text, "\n");
 #ifdef DOKUN_DEBUG0    
     std::cout << "newlines found: " << num_newline << std::endl;
@@ -441,8 +443,9 @@ int FONT::get_height(const std::string& text) const // returns the largest heigh
     std::vector<std::string> words = String::split(text, "\n");
 #ifdef DOKUN_DEBUG0     
     std::cout << "words seperated by newline: " << words.size() << std::endl;
-#endif
-    if(num_newline > 0) return font_height * words.size(); // number of words seperated by newline (font_height = 19)
+#endif // newlines still count as part of text
+    if(num_newline == 1 && (words.size() == 2)) return font_height * 2; // newline but with a 2nd word on the newline
+    if(num_newline >  0) return font_height * num_newline;//* words.size(); // number of words seperated by newline (font_height = 19 * num_newline)
     // -------------------------------------------------------------------------------------------
     return font_height;
 }
@@ -711,11 +714,11 @@ int get_bearing(lua_State *L)
 	return 2;
 }
 /////////////
-long int FONT::get_advance(char glyph)const
+Vector2 FONT::get_advance(char glyph)const
 {
     const_cast<FONT*>(this)->generate();
     if(!is_generated()) return 0;
-    return character_array.find(glyph)->second.advance;    
+    return Vector2(character_array.find(glyph)->second.advance_x, character_array.find(glyph)->second.advance_y);    
 }
 int get_advance(lua_State *L)
 {
@@ -725,11 +728,13 @@ int get_advance(lua_State *L)
 	if(lua_isuserdata(L, -1))
 	{
 		FONT * font = *static_cast<FONT **>(lua_touserdata(L, -1));
-		lua_pushnumber(L, font->get_advance(lua_tonumber(L, 2)));
-		return 1;
+		lua_pushnumber(L, font->get_advance(lua_tonumber(L, 2)).x);
+		lua_pushnumber(L, font->get_advance(lua_tonumber(L, 2)).y);
+		return 2;
 	}
 	lua_pushnil(L);
-	return 1;
+	lua_pushnil(L);
+	return 2;
 }
 /////////////
 /////////////

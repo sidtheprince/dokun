@@ -22,9 +22,9 @@ endif()
 #if(${CMAKE_SYSTEM_NAME} MATCHES "Android") message("Android device detected") set(ANDROID TRUE) endif()
 #############
 # use C++ 11 (REQUIRED)
-if(CMAKE_VERSION VERSION_LESS "3.1")
-if(CMAKE_COMPILER_IS_GNUCXX)
+if(CMAKE_VERSION VERSION_LESS "3.1") 
     message("cmake version less than 3.1. Using CMAKE_CXX_FLAGS")
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU") # if(CMAKE_COMPILER_IS_GNUCXX)
     set(CMAKE_CXX_FLAGS "-std=gnu++11") # 98, 11, 14, 17, 20
 endif()
 else()
@@ -32,9 +32,8 @@ else()
     set(CMAKE_CXX_STANDARD 11) # supported in cmake version 3.1 and higher
 endif() #
 #############
-# tell g++ not to make a position independent executable (PIE)
-if(CMAKE_COMPILER_IS_GNUCXX)
-    list(APPEND CMAKE_CXX_FLAGS "-no-pie")
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    list(APPEND CMAKE_CXX_FLAGS "-no-pie") # no position independent executable (PIE)
 endif()
 #############
 # engine (dokun)
@@ -86,7 +85,7 @@ endif()
 #############
 # window + screen
 set(win32_src)
-set(x11_src libX11.a libxcb.a libXau.a libXdmcp.a)
+set(x11_src libX11.a libxcb.a libXau.a libXdmcp.a) # might consider using gtk instead
 set(cocoa_src)
 #############
 # input
@@ -132,13 +131,12 @@ set(theora_src dependencies/theora/lib/analyze.c dependencies/theora/lib/apiwrap
 # font
 set(freetype_src dependencies/freetype/src/autofit/autofit.c dependencies/freetype/src/base/ftbase.c dependencies/freetype/src/base/ftbbox.c dependencies/freetype/src/base/ftbdf.c dependencies/freetype/src/base/ftbitmap.c dependencies/freetype/src/base/ftcid.c dependencies/freetype/src/base/ftfstype.c dependencies/freetype/src/base/ftgasp.c dependencies/freetype/src/base/ftglyph.c dependencies/freetype/src/base/ftgxval.c dependencies/freetype/src/base/ftinit.c dependencies/freetype/src/base/ftmm.c dependencies/freetype/src/base/ftotval.c dependencies/freetype/src/base/ftpatent.c dependencies/freetype/src/base/ftpfr.c dependencies/freetype/src/base/ftstroke.c dependencies/freetype/src/base/ftsynth.c dependencies/freetype/src/base/ftsystem.c dependencies/freetype/src/base/fttype1.c dependencies/freetype/src/base/ftwinfnt.c dependencies/freetype/src/bdf/bdf.c dependencies/freetype/src/bzip2/ftbzip2.c dependencies/freetype/src/cache/ftcache.c dependencies/freetype/src/cff/cff.c dependencies/freetype/src/cid/type1cid.c dependencies/freetype/src/gzip/ftgzip.c dependencies/freetype/src/lzw/ftlzw.c dependencies/freetype/src/pcf/pcf.c dependencies/freetype/src/pfr/pfr.c dependencies/freetype/src/psaux/psaux.c dependencies/freetype/src/pshinter/pshinter.c dependencies/freetype/src/psnames/psnames.c dependencies/freetype/src/raster/raster.c dependencies/freetype/src/sfnt/sfnt.c dependencies/freetype/src/smooth/smooth.c dependencies/freetype/src/truetype/truetype.c dependencies/freetype/src/type1/type1.c dependencies/freetype/src/type42/type42.c dependencies/freetype/src/winfonts/winfnt.c) #freetype-2.10.1 - 2019-07-01 (https://www.freetype.org/download.html) (https://download.savannah.gnu.org/releases/freetype/)
 if(WIN32)
-    #list(APPEND freetype_src dependencies/freetype/builds/windows/ftdebug.c dependencies/freetype/src/base/ftver.rc)
-    #add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_WARNINGS)
+    list(APPEND freetype_src dependencies/freetype/builds/windows/ftdebug.c dependencies/freetype/src/base/ftver.rc) #add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_WARNINGS)
 endif()
 if(LINUX)
-    list(APPEND freetype_src dependencies/freetype/builds/windows/ftdebug.c) # fixes the undefined reference to `FT_Trace_Disable' error in Ubuntu
+    list(APPEND freetype_src dependencies/freetype/src/base/ftdebug.c) # fixes the undefined reference to `FT_Trace_Disable' error in Ubuntu
 endif()
-add_definitions(-DFT2_BUILD_LIBRARY) # removed dependencies/freetype/src/base/ftfntfmt.c, dependencies/freetype/src/base/ftlcdfil.c  # define 'DLL_EXPORT' for freetype2 sharedlib (.dll); other defines: -DFT_WITH_ZLIB=ON, -DFT_WITH_BZIP2=ON, -DFT_WITH_PNG=ON
+add_definitions(-DFT2_BUILD_LIBRARY) # define 'DLL_EXPORT' for freetype2 sharedlib (.dll). Other defines: -DFT_WITH_ZLIB=ON, -DFT_WITH_BZIP2=ON, -DFT_WITH_PNG=ON
 #############
 # network
 set(winsocket_src ws2_32.lib)
@@ -148,7 +146,7 @@ set(box2d_src dependencies/box2d/Box2D/Box2D/Collision/b2BroadPhase.cpp dependen
 #############
 # audio (playback)
 if(WIN32)
-set(openal_src ${CMAKE_CURRENT_SOURCE_DIR}/src/OpenAL32.lib)
+set(openal_src ${CMAKE_CURRENT_SOURCE_DIR}/src/OpenAL32.lib) # openal-soft (https://kcat.strangesoft.net/openal.html) (LGPL-licensed)
 endif()
 if(LINUX)
 set(openal_src libopenal.so)
@@ -228,7 +226,7 @@ link_directories(${CMAKE_CURRENT_SOURCE_DIR}/src) # stored in 'src' since librar
 #############
 # API definitions
 add_definitions(-DDOKUN_OPENGL) # add_definitions(-DDOKUN_VULKAN)
-add_definitions(-DDOKUN_DEBUG ) # dokun debug mode. Use DOKUN_DEBUG0 for more intense debug
+add_definitions(-DDOKUN_DEBUG ) # dokun debug mode. Use -DDOKUN_DEBUG0 for more intense debugging
 #############
 # output folder - '.a' and '.lib' will go in folder "src"
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/src)
@@ -277,7 +275,7 @@ if(LINUX)
 	    target_link_libraries(dokun  ${opengl_src})	
 	    target_link_libraries(editor ${opengl_src})
     endif()
-	#find_package(Vulkan) # optional
+	#find_package(Vulkan) # optional # will not link to Vulkan unless 'find_package' is used and Vulkan is found
     if(Vulkan_FOUND)
 	    target_link_libraries(dokun  ${vulkan_src})
 	    target_link_libraries(editor ${vulkan_src})

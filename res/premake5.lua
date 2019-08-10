@@ -1,22 +1,35 @@
 -- premake5.lua
 workspace "dokun"
     configurations { "Debug", "Release" }
+    symbols 'On'
+    cppdialect 'C++11'
+    
+    filter 'system:linux'
+        platforms { 'x86_64' }
+    filter 'system:macosx'
+        platforms { 'x86_64' }
+    filter 'system:windows'
+        platforms { 'x86', 'x86_64' }
+        defaultplatform 'x86_64'
+		defines { '_CRT_SECURE_NO_WARNINGS' }
+	filter {}
 
    filter "configurations:Debug"
        defines { "DEBUG" }
        symbols "On"
-
    filter "configurations:Release"
        defines { "NDEBUG" }
-       optimize "On"
+       optimize "Off"
+   filter {}
 
     filter { "language:C++", "toolset:gcc" }
-	    buildoptions { "-std=c++11", "-no-pie" }
+	    buildoptions { "-std=gnu++11", "-no-pie" }
+	filter {}  	
 --------------------------
 project "dokun"
     kind "ConsoleApp"
     language "C++"
-    defines { "DOKUN_OPENGL", "DOKUN_DEBUG", "DOKUN_BUILD_CONSOLE", "LUA_USE_POSIX", "FT2_BUILD_LIBRARY", "USE_LIBPNG", } -- custom definitions
+    defines { "DOKUN_OPENGL", "DOKUN_DEBUG", "DOKUN_BUILD_CONSOLE", "LUA_USE_POSIX", "FT2_BUILD_LIBRARY", } -- custom definitions
     targetdir ( "bin/%{cfg.buildcfg}" )
     files {
         -- dokun
@@ -42,7 +55,7 @@ project "dokun"
         -- theora
         "dependencies/theora/lib/analyze.c", "dependencies/theora/lib/apiwrapper.c", "dependencies/theora/lib/bitpack.c", "dependencies/theora/lib/cpu.c", "dependencies/theora/lib/decapiwrapper.c", "dependencies/theora/lib/decinfo.c", "dependencies/theora/lib/decode.c", "dependencies/theora/lib/dequant.c", "dependencies/theora/lib/encapiwrapper.c", "dependencies/theora/lib/encfrag.c", "dependencies/theora/lib/encinfo.c", "dependencies/theora/lib/encode.c", "dependencies/theora/lib/enquant.c", "dependencies/theora/lib/fdct.c", "dependencies/theora/lib/fragment.c", "dependencies/theora/lib/huffdec.c", "dependencies/theora/lib/huffenc.c", "dependencies/theora/lib/idct.c", "dependencies/theora/lib/info.c", "dependencies/theora/lib/internal.c", "dependencies/theora/lib/mathops.c", "dependencies/theora/lib/mcenc.c", "dependencies/theora/lib/quant.c", "dependencies/theora/lib/rate.c", "dependencies/theora/lib/state.c", "dependencies/theora/lib/tokenize.c",
         -- freetype
-        "dependencies/freetype/src/autofit/autofit.c", "dependencies/freetype/src/base/ftbase.c", "dependencies/freetype/src/base/ftbbox.c", "dependencies/freetype/src/base/ftbdf.c", "dependencies/freetype/src/base/ftbitmap.c", "dependencies/freetype/src/base/ftcid.c", "dependencies/freetype/src/base/ftfntfmt.c", "dependencies/freetype/src/base/ftfstype.c", "dependencies/freetype/src/base/ftgasp.c", "dependencies/freetype/src/base/ftglyph.c", "dependencies/freetype/src/base/ftgxval.c", "dependencies/freetype/src/base/ftinit.c", "dependencies/freetype/src/base/ftlcdfil.c", "dependencies/freetype/src/base/ftmm.c", "dependencies/freetype/src/base/ftotval.c", "dependencies/freetype/src/base/ftpatent.c", "dependencies/freetype/src/base/ftpfr.c", "dependencies/freetype/src/base/ftstroke.c", "dependencies/freetype/src/base/ftsynth.c", "dependencies/freetype/src/base/ftsystem.c", "dependencies/freetype/src/base/fttype1.c", "dependencies/freetype/src/base/ftwinfnt.c", "dependencies/freetype/src/bdf/bdf.c", "dependencies/freetype/src/bzip2/ftbzip2.c", "dependencies/freetype/src/cache/ftcache.c", "dependencies/freetype/src/cff/cff.c", "dependencies/freetype/src/cid/type1cid.c", "dependencies/freetype/src/gzip/ftgzip.c", "dependencies/freetype/src/lzw/ftlzw.c", "dependencies/freetype/src/pcf/pcf.c", "dependencies/freetype/src/pfr/pfr.c", "dependencies/freetype/src/psaux/psaux.c", "dependencies/freetype/src/pshinter/pshinter.c", "dependencies/freetype/src/psnames/psnames.c", "dependencies/freetype/src/raster/raster.c", "dependencies/freetype/src/sfnt/sfnt.c", "dependencies/freetype/src/smooth/smooth.c", "dependencies/freetype/src/truetype/truetype.c", "dependencies/freetype/src/type1/type1.c", "dependencies/freetype/src/type42/type42.c", "dependencies/freetype/src/winfonts/winfnt.c",
+        "dependencies/freetype/src/autofit/autofit.c", "dependencies/freetype/src/base/ftbase.c", "dependencies/freetype/src/base/ftbbox.c", "dependencies/freetype/src/base/ftbdf.c", "dependencies/freetype/src/base/ftbitmap.c", "dependencies/freetype/src/base/ftcid.c", "dependencies/freetype/src/base/ftfstype.c", "dependencies/freetype/src/base/ftgasp.c", "dependencies/freetype/src/base/ftglyph.c", "dependencies/freetype/src/base/ftgxval.c", "dependencies/freetype/src/base/ftinit.c", "dependencies/freetype/src/base/ftmm.c", "dependencies/freetype/src/base/ftotval.c", "dependencies/freetype/src/base/ftpatent.c", "dependencies/freetype/src/base/ftpfr.c", "dependencies/freetype/src/base/ftstroke.c", "dependencies/freetype/src/base/ftsynth.c", "dependencies/freetype/src/base/ftsystem.c", "dependencies/freetype/src/base/fttype1.c", "dependencies/freetype/src/base/ftwinfnt.c", "dependencies/freetype/src/bdf/bdf.c", "dependencies/freetype/src/bzip2/ftbzip2.c", "dependencies/freetype/src/cache/ftcache.c", "dependencies/freetype/src/cff/cff.c", "dependencies/freetype/src/cid/type1cid.c", "dependencies/freetype/src/gzip/ftgzip.c", "dependencies/freetype/src/lzw/ftlzw.c", "dependencies/freetype/src/pcf/pcf.c", "dependencies/freetype/src/pfr/pfr.c", "dependencies/freetype/src/psaux/psaux.c", "dependencies/freetype/src/pshinter/pshinter.c", "dependencies/freetype/src/psnames/psnames.c", "dependencies/freetype/src/raster/raster.c", "dependencies/freetype/src/sfnt/sfnt.c", "dependencies/freetype/src/smooth/smooth.c", "dependencies/freetype/src/truetype/truetype.c", "dependencies/freetype/src/type1/type1.c", "dependencies/freetype/src/type42/type42.c", "dependencies/freetype/src/winfonts/winfnt.c",
         -- box2d
         "dependencies/box2d/Box2D/Box2D/Collision/b2BroadPhase.cpp", "dependencies/box2d/Box2D/Box2D/Collision/b2CollideCircle.cpp", "dependencies/box2d/Box2D/Box2D/Collision/b2CollideEdge.cpp", "dependencies/box2d/Box2D/Box2D/Collision/b2CollidePolygon.cpp", "dependencies/box2d/Box2D/Box2D/Collision/b2Collision.cpp", "dependencies/box2d/Box2D/Box2D/Collision/b2Distance.cpp", "dependencies/box2d/Box2D/Box2D/Collision/b2DynamicTree.cpp", "dependencies/box2d/Box2D/Box2D/Collision/b2TimeOfImpact.cpp", "dependencies/box2d/Box2D/Box2D/Collision/Shapes/b2CircleShape.cpp", "dependencies/box2d/Box2D/Box2D/Collision/Shapes/b2EdgeShape.cpp", "dependencies/box2d/Box2D/Box2D/Collision/Shapes/b2ChainShape.cpp", "dependencies/box2d/Box2D/Box2D/Collision/Shapes/b2PolygonShape.cpp", "dependencies/box2d/Box2D/Box2D/Common/b2BlockAllocator.cpp", "dependencies/box2d/Box2D/Box2D/Common/b2Draw.cpp", "dependencies/box2d/Box2D/Box2D/Common/b2Math.cpp", "dependencies/box2d/Box2D/Box2D/Common/b2Settings.cpp", "dependencies/box2d/Box2D/Box2D/Common/b2StackAllocator.cpp", "dependencies/box2d/Box2D/Box2D/Common/b2Timer.cpp", "dependencies/box2d/Box2D/Box2D/Dynamics/b2Body.cpp", "dependencies/box2d/Box2D/Box2D/Dynamics/b2ContactManager.cpp", "dependencies/box2d/Box2D/Box2D/Dynamics/b2Fixture.cpp", "dependencies/box2d/Box2D/Box2D/Dynamics/b2Island.cpp", "dependencies/box2d/Box2D/Box2D/Dynamics/b2World.cpp", "dependencies/box2d/Box2D/Box2D/Dynamics/b2WorldCallbacks.cpp", "dependencies/box2d/Box2D/Box2D/Dynamics/Contacts/b2CircleContact.cpp", "dependencies/box2d/Box2D/Box2D/Dynamics/Contacts/b2Contact.cpp", "dependencies/box2d/Box2D/Box2D/Dynamics/Contacts/b2ContactSolver.cpp", "dependencies/box2d/Box2D/Box2D/Dynamics/Contacts/b2PolygonAndCircleContact.cpp", "dependencies/box2d/Box2D/Box2D/Dynamics/Contacts/b2EdgeAndCircleContact.cpp", "dependencies/box2d/Box2D/Box2D/Dynamics/Contacts/b2EdgeAndPolygonContact.cpp", "dependencies/box2d/Box2D/Box2D/Dynamics/Contacts/b2ChainAndCircleContact.cpp", "dependencies/box2d/Box2D/Box2D/Dynamics/Contacts/b2ChainAndPolygonContact.cpp", "dependencies/box2d/Box2D/Box2D/Dynamics/Contacts/b2PolygonContact.cpp", "dependencies/box2d/Box2D/Box2D/Dynamics/Joints/b2DistanceJoint.cpp", "dependencies/box2d/Box2D/Box2D/Dynamics/Joints/b2FrictionJoint.cpp", "dependencies/box2d/Box2D/Box2D/Dynamics/Joints/b2GearJoint.cpp", "dependencies/box2d/Box2D/Box2D/Dynamics/Joints/b2Joint.cpp", "dependencies/box2d/Box2D/Box2D/Dynamics/Joints/b2MotorJoint.cpp", "dependencies/box2d/Box2D/Box2D/Dynamics/Joints/b2MouseJoint.cpp", "dependencies/box2d/Box2D/Box2D/Dynamics/Joints/b2PrismaticJoint.cpp", "dependencies/box2d/Box2D/Box2D/Dynamics/Joints/b2PulleyJoint.cpp", "dependencies/box2d/Box2D/Box2D/Dynamics/Joints/b2RevoluteJoint.cpp", "dependencies/box2d/Box2D/Box2D/Dynamics/Joints/b2RopeJoint.cpp", "dependencies/box2d/Box2D/Box2D/Dynamics/Joints/b2WeldJoint.cpp", "dependencies/box2d/Box2D/Box2D/Dynamics/Joints/b2WheelJoint.cpp", "dependencies/box2d/Box2D/Box2D/Rope/b2Rope.cpp",
         -- sqlite
@@ -61,6 +74,7 @@ project "dokun"
        "dependencies/freetype/include",
        "dependencies/freetype/include/freetype",
        "dependencies/freetype/include/freetype/config",
+       "dependencies/freetype/include/freetype/internal",
        "dependencies/ogg/include",
        "dependencies/vorbis/include",
        "dependencies/vorbis/lib",
@@ -84,7 +98,7 @@ project "dokun"
     libdirs { "src/*" } -- library dirs (where to look for libraries)
     
     configuration { "windows" } -- Windows
-    	files { "include/win32_header.h", "dependencies/tiff/libtiff/tif_win32.c", "dependencies/jpeg/jmemansi.c", } -- source files and headers for specific platforms
+    	files { "include/win32_header.h", "dependencies/tiff/libtiff/tif_win32.c", "dependencies/jpeg/jmemansi.c", "dependencies/freetype/builds/windows/ftdebug.c", "dependencies/freetype/src/base/ftver.rc", } -- source files and headers for specific platforms
         links { "glu32", "opengl32", "ws2_32" } -- libraries to link to;   to find location of a lib use: libdirs { os.findlib("X11") }
 
 	configuration { "macosx" } -- MacOSX
@@ -92,10 +106,10 @@ project "dokun"
         links { "Cocoa.framework" }
 
     configuration { "linux", "gmake" } -- Linux
-		files { "include/linux_header.h", "dependencies/tiff/libtiff/tif_unix.c", "dependencies/jpeg/jmemansi.c", }  -- source files and headers for specific platforms
-        links { "GL", "GLU", "openal", "X11", "xcb", "Xau", "Xdmcp", "pthread", "dl", } -- link to external libraries  to find location of a lib use: libdirs { os.findlib("X11") }
-        includedirs { "/usr/include" }
-        libdirs { "/usr/lib/x86_64-linux-gnu" }
+		files { "include/linux_header.h", "dependencies/tiff/libtiff/tif_unix.c", "dependencies/jpeg/jmemansi.c", "dependencies/freetype/src/base/ftdebug.c", }  -- source files and headers for specific platforms
+        links { "GL", "GLU", "openal", "X11", "xcb", "Xau", "Xdmcp", "pthread", "dl", "Box2D", } -- link to external libraries  to find location of a lib use: libdirs { os.findlib("X11") }
+        includedirs { "/usr/include", "/usr/local/include" } -- added /usr/local/include (2019-08-05)
+        libdirs { "/usr/lib/x86_64-linux-gnu", "/usr/lib/gcc/x86_64-linux-gnu" } -- added /usr/lib/gcc/x86_64-linux-gnu   (2019-08-05)
     
     
 --------------------------
@@ -112,6 +126,6 @@ project "dokun"
 -- https://github.com/premake/premake-core/wiki
 -- later on make doxyfile for documentation: http://www.doxygen.nl/
 -- premake5 --cc=gcc --file='premake5.lua' --os=linux gmake
-
+-- gmake or gmake2 # gmake recommended
 
 

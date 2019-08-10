@@ -1,7 +1,7 @@
 #include "../include/ui.h"
 
 /////////////
-GUI::GUI (void) : x (0), y (0), angle(0), scale_x(1), scale_y(1), width (0), height (0), orientation(0), parent(nullptr),    visible(true), active(true),    draggable(false), droppable(false), resizeable(false), sortable(false)
+GUI::GUI (void) : x (0), y (0), angle(0), scale_x(1), scale_y(1), width (0), height (0), orientation(0), relative(0, 0), parent(nullptr),    visible(true), active(true),    draggable(false), droppable(false), resizeable(false), sortable(false)
 {
 	Factory::get_gui_factory()->store(this);
 #ifdef DOKUN_DEBUG    
@@ -238,13 +238,8 @@ int GUI::set_size(lua_State *L)
 	return 0;
 }
 /////////////    
-void GUI::set_position(double x, double y) // once a parent is set, a gui is locked to that parent unless parent is set to nullptr
+void GUI::set_position(double x, double y) // will not work if GUI has a parent, use set_relative_position instead to set the position relative to the parent // once a parent is set, a gui is locked to that parent unless parent is set to nullptr
 {
-	if(parent != nullptr) // if object has a parent, set position relative to parent or else this function will be useless :D UPDATED: 9-7-2018
-	{
-		set_relative_position(x, y);  // now that it is a child, its position should be relative to the parent position
-		return;
-	}
 	this->x = x;
 	this->y = y;
 }
@@ -267,15 +262,10 @@ int GUI::set_position(lua_State *L)
 	}	
 	return 0;
 } 
-///////////// 
+///////////// without a parent, set_relative_position does nothing
 void GUI::set_relative_position(double x, double y) // set child position relative to the parent
 {
-	GUI * parent = get_parent();
-	if(parent != nullptr) 
-	{
-        this->x = parent->get_x() + x;
-        this->y = parent->get_y() + y;
-	}
+	relative = Vector2(x, y); // does not matter whether gui has parent or not, set the relative_position
 }
 ///////////// 
 void GUI::set_relative_position(const Vector2& position)
@@ -366,7 +356,7 @@ void GUI::set_parent(const GUI& parent)
 {
 	this->parent = &const_cast<GUI&>(parent);
 	// set position relative to parent (if parent set)
-	set_position(parent.get_x(), parent.get_y());
+	set_position(parent.get_x() + relative.x, parent.get_y() + relative.y);
 	//set_visible (get_parent()->is_visible()); // if parent is visible child will also be visible
 }                 
 ///////////// 
@@ -654,38 +644,56 @@ int GUI::get_position(lua_State *L)
 		return 2;
 	}
 	lua_pushnil(L);
-	return 1;
+	return 2;
 }
 ///////////// 
 double GUI::get_relative_x() const
 {
-	GUI * parent = get_parent();
-    if(parent == nullptr) 
-	{
-		//Logger("GUI has no parent : ui.cpp | line: 638");
+    if(!parent) { 
+ #ifdef DOKUN_DEBUG1   
+		Logger("warning! Calling GUI::get_relative_x without a parent");
+ #endif		
 		return get_x();
 	}
-	return get_position().x - parent->get_position().x;	
+	return relative.x;	
 } 
 ///////////// 
 int GUI::get_relative_x(lua_State *L)
 {
+	luaL_checktype(L, 1, LUA_TTABLE);
+	lua_getfield(L, 1, "udata");
+	if(lua_isuserdata(L, -1))
+	{
+		GUI * gui = *static_cast<GUI **>(lua_touserdata(L, -1));
+		lua_pushnumber(L, gui->get_relative_x());
+		return 1;
+	}
+	lua_pushnil(L);
     return 1;
 }
 ///////////// 
 double GUI::get_relative_y() const
 {
-	GUI * parent = get_parent();
-    if(parent == nullptr) 
-	{
-		//Logger("GUI has no parent : ui.cpp | line: 652");
+    if(!parent) { 
+ #ifdef DOKUN_DEBUG1   
+		Logger("warning! Calling GUI::get_relative_y without a parent");
+ #endif
 		return get_y();
 	}
-	return get_position().y - parent->get_position().y;	
+	return relative.y;  
 }
 ///////////// 
 int GUI::get_relative_y(lua_State *L)
 {
+	luaL_checktype(L, 1, LUA_TTABLE);
+	lua_getfield(L, 1, "udata");
+	if(lua_isuserdata(L, -1))
+	{
+		GUI * gui = *static_cast<GUI **>(lua_touserdata(L, -1));
+		lua_pushnumber(L, gui->get_relative_y());
+		return 1;
+	}
+	lua_pushnil(L);
     return 1;
 }
 ///////////// 
@@ -696,7 +704,17 @@ Vector2 GUI::get_relative_position() const // returns object position relative t
 /////////////
 int GUI::get_relative_position(lua_State *L)
 {
-    return 2;
+	luaL_checktype(L, 1, LUA_TTABLE);
+	lua_getfield(L, 1, "udata");
+	if(lua_isuserdata(L, -1))
+	{
+		GUI * gui = *static_cast<GUI **>(lua_touserdata(L, -1));
+		lua_pushnumber(L, gui->get_relative_position().x);
+		lua_pushnumber(L, gui->get_relative_position().y);
+		return 2;
+	}
+	lua_pushnil(L);
+	return 2;
 }
 /////////////
 Vector2 GUI::get_scale()const
@@ -1042,18 +1060,18 @@ void GUI::on_create()
 /////////////
 void GUI::on_draw()
 {
-	GUI * parent = get_parent();
-	if(parent != nullptr)
+	if(parent) // if GUI has a parent
 	{
 		// keep object within parent bounds (keep from moving outside parent)
         if(get_x() <= parent->get_x()) {set_position(parent->get_x(), get_y());}
         if(get_y() <= parent->get_y()) {set_position(get_x(), parent->get_y());}
 	    if(get_x() >= parent->get_x() + (parent->get_width() - get_width()))   {set_position(parent->get_x() + (parent->get_width() - get_width()), get_y());}
 	    if(get_y() >= parent->get_y() + (parent->get_height() - get_height())) {set_position(get_x(), parent->get_y() + (parent->get_height() - get_height()));}
-	
-	    // keep object from exceeding parent size (width and height) UPDATED: 9-7-2018
-	    if(get_width () > parent->get_width ()) set_size(parent->get_width(), get_height()); // if object is wider than parent, make width equal to parent's width
-		if(get_height() > parent->get_height()) set_size(get_width(), parent->get_height()); // if object is taller than parent, make height equal to parent's height
+	    
+	    // THIS LINE IS BAD FOR LABELS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	    // keep object from exceeding parent size (width and height) UPDATED: 9-7-2018 
+	    //if(get_width () > parent->get_width ()) set_size(parent->get_width(), get_height()); // if object is wider than parent, make width equal to parent's width
+		//if(get_height() > parent->get_height()) set_size(get_width(), parent->get_height()); // if object is taller than parent, make height equal to parent's height
 	}	
 	if(is_visible()) 
 	{

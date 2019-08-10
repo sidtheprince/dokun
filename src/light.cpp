@@ -739,7 +739,7 @@ int Light::new_(lua_State *L)
 	// Create table.
 	lua_createtable(L, 0, 0);
 	// Set metatable.
-	lua_getglobal(L, "Light_mt");
+	lua_getglobal(L, "Light");
 	lua_setmetatable(L, 1);
 	// Set userdata.
 	Light ** light = static_cast<Light **>(lua_newuserdata(L, sizeof(Light *)));

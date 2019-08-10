@@ -1,6 +1,6 @@
 #include "../include/label.h"
 
-Label::Label() : width(0), height(0), color(255, 255, 255, 255), alignment("left")//, relative_position(0,0) // label size is 0 as no string has been set (empty string)   EVERY LABEL YOU CREATE, SHOULD NOT GET ITS OWN FONT BY DEFAULT, ON CREATION (IT WILL CAUSE MEMORY LEAK!)  // INSTEAD CREATE A DEFAULT FONT THAT ALL INSTANCES OF LABEL CAN USE!!!!!!!!!!!! // ALL LABELS ARE CAPABLE OF USING A SINGLE FONT OBJECT
+Label::Label() : width(0), height(0), color(255, 255, 255, 255), alignment("none")//, relative_position(0,0) // label size is 0 as no string has been set (empty string)   EVERY LABEL YOU CREATE, SHOULD NOT GET ITS OWN FONT BY DEFAULT, ON CREATION (IT WILL CAUSE MEMORY LEAK!)  // INSTEAD CREATE A DEFAULT FONT THAT ALL INSTANCES OF LABEL CAN USE!!!!!!!!!!!! // ALL LABELS ARE CAPABLE OF USING A SINGLE FONT OBJECT
 {
     if(!FONT::system_font->get_file().empty()) set_font(*FONT::system_font); // if the default font has already been loaded, set the font      //Logger("Default font has been set to label " + String(this).str());                                                  
 	set_position(0, 0);
@@ -21,25 +21,25 @@ Label::Label(const Label& label)
 	set_height(label.get_height());	
 }
 /////////////
-Label::Label(const FONT& font) : width(0), height(0), color(255, 255, 255, 255), alignment("left")
+Label::Label(const FONT& font) : width(0), height(0), color(255, 255, 255, 255), alignment("none")
 {
 	set_font(font);
 }
 /////////////
-Label::Label(const std::string& text) : width(0), height(0), color(255, 255, 255, 255), alignment("left")
+Label::Label(const std::string& text) : width(0), height(0), color(255, 255, 255, 255), alignment("none")
 {
     if(!FONT::system_font->get_file().empty()) set_font(*FONT::system_font); // if the default font has already been loaded, set the font
 	set_string(text);
 	set_position(0, 0);	
 }
 /////////////
-Label::Label(int x, int y) : width(0), height(0), color(255, 255, 255, 255), alignment("left")
+Label::Label(int x, int y) : width(0), height(0), color(255, 255, 255, 255), alignment("none")
 {
     if(!FONT::system_font->get_file().empty()) set_font(*FONT::system_font); // if the default font has already been loaded, set the font 
 	set_position (x, y);
 }
 /////////////
-Label::Label(int x, int y, int width, int height) : color(255, 255, 255, 255), alignment("left")
+Label::Label(int x, int y, int width, int height) : color(255, 255, 255, 255), alignment("none")
 {
     if(!FONT::system_font->get_file().empty()) set_font(*FONT::system_font);
 	set_position (x, y); 
@@ -47,7 +47,7 @@ Label::Label(int x, int y, int width, int height) : color(255, 255, 255, 255), a
 	set_height (height);
 }
 /////////////
-Label::Label(const std::string& text, int x, int y, int width, int height) : color(255, 255, 255, 255), alignment("left")
+Label::Label(const std::string& text, int x, int y, int width, int height) : color(255, 255, 255, 255), alignment("none")
 {
     if(!FONT::system_font->get_file().empty()) set_font(*FONT::system_font); // if the default font has already been loaded, set the font
 	set_string (text);
@@ -56,7 +56,7 @@ Label::Label(const std::string& text, int x, int y, int width, int height) : col
 	set_height (height);
 }
 /////////////
-Label::Label(const std::string& text, const FONT& font) : width(0), height(0), color(255, 255, 255, 255), alignment("left")
+Label::Label(const std::string& text, const FONT& font) : width(0), height(0), color(255, 255, 255, 255), alignment("none")
 {
 	set_font(font);
 	set_string(text);
@@ -71,7 +71,7 @@ int Label::label_new(lua_State *L)
 	// create table
 	lua_createtable(L, 0, 0);
 	// set mt
-	lua_getglobal(L, "Label_mt");
+	lua_getglobal(L, "Label");
 	lua_setmetatable(L, 1);
 	// set userdata
 	Label **label = static_cast<Label **>(lua_newuserdata(L, sizeof(Label *)));
@@ -91,7 +91,7 @@ Label::~Label()
 /////////////
 void Label::draw()
 {
-	if(!font) return; // return if no font
+	if(!font) return; // return if no font //if(string.empty()) return; // return if empty string (BAD: It will prevent from updating label's x and y position)
     if(is_visible())
     {
 		// STORE ALL CHARACTERS IN ARRAY BEFORE DRAWING!
@@ -607,7 +607,27 @@ int Label::get_rect(lua_State * L)
 }
 /////////////
 /////////////
-///////////////
+bool Label::is_label() const
+{
+    return ((this != 0) && (dokun::instanceof<Label>(this) != 0));
+}
+/////////////
+int Label::is_label(lua_State *L)
+{
+    luaL_checktype(L, 1, LUA_TTABLE);
+	lua_getfield(L, 1, "udata");
+	if(lua_isuserdata(L, -1))
+	{
+		GUI * gui = *static_cast<GUI **>(lua_touserdata(L, -1));
+		lua_pushboolean(L, dynamic_cast<Label *>(gui)->is_label());
+		return 1;
+	}
+    lua_pushboolean(L, false);
+    return 1;	
+}
+/////////////
+/////////////
+/////////////
 /*  
 std::cout << "Label position: " << label->get_position() << std::endl;
 std::cout << "Label size: " << label->get_size() << " (all glyphs' width combined, highest glyph height)" << std::endl;

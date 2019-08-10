@@ -319,7 +319,7 @@ int Video::new_(lua_State *L)
 	lua_settop(L, 0); // clear stack
 
 	lua_createtable(L, 0, 0); // create table
-	lua_getglobal(L, "Video_mt");
+	lua_getglobal(L, "Video");
 	lua_setmetatable(L, 1); // set metatable
 	// set userdata
     Video ** video = static_cast<Video **>(lua_newuserdata(L, sizeof(Video *)));

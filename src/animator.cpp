@@ -1,7 +1,7 @@
 #include "../include/animator.h"
 
 // set initial action and frame count to 0
-Animator::Animator() : frames(0), actions(0), speed(5.0), update_time(1.0 / speed), last_time(0.0)
+Animator::Animator() : frames(0), actions(0), speed(5.0)//, update_time(1.0 / speed), last_time(0.0)
 {}
 //////////////
 Animator::~Animator()
@@ -123,11 +123,11 @@ void Animator::animate(Sprite *sprite, int action)
 	    // update texture
         sprite->set_texture( *action_list[action][frames] );
         // run frames
-		frames = frames + 1;
+		frames = frames + 1; //* delta_time; // delta_time
         // adjust speed
-		last_time += Timer::delta();
-		if(last_time > update_time)
-			last_time = 0;
+        old_time = new_time;
+        new_time = (clock() / (double)CLOCKS_PER_SEC) * 1000;// get time in milliseconds or something; increments by the 100s
+        delta_time = new_time - old_time;
 		// if frame is has reached its end
         if( frames >= get_frames(action) )
 		{			
@@ -276,7 +276,7 @@ int Animator::new_(lua_State *L)
 	 // create table (object)
 	 lua_createtable(L, 0, 0);
 	 // set metatable
-	 lua_getglobal(L, "Animator_mt");
+	 lua_getglobal(L, "Animator");
 	 lua_setmetatable(L, 1);
 	 // set userdata
 	 Animator **animator = static_cast<Animator **>(lua_newuserdata(L, sizeof(Animator *)));

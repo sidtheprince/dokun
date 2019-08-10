@@ -464,7 +464,7 @@ int Voice::new_(lua_State *L)
 	// create table
 	lua_createtable(L, 0, 0);
 	// set metatable
-	lua_getglobal(L, "Voice_mt");
+	lua_getglobal(L, "Voice");
 	lua_setmetatable(L, 1);
 	// set userdata
 	Voice **voice = static_cast<Voice**>(lua_newuserdata(L, sizeof(Voice*)));

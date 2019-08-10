@@ -1773,8 +1773,8 @@ void Renderer::draw_text (const std::string& text, double x, double y, int width
         // Draw text
         glDrawArrays(GL_TRIANGLES, 0, 6);
         // Now advance cursors for next glyph (note that advance is number of 1/64 pixels)
-        x += (character.advance >> 6) * scale_x; // Bitshift by 6 to get value in pixels (2^6 = 64)
-        //if( == '\n') y += (character.advance >> 6) * scale_y;// TEMPORARY
+        x += (character.advance_x >> 6) * scale_x; // Bitshift by 6 to get value in pixels (2^6 = 64)
+        //if(*c == '\n') y += (character.advance >> 6) * scale_y;// TEMPORARY
 	    }
     glBindVertexArray(0);
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -1956,8 +1956,10 @@ void Renderer::draw_text2 (const std::string& text, double x, double y, int widt
         // Draw text
         glDrawArrays(GL_TRIANGLES, 0, 6);
         // Now advance cursors for next glyph (note that advance is number of 1/64 pixels)
-        x += (font_ptr->get_advance(*c) >> 6) * scale_x; // Bitshift by 6 to get value in pixels (2^6 = 64)//std::cout << "x is equal to : " << x << " glyph: " << *c << std::endl;
-        if(*c == '\n') { x = (font_ptr->get_advance(*c) >> 6) * scale_x; y += (font_ptr->get_advance(*c) >> 6) * scale_y;} //0 should be the previous glph before the newline// new line ...
+        x += (static_cast<long int>( font_ptr->get_advance(*c).x ) >> 6) * scale_x; // Bitshift by 6 to get value in pixels (2^6 = 64)//std::cout << "x is equal to : " << x << " glyph: " << *c << std::endl;
+        if(*c == '\n'){ y += (static_cast<long int>( font_ptr->get_advance(*c).x ) >> 6) * scale_y; // new line ... - newline counts as part of a string
+	        x = ((long int)font_ptr->get_advance(*c).x >> 6) * scale_x;
+	    }
 	}
     glBindVertexArray(0);
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -2095,7 +2097,7 @@ void Renderer::draw_glyph (unsigned char glyph, double x, double y, double angle
         // Draw text
         glDrawArrays(GL_TRIANGLES, 0, 6);
         // Now advance cursors for next glyph (note that advance is number of 1/64 pixels)
-        x += (const_cast<FONT&>(font).character_array[glyph].advance >> 6) * scale_x; // Bitshift by 6 to get value in pixels (2^6 = 64)
+        x += (const_cast<FONT&>(font).character_array[glyph].advance_x >> 6) * scale_x; // Bitshift by 6 to get value in pixels (2^6 = 64)
     
 	glBindVertexArray(0);
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -2533,7 +2535,7 @@ void Renderer::draw_edit(const std::string& text, int x, int y, int width, int h
 	// cursor
 	bool cursor,
 	double cursor_x,
-	double cursor_y
+	double cursor_y, int cursor_height
 )
 {
 #ifdef DOKUN_OPENGL	// OpenGL is defined
@@ -2598,9 +2600,9 @@ void Renderer::draw_edit(const std::string& text, int x, int y, int width, int h
 	model = glm::rotate(model, static_cast<float>(angle * 0.0174533), glm::vec3(0, 0, 1));
 	model = glm::scale(model, glm::vec3(scale_x, scale_y, 1));
 	model = glm::translate(model, glm::vec3(-x - width/2, -y - height/2, 0));
-	float window_width  = Renderer::get_display_width (); // maybe remove?
-	float window_height = Renderer::get_display_height(); // maybe remove?
-	glm::mat4 proj  = glm::ortho(0.0f, window_width, window_height, 0.0f, -1.0f, 1.0f);
+	//float window_width  = Renderer::get_display_width (); // maybe remove?
+	//float window_height = Renderer::get_display_height(); // maybe remove?
+	glm::mat4 proj  = glm::ortho(0.0f, static_cast<float>(window_width), static_cast<float>(window_height), 0.0f, -1.0f, 1.0f);
 	glUniformMatrix4fv(glGetUniformLocation(shader.get_program(), "model"), 1, GL_FALSE, glm::value_ptr(model));
 	glUniformMatrix4fv(glGetUniformLocation(shader.get_program(), "proj") , 1, GL_FALSE, glm::value_ptr(proj) );
 #endif	
@@ -2674,9 +2676,8 @@ void Renderer::draw_edit(const std::string& text, int x, int y, int width, int h
 		int bottom_padding = 2;
 		cursor_y = cursor_y + top_padding;
 		int cursor_width  = 0;
-		int cursor_height = height - bottom_padding; // bottom_padding
-        if(multilined)
-		    cursor_height = (height/2);
+		cursor_height = ((!multilined) ? height - bottom_padding : cursor_height - bottom_padding); // bottom_padding // edit height
+        //if(multilined) cursor_height = (height/2);
 		GLfloat vertices1[] = { // when x and y are 0 then from wwidth-wheight
 		    static_cast<GLfloat>(x + cursor_x) + static_cast<float>(cursor_width), static_cast<GLfloat>(y + cursor_y),
             static_cast<GLfloat>(x + cursor_x) + static_cast<float>(cursor_width), static_cast<GLfloat>(y + cursor_y) + static_cast<float>(cursor_height),
@@ -2688,7 +2689,7 @@ void Renderer::draw_edit(const std::string& text, int x, int y, int width, int h
 	// Draw cursor
 	shader.set_float("color", (0 / 255), (0 / 255), (0 / 255), (255 / 255));
     //glEnable(GL_LINE_SMOOTH);
-	glLineWidth(1.0);
+	glLineWidth(1.0); // width of the cursor
 	glBindVertexArray(cursor_vertex_array_obj);
         glDrawArrays(GL_LINES, 0,  2);
 	glBindVertexArray(0);         
@@ -3044,9 +3045,9 @@ void Renderer::draw_switch(int x, int y, int width, int height, double angle, do
 	model = glm::rotate(model, static_cast<float>(angle * 0.0174533), glm::vec3(0, 0, 1));
 	model = glm::scale(model, glm::vec3(scale_x, scale_y, 1));
 	model = glm::translate(model, glm::vec3(-x - width/2, -y - height/2, 0));
-	float window_width  = Renderer::get_display_width ();
-	float window_height = Renderer::get_display_height();
-	glm::mat4 proj  = glm::ortho(0.0f, window_width, window_height, 0.0f, -1.0f, 1.0f);
+	//float window_width  = Renderer::get_display_width ();
+	//float window_height = Renderer::get_display_height();
+	glm::mat4 proj  = glm::ortho(0.0f, static_cast<float>(window_width), static_cast<float>(window_height), 0.0f, -1.0f, 1.0f);
 	glUniformMatrix4fv(glGetUniformLocation(shader.get_program(), "model"), 1, GL_FALSE, glm::value_ptr(model));
 	glUniformMatrix4fv(glGetUniformLocation(shader.get_program(), "proj") , 1, GL_FALSE, glm::value_ptr(proj) );
 #endif	
@@ -5239,24 +5240,22 @@ int Renderer::set_current_API(lua_State *L)
 ////////////
 int Renderer::get_display_width () // returns the width of display area (client area), excluding the titlebar
 {
-	int window_width;
 #ifdef __windows__
 	RECT rect;
     ::GetClientRect(::GetActiveWindow(), &rect);
     window_width  = rect.right - rect.left;
 #endif
-// NOTE: for Linux, the display size is automatically updated in the "Window::update" function
+    // NOTE: for Linux, the display size is automatically updated in the "Window::update" function
 	return window_width;
 }
 int Renderer::get_display_height() // returns the height of display area (client area), excluding the titlebar
 {
-	int window_height;
 #ifdef __windows__
 		RECT rect;
         ::GetClientRect(::GetActiveWindow(), &rect);
         window_height = rect.bottom - rect.top;
 #endif
-// NOTE: for Linux, the display size is automatically updated in the "Window::update" function
+    // NOTE: for Linux, the display size is automatically updated in the "Window::update" function
 	return window_height;
 }
 Vector2i Renderer::get_display_size() // returns the size of display area (client area), excluding the titlebar

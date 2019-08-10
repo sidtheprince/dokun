@@ -234,7 +234,7 @@ void Mouse::restore() // restore cursor
 	{ 
     #ifdef __windows__
 	    HCURSOR arrow = LoadCursor(nullptr, IDC_ARROW);
-		SetClassLong(window->get_handle(), GCL_HCURSOR, (DWORD)arrow);
+		//SetCursor(HCURSOR hCursor);//SetClassLong(window->get_handle(), GCL_HCURSOR, (DWORD)arrow);
     #endif	
     #ifdef __gnu_linux__
         XUndefineCursor(window->get_display(), window->get_handle());
@@ -322,7 +322,7 @@ void Mouse::set_cursor(unsigned long cursor)
 	{
 	#ifdef __windows__
 		HCURSOR cursor0 = LoadCursor(nullptr, reinterpret_cast<LPCSTR>(cursor));
-		SetClassLong(window->get_handle(), GCL_HCURSOR, (DWORD)cursor0); // DWORD = unsigned long
+		//SetCursor(HCURSOR hCursor);//SetClassLong(window->get_handle(), GCL_HCURSOR, (DWORD)cursor0); // DWORD = unsigned long
     #endif		
 	#ifdef __gnu_linux__		
 		Cursor cursor0 = XCreateFontCursor(window->get_display(), static_cast<unsigned int>(cursor)); 
@@ -360,7 +360,6 @@ void Mouse::set_cursor(const std::string& cursor_file, int width, int height)
 	    std::cerr <<"Could not open cursor " << cursor_file <<  std::endl;
 	SetCursor(cursor); 
 	}
-	///SetClassLong(get_handle(), GCL_HCURSOR, (DWORD)cursor);
 	if(width > 0) {
 	HCURSOR cursor = (HCURSOR)LoadImage(nullptr, cursor_file.c_str(), IMAGE_CURSOR, width, height, LR_LOADFROMFILE); // uses custom cursor size
 	if (!cursor)

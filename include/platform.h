@@ -40,6 +40,19 @@
 #define DOKUN_USE_VULKAN
 #endif
 ////////////
+#if defined(__cplusplus) && (__cplusplus >= 199711L) // 98
+#define DOKUN_CPP98_SUPPORTED
+#endif
+#if defined(__cplusplus) && (__cplusplus >= 201103L) // 11
+#define DOKUN_CPP11_SUPPORTED
+#endif
+#if defined(__cplusplus) && (__cplusplus >= 201402L) // 14
+#define DOKUN_CPP14_SUPPORTED
+#endif
+#if defined(__cplusplus) && (__cplusplus >= 201703L) // 17
+#define DOKUN_CPP17_SUPPORTED
+#endif
+////////////
 #ifdef __windows__
     #define __desktop__ // on a desktop
     #if defined(_MSC_VER) && (_MSC_VER >= 1020)

@@ -1634,7 +1634,7 @@ int Level::new_(lua_State *L)
 	// Create table.
 	lua_createtable(L, 0, 0);
 	// Set metatable.
-	lua_getglobal(L, "Level_mt");
+	lua_getglobal(L, "Level");
 	lua_setmetatable(L, 1);
 	// Set userdata.
 	Level **level = static_cast<Level **>(lua_newuserdata(L, sizeof(Level*)));

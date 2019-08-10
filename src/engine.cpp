@@ -61,18 +61,26 @@ bool Engine::on_open()
     Logger::push("\n\n");	
 	Logger::push(String("Running dokun version  ") + String(ENGINE_VERSION));
 	Logger::push(String("Running Lua version    ") + String::to_string(LUA_VERSION_MAJOR) + "." + String::to_string(LUA_VERSION_MINOR) + "." + String::to_string(LUA_VERSION_RELEASE));//Logger::push("\n\n");
-#ifdef DOKUN_PRINT_ALL_LIB_VERSIONS
+#ifdef DOKUN_PRINT_ALL_LIB_VERSIONS // native - these libearies are a core part of dokun
+    Logger::push(String("Using png version      ") + String("1.6.x"));
+    Logger::push(String("Using ogg version      ") + String("1.3.3"));
+    Logger::push(String("Using vorbis version   ") + String("1.3.6"));
+    Logger::push(String("Using theora version   ") + String("1.1.1"));
     Logger::push(String("Using freetype version ") + String(FREETYPE_MAJOR).str() + "." + String(FREETYPE_MINOR).str() +  "." + String(FREETYPE_PATCH).str());
-    Logger::push(String("Using giflib version   ") + String(GIFLIB_MAJOR).str() + "." + String(GIFLIB_MINOR).str() +  "." + String(GIFLIB_RELEASE).str());
-#endif    
-    // create dir for logfiles
-	if(!File::checkdir("log"))
-        File::makedir("log");
-	// save in append mode
-	if(!Logger::save("log/dokun_log.txt")) 
-        Logger("Failure to save log");
+    // non-native - these libraries are just extras and can be dropped anytime
+    Logger::push(String("Using jpeg version     ") + String::get_first_character(std::to_string(JPEG_LIB_VERSION)) + String(".x.x"));
+    Logger::push(String("Using gif version      ") + String(GIFLIB_MAJOR).str  () + "." + String(GIFLIB_MINOR).str  () +  "." + String(GIFLIB_RELEASE).str()); // JPEG_LIB_VERSION, TIFFLIB_VERSION
+    Logger::push(String("Using tiff version     ") + String("4.0.x"));// # 14//Logger::push(String("   ") + String(""));
+#endif
+    // create dir for logfiles//if(!File::checkdir("log")) File::makedir("log");
+	if(!Logger::save("dokun_log.txt")) Logger("Failure to save log");// save in append mode
 	// pop a number of times after saving first section
-	for(int i = 0; i < 6; i++) Logger::pop();
+#ifndef DOKUN_PRINT_ALL_LIB_VERSIONS
+	for(int i = 0; i < 6; i++) Logger::pop();	
+#endif
+#ifdef DOKUN_PRINT_ALL_LIB_VERSIONS
+	for(int i = 0; i < 14; i++) Logger::pop();	
+#endif
 	/////////////////////////////////////////
 #ifdef DOKUN_VULKAN
 #ifdef __windows__
@@ -176,7 +184,7 @@ void Engine::on_close()
     Logger::push("\n=======================================================================================================");
     Logger::push("Closed dokun at " + Logger::format("[%Y-%m-%d  %H:%M:%S %p]"));
     Logger::push("=======================================================================================================\n");
-	if(!Logger::save("log/dokun_log.txt")) Logger("Could not save log");
+	if(!Logger::save("dokun_log.txt")) Logger("Could not save log");
 	// reset status to its default (turns engine off)
 	status = 0;
     Logger("Exiting engine with code 0 ..."); // exit message
@@ -196,6 +204,7 @@ int Engine::test(lua_State *L)
 	Sprite * sprite = new Sprite();
 	Texture * texture = new Texture(Resource::get_image("box")->get_data(), 102, 102);//("res/SVG_logo.svg");//("res/image.png");
 	sprite->set_texture(*texture); // set empty texture to sprite
+	if(texture->get_data ()) sprite->set_size(32, 32); 
 	if(!texture->get_data()) sprite->set_color(0, 51, 102);
 	sprite->set_position(200, 200);
     //=================== 
@@ -230,7 +239,7 @@ int Engine::test(lua_State *L)
     widget->set_title_bar_button_close(true);
     widget->set_outline(true);
     widget->set_size(200, 50);
-    widget->set_position(0, 0 + widget->get_title_bar_size().y); // box_position should also include titlebar_position if "has_title_bar()" (or else the box's titlebar will be overlaped by the window's titlebar) // So basically the titlebar is a seperate entity with its own size and position though a part/extension of box
+    widget->set_position(500, 500);//(0, 0 + widget->get_title_bar_size().y); // box_position should also include titlebar_position if "has_title_bar()" (or else the box's titlebar will be overlaped by the window's titlebar) // So basically the titlebar is a seperate entity with its own size and position though a part/extension of box
     // ---
 
     Label * label = new Label();
@@ -246,6 +255,31 @@ int Engine::test(lua_State *L)
 	//grid->get_block(0, 0)->set_color(255, 51, 51);
 	//std::cout << "Grid: " << grid->get_row_count() << " x " << grid->get_column_count() << std::endl;
 	std::cout << "Size of label   = " << label->get_size  () << std::endl;
+	Image * image = new Image();
+	if(!image->load("res/Dokun-logo.png")) std::cout << "Could not load \"res/Dokun-logo.png\"\n";
+	widget->set_title_bar_image(* image);
+	//===================
+	// GUI_test
+	// edit
+	Edit * edit = new Edit();
+	edit->set_character_limit(50);
+	//edit->set_multilined(true);
+	edit->set_size(500, 20);
+	edit->set_position(700, 600);
+	Label * labeledit = new Label();
+	labeledit->set_color(49, 39, 19, 255);
+	labeledit->set_relative_position(0, 4);
+	edit->set_label(* labeledit);
+	// toggle
+	Toggle * toggle = new Toggle();
+	toggle->set_position(50, 50);
+	// button
+	Button * button = new Button();
+	button->set_position(300, 200);
+	// unicode
+	//std::cout << "Hello, ф or \u0444!\n";
+    //std::wcout << u8"Hello, \u00C5!\n";
+    //std::wcout << L"Hello, \u00A9! 平仮名, ひらがな\n";
 	//===================
     while(window.is_open()) // main loop
     {
@@ -267,18 +301,31 @@ int Engine::test(lua_State *L)
         // camera follow sprite test
         int camera_height = -(window.get_client_height() / 2);// keep camera at center height of screen;  negative = up   positive = down
         camera->set_position(Vector3(sprite->get_position(), 0.0) + Vector3(-(window.get_client_width() - window.get_client_height() / 2), camera_height, 0) );//Vector3(0, camera_height, 0)//Vector3(cam_x_position_away_from_sprite, camera_height, 0)
-		// rotate camera at a point (an origin)
-        //std::cout << "Label size: " << label->get_size() << " (all glyphs' width combined, highest glyph height)" << std::endl;
-        //std::cout << "Model position: " << model->get_position()<< std::endl;
         ////////////////////////////////////////////////////// Controls
+        //using namespace std::chrono_literals;
+    //std::cout << "Hello waiter\n" << std::flush;
+    //auto start = std::chrono::high_resolution_clock::now();
+    //std::this_thread::sleep_for(2);
+    //auto end = std::chrono::high_resolution_clock::now();
+    //std::chrono::duration<double, std::milli> elapsed = end-start;
+    //std::cout << "Waited " << elapsed.count() << " ms\n";
+        /*
+        std::cout << "Milliseconds passed: " << Timer::milliseconds() << std::endl;
+        std::cout << "Seconds passed     : " << Timer::seconds     () << std::endl;
+        std::cout << "Minutes passed     : " << Timer::minutes     () << std::endl;
+        std::cout << "Hours   passed     : " << Timer::hours       () << std::endl;
+        std::cout << "Days   passed     : " << Timer::days       () << std::endl;
+        */
+        //////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////
 	    if(window.is_focused()) // if window is focused
 	    {
             if(music->is_paused()) music->play();
 
-			if(Keyboard::is_pressed(DOKUN_KEY_UP   )){ label->set_position(label->get_position().x, label->get_position().y+1);model->translate(0, 0, -1);sprite->translate(0       ,-5 * 0.5);}
-			if(Keyboard::is_pressed(DOKUN_KEY_DOWN )){ label->set_position(label->get_position().x, label->get_position().y-1);model->translate(0, 0, 1); sprite->translate(0       , 5 * 0.5);}
-			if(Keyboard::is_pressed(DOKUN_KEY_LEFT )){ label->set_position(label->get_position().x-1, label->get_position().y);model->translate(1, 0, 0); sprite->translate(-5 * 0.5, 0 );}
-			if(Keyboard::is_pressed(DOKUN_KEY_RIGHT)){ label->set_position(label->get_position().x+1, label->get_position().y);model->translate(-1, 0, 0);sprite->translate(5 * 0.5 , 0 );}
+			if(Keyboard::is_pressed(DOKUN_KEY_UP   )){ label->set_position(label->get_position().x, label->get_position().y-1);model->translate(0, 0, -1);sprite->translate(0                  ,-2 * Timer::delta());}
+			if(Keyboard::is_pressed(DOKUN_KEY_DOWN )){ label->set_position(label->get_position().x, label->get_position().y+1);model->translate(0, 0, 1); sprite->translate(0                  , 2 * Timer::delta());}
+			if(Keyboard::is_pressed(DOKUN_KEY_LEFT )){ label->set_position(label->get_position().x-1, label->get_position().y);model->translate(1, 0, 0); sprite->translate(-2 * Timer::delta(), 0 );}
+			if(Keyboard::is_pressed(DOKUN_KEY_RIGHT)){ label->set_position(label->get_position().x+1, label->get_position().y);model->translate(-1, 0, 0);sprite->translate(2  * Timer::delta(), 0 );}
 			
 			if(Keyboard::is_pressed(DOKUN_KEY_1)) camera->set_zoom(camera->get_zoom() + 1); // zoom_out
 			if(Keyboard::is_pressed(DOKUN_KEY_2)) camera->set_zoom(camera->get_zoom() - 1); // zoom_in
@@ -303,6 +350,7 @@ int Engine::test(lua_State *L)
             if(Keyboard::is_pressed(DOKUN_KEY_X)) sprite->rotate(90 * (clock() / (double)CLOCKS_PER_SEC));          // rotate object
             if(Keyboard::is_pressed(DOKUN_KEY_C)) ;
             if(Keyboard::is_pressed(DOKUN_KEY_V)) ;
+            if(Keyboard::is_pressed(DOKUN_KEY_R)) { Timer::reset_e(); std::cout << "Time resetted.\n";};
             //if(Keyboard::is_pressed(DOKUN_KEY_)) ;
             // Mouse
             if(Mouse::is_pressed(1)) ;//label->set_string("Mouse pressed 1");//std::cout << "Mouse button LEFT is pressed" << std::endl;
@@ -318,10 +366,13 @@ int Engine::test(lua_State *L)
             sprite_array[i]->draw();
             //if(Sprite::collide(*sprite, *sprite_array[i])) label2->set_string("Sprite " + String(sprite).str() + " has collided with another Sprite " + String(sprite_array[i]).str()); //std::cout << "Sprite " << String(sprite) << " has collided with another Sprite " << String(sprite_array[i]) << "!\n";
         }
-        //model->draw();
+        model->draw();
         widget->draw();
         //label->set_string(String(sprite->get_position()).str());
         label->draw();
+        edit->draw();
+        toggle->draw();
+        button->draw();
         //label2->draw();
         //grid->draw();
 		// update window
@@ -684,6 +735,8 @@ int Engine::reg(lua_State *L)
 	Script::function(L, "GUI","get_x", GUI::get_x);
 	Script::function(L, "GUI","get_y", GUI::get_y);
 	Script::function(L, "GUI", "get_position", GUI::get_position);
+	Script::function(L, "GUI","get_relative_x", GUI::get_relative_x);
+	Script::function(L, "GUI","get_relative_y", GUI::get_relative_y);	
     Script::function(L, "GUI", "get_relative_position", GUI::get_relative_position);
     Script::function(L, "GUI", "get_scale"        , GUI::get_scale);
     Script::function(L, "GUI", "get_angle"        , GUI::get_angle);
@@ -738,8 +791,8 @@ int Engine::reg(lua_State *L)
 	Script::function(L, "Widget", "set_title_bar_text", Widget::set_title_bar_text);
 	Script::function(L, "Widget", "set_title_bar_text_color", Widget::set_title_bar_text_color);
     Script::function(L, "Widget", "set_title_bar_label", Widget::set_title_bar_label);
-    Script::function(L, "Widget", "set_title_bar_image", Widget::set_title_bar_icon);
-	Script::function(L, "Widget", "set_title_bar_icon", Widget::set_title_bar_icon);
+    Script::function(L, "Widget", "set_title_bar_image", Widget::set_title_bar_image);
+	Script::function(L, "Widget", "set_title_bar_icon", Widget::set_title_bar_image);
 	Script::function(L, "Widget", "set_title_bar_color", Widget::set_title_bar_color);
 	Script::function(L, "Widget", "set_title_bar_button_iconify", Widget::set_title_bar_button_iconify);
 	Script::function(L, "Widget", "set_title_bar_button_maximize", Widget::set_title_bar_button_maximize);
@@ -805,6 +858,8 @@ int Engine::reg(lua_State *L)
     //Script::function(L, "Label", "get_", Label::get_);
 	// overridden functions
 	Script::function(L, "Label", "set_size"        , Label::set_size);
+	// boolean functions
+	Script::function(L, "Label", "is_label"        , Label::is_label);
     //Script::function(L, "Label", ""        , Label::);	
 	// edit -----------------------------------------------------------
 	Script::table   (L, "Edit"                    );
@@ -983,16 +1038,31 @@ int Engine::reg(lua_State *L)
 	Script::function(L, "Level", "is_active"         , Level::is_active         );
 	//Script::function(L, "Level", "", Level::);
 	// timer -----------------------------------------------------------
-	Script::table   (L, "Timer"                                   ); // start, stop
-	Script::function(L, "Timer", "new"        , Timer::new_       );
-	Script::function(L, "Timer", "reset", Timer::reset            );		
-	Script::function(L, "Timer", "milliseconds", Timer::milliseconds);			
-	Script::function(L, "Timer", "seconds", Timer::seconds        );
-	Script::function(L, "Timer", "minutes", Timer::minutes        );			
-	Script::function(L, "Timer", "hours", Timer::hours            );
-	Script::function(L, "Timer", "delta", Timer::delta            );
-	Script::function(L, "Timer", "framerate", Timer::framerate    );
-	//Script::function(L, "", ""        , ::);
+	Script::table   (L, "Timer"                                     ); // stop watch
+	Script::function(L, "Timer", "new"         , Timer::new_        );
+	Script::function(L, "Timer", "start"       , Timer::start       );
+	Script::function(L, "Timer", "stop"        , Timer::stop        );
+	Script::function(L, "Timer", "reset"       , Timer::reset       );	
+    Script::function(L, "Timer", "get_milliseconds", Timer::get_milliseconds);	
+	Script::function(L, "Timer", "get_seconds"     , Timer::get_seconds     );
+	Script::function(L, "Timer", "get_minutes"     , Timer::get_minutes     );			
+	Script::function(L, "Timer", "get_hours"       , Timer::get_hours       );
+	Script::function(L, "Timer", "get_status"      , Timer::get_status      );	
+	// elapsed	
+	Script::function(L, "Timer", "milliseconds" , Timer::milliseconds);	// elapsed		
+	Script::function(L, "Timer", "seconds"      , Timer::seconds     );
+	Script::function(L, "Timer", "minutes"      , Timer::minutes     );			
+	Script::function(L, "Timer", "hours"        , Timer::hours       );
+	Script::function(L, "Timer", "days"         , Timer::days        );
+	Script::function(L, "Timer", "weeks"        , Timer::weeks       );
+	Script::function(L, "Timer", "months"       , Timer::months      );
+	Script::function(L, "Timer", "years"        , Timer::years       );
+	Script::function(L, "Timer", "reset_elapsed", Timer::reset_e     );
+	// delta
+	Script::function(L, "Timer", "delta"       , Timer::delta       );
+	// framerate
+	Script::function(L, "Timer", "framerate"   , Timer::framerate   );
+	//Script::function(L, "Timer", ""        , Timer::);
 	// physics -----------------------------------------------------------
 	// lighting -----------------------------------------------------------
 	Script::table (L, "Light");
@@ -1122,12 +1192,13 @@ int Engine::reg(lua_State *L)
 	Script::function(L, "Math", "distance", Math::distance2d);
 	//Script::function(L, "Math", "", Math::);
 	//--------------------------------------------------------------------
+	//--------------------------------------------------------------------
 	//Script::function(L, "", ""        , ::);
 	// globals -----------------------------------------------------------
 	// utilities
 	// conversion
 	Script::global(L, "tosprite", Sprite::to_sprite); // inspired by tonumber() and tostring()
-	Script::global(L, "tomodel",    Model::to_model); // inspired by tonumber() and tostring()
+	Script::global(L, "tomodel" , Model::to_model  ); // inspired by tonumber() and tostring()
 	// entity
 	//Script::global(L, "set_shader", Entity::set_shader);
 	// global variables -----

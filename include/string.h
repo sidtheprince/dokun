@@ -261,6 +261,17 @@ static std::string narrow( const std::wstring& str )
 		std::string last_word = str.substr(last_space_found + 1); // from the start of last space + 1			
 	    return last_word;
 	}
+	static std::vector<unsigned int> get_index(const std::string& str, char what) // finds a character at multiple locations in a string - added 2019-07-31
+	{
+	    std::vector<unsigned int> what_index;
+	    for(int i = 0; i < str.size(); i++) {
+            if(str[i] == what) 
+            {
+                what_index.push_back(i); 
+            }
+        }
+        return what_index;
+	}
 	static double extract(const std::string& str)
 	{
 		if(!str.empty())

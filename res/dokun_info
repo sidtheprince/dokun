@@ -7,3 +7,4 @@ without the need to write any code.
 
 Supported Language Versions: C++11 and higher, Lua5.1 and higher
 Other Libraries To Consider: opencv, openssl, cURL, cereal (c++11 xml + json)
+License: dokun is licensed under the MIT license

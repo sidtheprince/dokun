@@ -114,7 +114,7 @@ int Model::create(lua_State *L)
 	}
 	lua_settop(L, 0);
 	lua_createtable(L, 0, 0);
-	lua_getglobal(L, "Model_mt");
+	lua_getglobal(L, "Model");
 	lua_setmetatable(L, 1);
 	Model **model = static_cast<Model**>(lua_newuserdata(L, sizeof(Model*)));
 	if(!file_name.empty()) {
@@ -365,7 +365,7 @@ const GLchar * vertex_source[] = // uniforms can be changed (cannot be indexed),
 	    shader->set_source(fragment_source, 1);
 	    shader->prepare();
 	#ifdef DOKUN_DEBUG
-	    Logger(DOKUN_LOGTAG "Model shaders have been generated (count=2)");
+	    Logger::push(DOKUN_LOGTAG "Model shaders have been generated (count=2)");
     #endif			
     }
 // generate vertex array objects outside of loop (outside draw_function)
@@ -1202,7 +1202,7 @@ Model * Model::to_model(Entity * entity)
 int Model::to_model(lua_State *L)
 {
 	luaL_checktype(L, 1, LUA_TTABLE);
-	lua_getglobal(L, "Model_mt");
+	lua_getglobal(L, "Model");
 	lua_setmetatable(L, 1);	
 	Model ** model = static_cast<Model**>(lua_newuserdata(L, sizeof(Model *)));
 	* model = new Model();

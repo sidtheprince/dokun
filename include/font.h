@@ -81,7 +81,7 @@ public:
         std::string get_style_name ()const;                     static int get_style_name (lua_State *L);
         //void get_()const; //static int get_(lua_State *L);
         Vector2 get_bearing(char glyph)const;                   static int get_bearing(lua_State *L);
-        long int get_advance(char glyph)const;                  static int get_advance(lua_State *L);
+        Vector2 get_advance(char glyph)const;                   static int get_advance(lua_State *L);
         //void get_()const; //static int get_(lua_State *L);
         //void get_()const; //static int get_(lua_State *L);
         //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -117,7 +117,8 @@ public:
 			unsigned int height;     // height of glyph
             int bearing_x;           // offset from baseline to left of glyph
             int bearing_y;			 // offset from baseline to top of glyph
-            long int advance;        // offset to advance to next glyph
+            long int advance_x;      // offset to advance to next glyph (to the right)
+            long int advance_y;      // offset to advance to next glyph (to the bottom)
 		    unsigned char * buffer;  // bitmap data
         } Character;	
 		std::map<char, Character> character_array; // map is like a std::vector that stores two types

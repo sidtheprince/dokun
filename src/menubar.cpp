@@ -37,9 +37,9 @@ void Menubar::draw() // because Menubar is parent to all the menus, its menu chi
 	if(is_visible())
 	{
 		// Do not draw menubar - Imaginary menubar that holds menus and does not actually exist. It is just a concept (only the menus are visible)
-		 for(int i = 0; i < menu_list.size(); i++)
+        for(int i = 0; i < menu_list.size(); i++)
 	    {
-			Widget * menu = menu_list[i];
+		    Widget * menu = menu_list[i];
 			if(get_orientation() == 0) 
 			{  // HORIZONTAL MENUBAR
 			    // adjust and update size of each menu according to menubar size
@@ -59,6 +59,15 @@ void Menubar::draw() // because Menubar is parent to all the menus, its menu chi
 		        // Draw menus (children of parent menubar will be automatically drawn with the 'on_draw' function)
             }
 			// Draw label (for menus - automatically drawn if object is a widget)
+			    /*Label * label = menu->get_label();
+			    if(label) {
+			        if(label->get_alignment() == "left"  ) { label->set_relative_position(0                                       , 0); } // default - relative_position will always be (0, 0) unless you change the alignment
+					if(label->get_alignment() == "center") { label->set_relative_position((menu->get_width()-label->get_width())/2, (menu->get_height()-label->get_height())/2); }						
+					if(label->get_alignment() == "right" ) { label->set_relative_position(menu->get_width()-label->get_width()    , 0); }	
+                    if(label->get_alignment() == "none"  ) {} // or "none"          
+                    label->set_position(menu->get_x() + label->get_relative_x(), menu->get_y() + label->get_relative_y());
+                    // NO need to draw label since child GUI are automatically drawn
+			    }*/			
 			// Draw image (for menus - automatically drawn if object is a widget)
 			/////////////////////
 			for(int j = 0; j < menu->sub.size(); j++)
@@ -67,15 +76,15 @@ void Menubar::draw() // because Menubar is parent to all the menus, its menu chi
 				if(Mouse::is_over(menu->get_rect()))
 	            {
 					std::cout << "Mouse over menu " << menu->get_label()->get_string() << std::endl;
-		            if(Mouse::is_pressed(1)) {sub->set_visible(true);} else if(Mouse::is_pressed(1)) sub->set_visible(false);
+		            if(Mouse::is_pressed(1)) {sub->set_visible(true);} //else if(Mouse::is_pressed(1)) sub->set_visible(false);
 	            }
+				//menu->sub[0]->set_position(menu->sub[0]->previous->get_position().x, menu->previous->get_position().y + menu->sub[0]->previous->get_height()); // crashes engine
+				if(j != 0) {sub->previous = menu_list[i]->sub[j - 1];sub->set_position(sub->previous->get_position().x, sub->previous->get_position().y + sub->previous->get_height());}
+			    if(j != menu->sub.size()-1) sub->next = menu->sub[j + 1];	            
 				if(sub->is_visible())
 		        {
-				    menu->sub[0]->set_position(menu->sub[0]->previous->get_position().x, menu->previous->get_position().y + menu->sub[0]->previous->get_height());
-				    if(j != 0) {sub->previous = menu_list[i]->sub[j - 1];sub->set_position(sub->previous->get_position().x, sub->previous->get_position().y + sub->previous->get_height());}
-			        if(j != menu->sub.size()-1) sub->next = menu->sub[j + 1];
 					// draw sub_menu
-			       /* Renderer::draw_box(sub->get_position().x, sub->get_position().y, sub->get_width(),
+			        /*Renderer::draw_box(sub->get_position().x, sub->get_position().y, sub->get_width(),
 			            sub->get_height() , get_angle(), get_scale().x, get_scale().y, 
 			            sub->get_color().x, sub->get_color().y, sub->get_color().z, sub->get_color().w,
 			            0, false, false, 0, color, false, false, false,	sub->get_title_bar_button_close_color(),			
@@ -124,6 +133,7 @@ void Menubar::add(const std::string& menu_name)
 	Widget * menu = new Widget();
 	Label * label = menu->get_label();
 	label->set_string(menu_name); // set menu's label string
+	label->set_alignment("center");
 	add(*menu);
 }
 int Menubar::add(lua_State * L)

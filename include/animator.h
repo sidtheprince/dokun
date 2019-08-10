@@ -52,10 +52,14 @@ class Animator { // supports keyframe/frame-by-frame animation, sprite_sheet ani
     private:
         int frames;
 		int actions;
-		double speed;
+		double speed;/*
 		double update_time;
 		double last_time;
-		double delta_time;
+		double delta_time;*/
+		double old_time = 0; 
+        double new_time = (clock() / (double)CLOCKS_PER_SEC);
+        double delta_time;
+	    double fps_desired = 60;
         //std::vector< std::vector<std::string> > action_list;
 		std::vector< std::vector<Texture *> > action_list;
 		

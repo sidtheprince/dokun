@@ -71,7 +71,7 @@ int Entity::create(lua_State * L)
 	// table
 	lua_createtable(L, 0, 0);
 	// metatable
-	lua_getglobal(L, "Entity_mt");
+	lua_getglobal(L, "Entity");
 	lua_setmetatable(L, 1);
 	// userdata
 	Entity ** entity = static_cast<Entity **>(lua_newuserdata(L, sizeof(Entity*)));

@@ -1,15 +1,11 @@
 #include "../include/timer.h"
 
-Timer::Timer() : second(0), minute(0), hour(0), status(false)
+Timer::Timer() : millisecond(0), second(0), minute(0), hour(0), status(false)//,
+    //start_tick(std::chrono::high_resolution_clock::now())//, stop_tick(std::chrono::high_resolution_clock::now())
 {}
 /////////////
 Timer::~Timer(void)
 {}
-/////////////
-#ifdef __windows__
-LARGE_INTEGER Timer::frequency = (QueryPerformanceFrequency(&Timer::frequency), Timer::frequency); // initialize the resolution of the timer
-LONGLONG Timer::overhead = Timer::get_overhead();                                                      // calculate the overhead of the timer
-#endif
 /////////////
 double Timer::frames (0.0);
 /////////////
@@ -19,54 +15,25 @@ double Timer::frame_rate(0);
 /////////////
 double Timer::counter (0);
 /////////////
-double Timer::second_e(0);
-/////////////
-double Timer::minute_e(0);
-/////////////
-double Timer::hour_e  (0);
-/////////////
-double Timer::day_e  (0);
-/////////////
-double Timer::week_e  (0);
-/////////////
-double Timer::month_e  (0);
-/////////////
-double Timer::year_e  (0);
-/////////////
-double Timer::elapsed_now(clock());
-/////////////
-double Timer::elapsed_last(elapsed_now);
 /////////////
 double Timer::target_fps (MAX_TARGET_FPS);
 /////////////
 double Timer::report_interval (0.1);
 /////////////
-double Timer::delta_now (clock() / CLOCKS_PER_SEC);
 /////////////
-double Timer::delta_last(clock() / CLOCKS_PER_SEC);
-/////////////
-double Timer::old_time(0); 
-double Timer::new_time(clock() / (double)CLOCKS_PER_SEC);
 double Timer::delta_time(0);
 /////////////
+std::chrono::time_point<std::chrono::high_resolution_clock> Timer::old_time (std::chrono::high_resolution_clock::now());
+std::chrono::time_point<std::chrono::high_resolution_clock> Timer::new_time (std::chrono::high_resolution_clock::now());
+/////////////
+std::chrono::time_point<std::chrono::high_resolution_clock> Timer::beg_(std::chrono::high_resolution_clock::now());
 /////////////
 void Timer::start()
 {
-	//if(!get_status()) // if timer is off
-	//{
-		//status = true; // turn the timer on  
-	#ifdef __windows__
-        QueryPerformanceFrequency(&frequency);   // get ticks per second
-		QueryPerformanceCounter(&start_tick );   // start timer       
-    #endif
-    #ifdef __gnu_linux__
-        QueryPerformanceFrequency(&frequency);  // get ticks per second
-		QueryPerformanceCounter(&start_tick );	// start timer
-    #endif			
-/* 	    increment_by_second(&(this)->second); // increase by sec
-	    increment_by_minute(&(this)->minute); // increase by min
-	    increment_by_hour(&(this)->hour);	   // increase by hr */	
-	//}
+    if(status) {std::cout << "Timer is already on." << std::endl; return;}
+
+	status = true; // turn the timer on  
+    start_ = std::chrono::high_resolution_clock::now();
 }
 /////////////
 int Timer::start(lua_State *L)
@@ -83,16 +50,22 @@ int Timer::start(lua_State *L)
 /////////////
 void Timer::stop()
 {
-	//if(get_status()) // if timer is on
-	//{
-	#ifdef __windows__
-        QueryPerformanceCounter(&stop_tick); // stop timer
-    #endif	
-	#ifdef __gnu_linux__
-	    QueryPerformanceCounter(&stop_tick); // stop timer
-	#endif
-		//status = false; // turn it off
-	//}
+    if(!status) {std::cout << "Timer is already off." << std::endl; return;}
+    
+	end_ = std::chrono::high_resolution_clock::now();
+	std::chrono::duration<double> elapsed = end_ - start_;
+	// save the elapsed time in msecs, secs, mins, and hours
+	millisecond = elapsed.count() * 1000;  // good
+	second = elapsed.count(); // good
+	minute = (second < 60  ) ? static_cast<int>(second / 60  ) : second / 60; // eh .. can't get decimal ONLY int
+	hour   = (second < 3600) ? static_cast<int>(second / 3600) : second / 3600; // eh .. can't get decimal ONLY int
+#ifdef DOKUN_DEBUG0	    
+	std::cout << "It took " << millisecond << " milliseconds to execute.\n";
+	std::cout << "It took " << second      << " seconds      to execute.\n"; // same as std::cout << "It took " << std::chrono::duration_cast<second_>(end_ - start_).count() << " seconds to load the model\n"; //same as std::cout << "It took " << std::chrono::duration_cast<std::chrono::duration<double, std::ratio<1>>>(end_ - start_).count() << " seconds to load the model\n";
+	std::cout << "It took " << minute      << " minutes      to execute.\n";
+	std::cout << "It took " << hour        << " hours        to execute.\n";
+#endif
+	status = false; // turn the timer off
 }
 /////////////
 int Timer::stop(lua_State *L)
@@ -109,17 +82,11 @@ int Timer::stop(lua_State *L)
 /////////////
 void Timer::reset() // reset time
 {
+    millisecond = 0;
 	second = 0;
 	minute = 0;
 	hour   = 0;
 	status = false;
-}
-/////////////
-void Timer::reset_s() // reset time
-{
-    start_time = Timer::seconds(); 
-	// Reset Frames.
-    frames = 0;
 }
 /////////////
 int Timer::reset(lua_State *L)
@@ -135,26 +102,87 @@ int Timer::reset(lua_State *L)
 	return 0;
 }
 /////////////
+void Timer::reset_s() // reset time
+{}
+/////////////
+int reset_s(lua_State *L)
+{
+	luaL_checktype(L, 1, LUA_TTABLE);	
+	lua_getfield(L, 1, "udata");
+	if(lua_isuserdata(L, -1))
+	{
+		Timer * timer = *static_cast<Timer **>(lua_touserdata(L, -1));
+		timer->reset_s();
+		return 0;
+	}
+	return 0;
+}
+//////////////
+void Timer::reset_e() // resets ALL elapsed time (HOLY SHIT. THIS WORKS!!)
+{
+    beg_ = std::chrono::high_resolution_clock::now();
+}
+/////////////
+int Timer::reset_e(lua_State *L)
+{
+	luaL_checktype(L, 1, LUA_TTABLE);	
+	lua_getfield(L, 1, "udata");
+	if(lua_isuserdata(L, -1))
+	{
+		Timer * timer = *static_cast<Timer **>(lua_touserdata(L, -1));
+		timer->reset_e();
+		return 0;
+	}
+	return 0;
+}
+/////////////
+void Timer::delay(double nseconds)
+{
+    std::this_thread::sleep_for (std::chrono::seconds((int)nseconds)); // std::this_thread::sleep_until(timePoint);
+}
+/////////////
+int Timer::delay(lua_State *L)
+{
+    Timer::delay(lua_tonumber(L, -1));
+    return 0;
+}
+/////////////
 double Timer::get_milliseconds()
 {
-	#ifdef __windows__
-	    milisecond = (stop_tick.QuadPart - start_tick.QuadPart - overhead) * 1000.0 / frequency.QuadPart;
-	#endif
-	#ifdef __gnu_linux__
-	    milisecond = (stop_tick - start_tick) * 1000.0 / frequency;
-	#endif
-    return milisecond;	
+    return millisecond;
+}
+/////////////
+int Timer::get_milliseconds(lua_State *L)
+{
+	luaL_checktype(L, 1, LUA_TTABLE);	
+	lua_getfield(L, 1, "udata");
+	if(lua_isuserdata(L, -1))
+	{
+		Timer * timer = *static_cast<Timer **>(lua_touserdata(L, -1));
+		lua_pushnumber(L, timer->get_milliseconds());
+		return 1;
+	}
+	lua_pushnil(L);
+	return 1;
 }
 /////////////
 double Timer::get_seconds()
 {
-	#ifdef __windows__
-	    second = (stop_tick.QuadPart - start_tick.QuadPart - overhead) / frequency.QuadPart;
-	#endif
-	#ifdef __gnu_linux__
-	    milisecond = (stop_tick - start_tick) / frequency;
-	#endif
-	return second;
+    return second;
+}
+/////////////
+int Timer::get_seconds(lua_State *L)
+{
+	luaL_checktype(L, 1, LUA_TTABLE);	
+	lua_getfield(L, 1, "udata");
+	if(lua_isuserdata(L, -1))
+	{
+		Timer * timer = *static_cast<Timer **>(lua_touserdata(L, -1));
+		lua_pushnumber(L, timer->get_seconds());
+		return 1;
+	}
+	lua_pushnil(L);
+	return 1;
 }
 /////////////
 double Timer::get_minutes()
@@ -162,89 +190,92 @@ double Timer::get_minutes()
 	return minute;
 }
 /////////////
+int Timer::get_minutes(lua_State *L)
+{
+	luaL_checktype(L, 1, LUA_TTABLE);	
+	lua_getfield(L, 1, "udata");
+	if(lua_isuserdata(L, -1))
+	{
+		Timer * timer = *static_cast<Timer **>(lua_touserdata(L, -1));
+		lua_pushnumber(L, timer->get_minutes());
+		return 1;
+	}
+	lua_pushnil(L);
+	return 1;
+}
+/////////////
 double Timer::get_hours()
 {
 	return hour;
 }
 /////////////
-#ifdef __windows__
-LONGLONG Timer::get_overhead()
+int Timer::get_hours(lua_State *L)
 {
-	Timer timer;
-    timer.start();
-    timer.stop();
-    return timer.stop_tick.QuadPart - timer.start_tick.QuadPart;	
+	luaL_checktype(L, 1, LUA_TTABLE);	
+	lua_getfield(L, 1, "udata");
+	if(lua_isuserdata(L, -1))
+	{
+		Timer * timer = *static_cast<Timer **>(lua_touserdata(L, -1));
+		lua_pushnumber(L, timer->get_hours());
+		return 1;
+	}
+	lua_pushnil(L);
+	return 1;
 }
-#endif
+/////////////
 /////////////
 bool Timer::get_status()
 {
 	return status;
 }
 /////////////
-double Timer::seconds() // Works! get seconds since program started
+int Timer::get_status(lua_State *L)
 {
-	#ifdef __windows__
-	    return GetTickCount() * 1000; //  number of seconds that have elapsed since the system was started (up to 49.7 days)
-	#endif	
-	#ifdef __gnu_linux__
-		struct timespec now;
-        clock_gettime(CLOCK_MONOTONIC, &now);
-        return now.tv_sec + now.tv_nsec / 1000000000.0;	
-	#endif
-    return (clock() / (double)CLOCKS_PER_SEC);
+	luaL_checktype(L, 1, LUA_TTABLE);	
+	lua_getfield(L, 1, "udata");
+	if(lua_isuserdata(L, -1))
+	{
+		Timer * timer = *static_cast<Timer **>(lua_touserdata(L, -1));
+		lua_pushboolean(L, timer->get_status());
+		return 1;
+	}
+	lua_pushnil(L);
+	return 1;
 }
 /////////////
+double Timer::seconds() // confirmed! 2019-08-03 - get seconds since program started (reset with Timer::reset_e)
+{
+    return std::chrono::duration_cast<second_> (std::chrono::high_resolution_clock::now() - beg_).count();    
+}
 int Timer::seconds(lua_State *L)
 {
 	lua_pushnumber(L, Timer::seconds());
 	return 1;
 }
 /////////////
-double Timer::milliseconds() // Works!
+double Timer::milliseconds() // confirmed! 2019-08-03
 {
-	#ifdef __windows__
-	    return GetTickCount(); //  number of miliseconds that have elapsed since the system was started (up to 49.7 days)
-	#endif		
-	#ifdef __gnu_linux__
-	#endif	
-	//return (clock() / (double)CLOCKS_PER_SEC) * 1000;
-	std::chrono::milliseconds m(1000);
-	return m.count();
+	return std::chrono::duration_cast<millisecond_>  (std::chrono::high_resolution_clock::now() - beg_).count();
 }
-/////////////
 int Timer::milliseconds(lua_State *L)
 {
 	lua_pushnumber(L, Timer::milliseconds());
 	return 1;
 }
 /////////////
-double Timer::minutes() // Works!
+double Timer::minutes() // confirmed! 2019-08-03 
 {
-	elapsed_now = clock();
-	counter = counter + (double)(elapsed_now - elapsed_last);
-	elapsed_last = elapsed_now;
-	
-	if(counter  > (60.0 * CLOCKS_PER_SEC)) 
-	{
-		counter -= (60.0 * CLOCKS_PER_SEC);
-		minute_e = minute_e + 1;
-	}
-	return minute_e;
+	return std::chrono::duration_cast<minute_>  (std::chrono::high_resolution_clock::now() - beg_).count();
 }
-/////////////
 int Timer::minutes(lua_State *L)
 {
 	lua_pushnumber(L, Timer::minutes());
 	return 0;
 }
 /////////////
-double Timer::hours() // Not working when using same values as minutes, days + :(
+double Timer::hours() // confirmed! 2019-08-03
 {
-	double min_to_hr = (static_cast<int>(Timer::minutes()) / 60);
-	if(min_to_hr == floor(min_to_hr)    &&     min_to_hr > 0) // if min_to_hr is a whole number and is greater than 0
-		hour_e = hour_e + 1;
-	return hour_e;
+	return std::chrono::duration_cast<hour_>  (std::chrono::high_resolution_clock::now() - beg_).count();
 }        
 /////////////
 int Timer::hours(lua_State *L)
@@ -253,13 +284,9 @@ int Timer::hours(lua_State *L)
 	return 0;
 }
 /////////////
-double Timer::days() // Not yet tested :o
+double Timer::days() // Not yet tested :o but 99% sure it works :D
 {
-	double hr_to_day = (Timer::hours() / 24); // a day is 24 hours
-	if(hr_to_day == floor(hr_to_day)    && hr_to_day > 0)
-		day_e = day_e + 1;
-	return day_e;	
-	
+	return std::chrono::duration_cast<day_>  (std::chrono::high_resolution_clock::now() - beg_).count();
 }
 int Timer::days(lua_State *L)
 {
@@ -267,12 +294,10 @@ int Timer::days(lua_State *L)
 	return 0;
 }
 /////////////
-double Timer::weeks() // Not yet tested :o
+double Timer::weeks() // Not yet tested :o but 99% sure it works :D
 {
-	double day_to_week = (Timer::days() / 7); // 7 days in a week
-	if(day_to_week == floor(day_to_week)   &&  day_to_week > 0)
-		week_e = week_e + 1;
-	return week_e;	
+    if(seconds() < 604800) return 0;
+	return std::chrono::duration_cast<week_>  (std::chrono::high_resolution_clock::now() - beg_).count();
 }
 int Timer::weeks(lua_State *L)
 {
@@ -280,11 +305,10 @@ int Timer::weeks(lua_State *L)
 	return 0;
 }
 /////////////
-double Timer::months() // Not yet tested :o
+double Timer::months() // Not yet tested :o but 99% sure it works :D
 {
-	double week_per_month = (Timer::weeks() / 4.34524);
-	month_e = week_per_month;
-	return month_e;
+    if(seconds() < 2629746) return 0;
+	return std::chrono::duration_cast<month_>  (std::chrono::high_resolution_clock::now() - beg_).count();
 }
 int Timer::months(lua_State *L)
 {
@@ -292,12 +316,10 @@ int Timer::months(lua_State *L)
 	return 0;
 }
 /////////////
-double Timer::years() // Not yet tested :o
+double Timer::years() // Not yet tested :o but 99% sure it works :D
 {
-	double month_per_year = (Timer::months() / 12);
-	if(month_per_year == floor(month_per_year)   && month_per_year > 0)
-		year_e = year_e + 1;
-	return year_e;
+    if(seconds() < 31556952) return 0;
+	return std::chrono::duration_cast<year_>  (std::chrono::high_resolution_clock::now() - beg_).count();
 }
 int Timer::years(lua_State *L)
 {
@@ -306,19 +328,70 @@ int Timer::years(lua_State *L)
 }
 /////////////
 double Timer::delta() // get delta time - not sure how to implement it
-{/*
-	delta_now  = (clock() / CLOCKS_PER_SEC);
-	double delta_time = ((delta_now - delta_last)/ 1000000);	std::cout << delta_time << " = delta\n";
-	delta_last = delta_now;
-	*/
-    const clock_t begin_time = clock();
-	return double( clock () - begin_time ) /  CLOCKS_PER_SEC;//delta_time;
+{
+	old_time = new_time; 
+	new_time = std::chrono::high_resolution_clock::now();
+    delta_time = ((std::chrono::duration_cast<millisecond_>(new_time - old_time).count()) / 1000 /* * 1000 */); // / PERFORMANCE_FREQUENCY(); // delta = new_time - old_time
+#ifdef DOKUN_DEBUG    
+    std::cout << "delta_time: " << delta_time << std::endl;
+#endif    
+    return 1.0 / delta_time; 
 }
-/////////////
+///////////// use case: position += speed * delta_time.
 int Timer::delta(lua_State *L)
 {
 	lua_pushnumber(L, Timer::delta());
 	return 1;
+}
+/////////////
+void Timer::start_performance_counter() // source: https://gist.github.com/ikhramts/5798661 https://stackoverflow.com/questions/1739259/how-to-use-queryperformancecounter
+{
+#ifdef __windows__
+    LARGE_INTEGER li;
+    if(!QueryPerformanceFrequency(&li)) {std::cout << "QueryPerformanceFrequency failed!" << std::endl; return;} // get ticks per second
+
+    PCFreq = double(li.QuadPart)/1000.0; // in msecs. If you want secs then change to: PCFreq = double(li.QuadPart);
+
+    QueryPerformanceCounter(&li);
+    CounterStart = li.QuadPart;
+#endif
+#ifdef __gnu_linux__
+#endif
+}
+/////////////
+double Timer::get_performance_counter() 
+{
+#ifdef __windows__ // source: https://gist.github.com/ikhramts/5798661 https://stackoverflow.com/questions/1739259/how-to-use-queryperformancecounter
+    LARGE_INTEGER li;
+    QueryPerformanceCounter(&li);
+    return double(li.QuadPart-CounterStart)/PCFreq;
+#endif
+#ifdef __gnu_linux__
+#endif
+    return 0;
+}
+/////////////
+double Timer::get_performance_frequency() // long long is more portable than int64_t. They are pretty much the same too.
+{
+#ifdef __windows__
+    return PCFreq; // This is all you need to get the performance frequency // QueryPerformanceCounter((LARGE_INTEGER *)&frequency)
+#endif
+#ifdef __gnu_linux__
+#endif
+    return 0;
+}
+/////////////
+double Timer::get_tick_count(void) 
+{
+#ifdef __windows__
+    return timeGetTime(); // or GetTickCount(); - The return value is the number of milliseconds that have elapsed since the system was started // or GetTickCount64 // or timeGetTime(); - Returns the system time, in milliseconds. //  timeGetTime is a better choice if you want to calculate fps for your game
+#endif
+#ifdef __gnu_linux__
+    struct timespec ts;
+    if(clock_gettime(CLOCK_MONOTONIC_RAW, &ts) != 0) // CLOCK_MONOTONIC_RAW is not subject to NTP adjustments and is newer, CLOCK_MONOTONIC, CLOCK_REALTIME // MONOTONIC is the best option If you want to compute the elapsed time between two events observed on the one machine without an intervening reboot 
+        return 0;
+    return ts.tv_sec * 1000.0 + (ts.tv_nsec / 1000000.0);
+#endif
 }
 /////////////
 double Timer::framerate() 
@@ -343,10 +416,8 @@ int Timer::framerate(lua_State *L)
 void Timer::set_target_framerate(double limit)
 {
 	target_fps = limit;
-	if(limit > MAX_TARGET_FPS)
-		target_fps = MAX_TARGET_FPS;
-	if(limit < MIN_TARGET_FPS)
-		target_fps = MIN_TARGET_FPS;
+	if(limit > MAX_TARGET_FPS) target_fps = MAX_TARGET_FPS;
+	if(limit < MIN_TARGET_FPS) target_fps = MIN_TARGET_FPS;
 }
 
 void Timer::set_interval(double interval)
@@ -356,8 +427,9 @@ void Timer::set_interval(double interval)
 /////////////
 void Timer::increment_by_second(double * value_ptr, int seconds)
 {
-	#ifdef __gnu_linux__
-	#endif
+    //std::intmax_t copyarg2 (seconds);
+    //std::chrono::duration< double, std::ratio<copyarg2, 1> > nsec; // every nsecs
+    //*value_ptr = std::chrono::duration_cast<nsec>(std::chrono::high_resolution_clock::now() - nsec).count();
 }
 /////////////
 void Timer::increment_by_minute(double * value_ptr, int minutes)
@@ -367,53 +439,7 @@ void Timer::increment_by_hour(double * value_ptr, int hours)
 {}
 /////////////
 /////////////
-#ifdef __gnu_linux__ // re-create Win32's function
-bool Timer::QueryPerformanceFrequency(int64_t *frequency)
-{
-  /* Sanity check. */
-    assert(frequency != NULL);
-    /* gettimeofday reports to microsecond accuracy. */
-    *frequency = usec_per_sec;
-    return true;	
-}
-bool Timer::QueryPerformanceCounter(int64_t *performance_count)
-{/*
-    struct timeval time;        // struct timespec time;
-    // Sanity check.
-    assert(performance_count != NULL);
-    // Grab the current time.
-    gettimeofday(&time, NULL); // clock_gettime(&time)
-    *performance_count = time.tv_usec + // Microseconds. 
-                         time.tv_sec * usec_per_sec; // Seconds. 
-    return true;	
-*/	
-    struct timespec time;
-    // Sanity check.
-    assert(performance_count != NULL);
-    // Grab the current time. - clock_gettime should be used instead of the the obsolescent gettimeofday function
-    clock_gettime(CLOCK_MONOTONIC, &time); // monotonic clock cannot be set and represents time since some unspecified starting point; CLOCK_REALTIME = wall-clock_time; CLOCK_PROCESS_CPUTIME_ID = cpu_time   librt.a
-    *performance_count = (time.tv_nsec * 0.001) +              // nanoseconds - convert to microsecond??
-                         time.tv_sec * usec_per_sec; // Seconds
-    return true;
-}
-double Timer::GetTickCount(void) 
-{
-    struct timespec now;
-    if (clock_gettime(CLOCK_MONOTONIC, &now) != 0)
-        return 0;
-    return now.tv_sec * 1000.0 + now.tv_nsec / 1000000.0;
-}
-#endif
 /////////////
-void Timer::update_dt() // run in loop before drawing
-{
-    Timer::old_time = Timer::new_time;
-    Timer::new_time = (clock() / (double)CLOCKS_PER_SEC) * 1000;// get time in milliseconds or something; increments by the 100s
-    Timer::delta_time = Timer::new_time - Timer::old_time;
-#ifdef DOKUN_DEBUG    
-    std::cout << "delta_time: " << Timer::delta_time << "\n";
-#endif    
-} // usage: sprite->translate_x(1 * Timer::delta_time, 0)
 /////////////
 /////////////
 int Timer::new_(lua_State *L)
@@ -422,7 +448,7 @@ int Timer::new_(lua_State *L)
 	// create table
 	lua_createtable(L, 0, 0);
 	// set mt
-	lua_getglobal(L, "Timer_mt");
+	lua_getglobal(L, "Timer");
 	lua_setmetatable(L, 1);
 	// set userdata
 	Timer **timer = static_cast<Timer**>(lua_newuserdata(L, sizeof(Timer*)));
@@ -435,16 +461,8 @@ int Timer::new_(lua_State *L)
 	return 1;
 }
 /////////////
-// source: https://blogs.msdn.microsoft.com/nativeconcurrency/2011/12/27/high-resolution-timer-for-c/
+/////////////
 /*
-Getting elapse time since the program started:
-        std::cout << Timer::miliseconds() << " miliseconds\n";
-		std::cout << Timer::seconds    () << " seconds    \n";
-		std::cout << Timer::minutes    () << " minutes    \n";
-		std::cout << Timer::hours      () << " hours      \n";
-Getting frame rate:
-    std::cout << "Framerate: " << Timer::framerate() << std::endl;
-	
 
 
 wait function:
@@ -457,17 +475,4 @@ wait function:
     while(clock() != end_time) {}
 	
     return 0;
-
-
-	std::chrono::time_point<std::chrono::system_clock> start_time, end;
-	start_time = std::chrono::system_clock::elapsed_now();
-	
-	// do something here
-	Model model;
-	model.load("res/cube.obj");
-	
-	end = std::chrono::system_clock::elapsed_now();
-	std::chrono::duration<double> elapse = end-start_time;
-	
-	std::cout << "It took " << elapse.count() << "seconds to load the model\n";
 */	

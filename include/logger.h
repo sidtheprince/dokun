@@ -86,14 +86,14 @@ struct Logger {
 	/////////
 	static std::string format(const std::string& fmt) // returns date and time as a string
 	{
-        // C++11 style - Unfortunately a few compilers dont support std::put_time :c
-        /*
+    #if defined(__cplusplus) && (__cplusplus >= 201103L) // C++11 style - Unfortunately a few compilers dont support std::put_time :c
 		auto now = std::chrono::system_clock::now();
         auto in_time_t = std::chrono::system_clock::to_time_t(now); // current time
 		std::stringstream ss;
 		ss << std::put_time(std::localtime(&in_time_t), fmt.c_str());
 		return ss.str();
-        */		
+    #endif
+    #if defined(__cplusplus) && (__cplusplus < 201103L)
         std::time_t timer;
         char buffer[26];
         struct std::tm* tm_info;
@@ -101,6 +101,7 @@ struct Logger {
         tm_info = std::localtime(&timer);	
 		std::strftime(buffer, 26, fmt.c_str(), tm_info);
 		return buffer;		
+	#endif	
 	}
 	/////////
 	static bool save(const String& file_name) // saves all the logs from the current dokun_session to file_name

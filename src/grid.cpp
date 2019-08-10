@@ -36,7 +36,7 @@ int Grid::grid_new(lua_State *L)
 {
 	lua_settop(L, 0); // clear stack	
 	lua_createtable(L, 0, 0);      // create table
-	lua_getglobal(L, "Grid_mt");
+	lua_getglobal(L, "Grid");
 	lua_setmetatable(L, 1);        // set metatable
 	Grid ** grid = static_cast<Grid **>(lua_newuserdata(L, sizeof(Grid*))); // set userdata
 	*grid = new Grid;
