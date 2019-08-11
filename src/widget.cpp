@@ -1472,7 +1472,7 @@ void Widget::on_resize(void)
 		// XC_top_side
 	#ifdef __windows__
 		HCURSOR cursor = LoadCursor(nullptr, IDC_ARROW);
-		SetClassLong(window->get_handle(), GCL_HCURSOR, (DWORD)cursor);
+		//SetCursor(HCURSOR hCursor);//SetClassLong(window->get_handle(), GCL_HCURSOR, (DWORD)cursor);
 	#endif
 	#ifdef __gnu_linux__	
 		Cursor cursor = XCreateFontCursor(window->get_display(), XC_top_left_corner); 
@@ -1484,7 +1484,7 @@ void Widget::on_resize(void)
 	else {
 	#ifdef __windows__
 		HCURSOR cursor = LoadCursor(nullptr, IDC_ARROW);
-		SetClassLong(window->get_handle(), GCL_HCURSOR, (DWORD)cursor);
+		//SetCursor(HCURSOR hCursor);//SetClassLong(window->get_handle(), GCL_HCURSOR, (DWORD)cursor);
 	#endif
 	#ifdef __gnu_linux__	
 		Cursor cursor = XCreateFontCursor(window->get_display(), XC_left_ptr); 

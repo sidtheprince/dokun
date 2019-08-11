@@ -186,7 +186,8 @@ public:
 			unsigned int style;
 			Window root;
 			Visual * visual;
-			XEvent                  xev;
+			XEvent                  xev; // next_event
+			XEvent                  nev; // peek_event
             XEvent                  xevent; // temp
             XSetWindowAttributes    swa;	
             GC gc;		

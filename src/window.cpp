@@ -352,7 +352,7 @@ void WINDOW::update() // retrieves window messages; updates drawing (called in a
 /////////////////////// 
 /////////////////////// temp code above (delete soon)
 
-	XNextEvent(display, &xev);//XPeekEvent(display, &xev);
+	XNextEvent(display, &xev);//XPeekEvent(display, &xev);//if (XEventsQueued(display, QueuedAfterReading)) {
 	if(xev.type == Expose) // on window show
 	{}
 	if(xev.type == ConfigureNotify) // notify if window is resized
