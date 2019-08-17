@@ -177,10 +177,10 @@ typedef enum dokun_Key {
 	DOKUN_KEY_UNDEFINED = 0x1a,
 } dokun_Key;
 
-typedef enum dokun_Mouse {
-	DOKUN_MOUSE_LEFT   = 0,
-	DOKUN_MOUSE_MIDDLE = 1,
-	DOKUN_MOUSE_RIGHT  = 2,
+typedef enum dokun_Mouse { // good
+	DOKUN_MOUSE_LEFT   = 1,
+	DOKUN_MOUSE_MIDDLE = 2,
+	DOKUN_MOUSE_RIGHT  = 3,
 } dokun_Mouse;
 
 typedef enum dokun_Shader {
@@ -200,7 +200,7 @@ typedef enum dokun_Object {
 	DOKUN_OBJECT_GUI    =  2,
 } dokun_Object;
 
-typedef enum dokun_Component
+typedef enum dokun_Component // good
 {
 	DOKUN_COMPONENT_NONE     = -1,
 	DOKUN_COMPONENT_INTEGER  = 0,

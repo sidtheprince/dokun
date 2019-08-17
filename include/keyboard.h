@@ -202,7 +202,7 @@
 ///////////////////////////////////
 ///////////////////////////////////
 //---------------------------------
-#ifdef DOKUN_X11
+#ifdef __gnu_linux__//DOKUN_X11
     #define DOKUN_KEY_ESCAPE   0xff1b // ESC
     // f1-f12
     #define DOKUN_KEY_F1  0xffbe

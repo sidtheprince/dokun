@@ -1061,13 +1061,15 @@ void GUI::on_create()
 void GUI::on_draw()
 {
 	if(parent) // if GUI has a parent
-	{
+	{/*
 		// keep object within parent bounds (keep from moving outside parent)
         if(get_x() <= parent->get_x()) {set_position(parent->get_x(), get_y());}
         if(get_y() <= parent->get_y()) {set_position(get_x(), parent->get_y());}
 	    if(get_x() >= parent->get_x() + (parent->get_width() - get_width()))   {set_position(parent->get_x() + (parent->get_width() - get_width()), get_y());}
 	    if(get_y() >= parent->get_y() + (parent->get_height() - get_height())) {set_position(get_x(), parent->get_y() + (parent->get_height() - get_height()));}
-	    
+	    */
+	    // set position to parent_position + relative_position
+	    set_position(parent->get_x() + get_relative_x(), parent->get_y() + get_relative_y());
 	    // THIS LINE IS BAD FOR LABELS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	    // keep object from exceeding parent size (width and height) UPDATED: 9-7-2018 
 	    //if(get_width () > parent->get_width ()) set_size(parent->get_width(), get_height()); // if object is wider than parent, make width equal to parent's width

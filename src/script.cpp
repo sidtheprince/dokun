@@ -10,7 +10,7 @@ Script::Script(lua_State *L, const std::string& file_name)
 	
 	if(load(L, file_name) == 0)
 	{
-		Logger("Could not load " + file_name);
+		Logger("Could not load from file: " + file_name);
 	}
 	Factory::get_script_factory()->store(this);
 }
@@ -30,6 +30,7 @@ bool Script::load(lua_State * L, const std::string& file_name)
 	}
 	if(is_script(file_name)) // checks if script object is already attached to a file (one file per script_ptr)
 	{
+	    //Logger(file_name + " has already been loaded");
 		return true;
 	}
     if(luaL_dofile(L, file_name.c_str()) != 0)

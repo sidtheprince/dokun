@@ -39,7 +39,7 @@ void Menubar::draw() // because Menubar is parent to all the menus, its menu chi
 		// Do not draw menubar - Imaginary menubar that holds menus and does not actually exist. It is just a concept (only the menus are visible)
         for(int i = 0; i < menu_list.size(); i++)
 	    {
-		    Widget * menu = menu_list[i];
+		    Box * menu = menu_list[i];
 			if(get_orientation() == 0) 
 			{  // HORIZONTAL MENUBAR
 			    // adjust and update size of each menu according to menubar size
@@ -72,7 +72,7 @@ void Menubar::draw() // because Menubar is parent to all the menus, its menu chi
 			/////////////////////
 			for(int j = 0; j < menu->sub.size(); j++)
 			{
-				Widget * sub = menu->sub[j];
+				Box * sub = menu->sub[j];
 				if(Mouse::is_over(menu->get_rect()))
 	            {
 					std::cout << "Mouse over menu " << menu->get_label()->get_string() << std::endl;
@@ -118,19 +118,19 @@ int Menubar::draw(lua_State *L)
 {
     return 0;
 }
-void Menubar::add(const Widget& menu)
+void Menubar::add(const Box& menu)
 {
-	menu_list.push_back(&const_cast<Widget&>(menu));                     //std::cout << "number of menus = " << menu_list.size() << std::endl; // get number of menus after creation
-	const_cast<Widget&>(menu).set_size(get_width() / menu_list.size(), get_height()); // window_width / num_of_menu, 20
-	const_cast<Widget&>(menu).set_parent(*this);
-	const_cast<Widget&>(menu).set_color(get_color());
-	const_cast<Widget&>(menu).set_outline(true);
-	const_cast<Widget&>(menu).set_outline_width(2.0);
-	const_cast<Widget&>(menu).set_outline_color(32, 32, 32);
+	menu_list.push_back(&const_cast<Box&>(menu));                     //std::cout << "number of menus = " << menu_list.size() << std::endl; // get number of menus after creation
+	const_cast<Box&>(menu).set_size(get_width() / menu_list.size(), get_height()); // window_width / num_of_menu, 20
+	const_cast<Box&>(menu).set_parent(*this);
+	const_cast<Box&>(menu).set_color(get_color());
+	const_cast<Box&>(menu).set_outline(true);
+	const_cast<Box&>(menu).set_outline_width(2.0);
+	const_cast<Box&>(menu).set_outline_color(32, 32, 32);
 }          
 void Menubar::add(const std::string& menu_name)
 {
-	Widget * menu = new Widget();
+	Box * menu = new Box();
 	Label * label = menu->get_label();
 	label->set_string(menu_name); // set menu's label string
 	label->set_alignment("center");
@@ -140,44 +140,44 @@ int Menubar::add(lua_State * L)
 {
     return 0;
 }
-void Menubar::sub(const Widget& submenu, int index)
+void Menubar::sub(const Box& submenu, int index)
 {
     if(menu_list.size() < index + 1) // if menu at index does not exist
 		Logger("Attempt to access invalid location in sub() | menubar.cpp (180)");
-	const_cast<Widget&>(submenu).set_size(menu_list[index]->get_width(), get_height());
-	const_cast<Widget&>(submenu).set_position(menu_list[index]->get_position().x, menu_list[index]->get_position().y + menu_list[index]->get_height());
-	const_cast<Widget&>(submenu).set_color(submenu_color);
-	const_cast<Widget&>(submenu).set_outline(true);
-	const_cast<Widget&>(submenu).set_outline_width(2.0);
-	const_cast<Widget&>(submenu).set_outline_color(32, 32, 32);
-	const_cast<Widget&>(submenu).set_visible(false);
-	const_cast<Widget&>(submenu).previous = menu_list[index]; // set menu as its previous
-	menu_list[index]->sub.push_back(&const_cast<Widget&>(submenu)); // &const_cast<Widget&>(submenu)
+	const_cast<Box&>(submenu).set_size(menu_list[index]->get_width(), get_height());
+	const_cast<Box&>(submenu).set_position(menu_list[index]->get_position().x, menu_list[index]->get_position().y + menu_list[index]->get_height());
+	const_cast<Box&>(submenu).set_color(submenu_color);
+	const_cast<Box&>(submenu).set_outline(true);
+	const_cast<Box&>(submenu).set_outline_width(2.0);
+	const_cast<Box&>(submenu).set_outline_color(32, 32, 32);
+	const_cast<Box&>(submenu).set_visible(false);
+	const_cast<Box&>(submenu).previous = menu_list[index]; // set menu as its previous
+	menu_list[index]->sub.push_back(&const_cast<Box&>(submenu)); // &const_cast<Box&>(submenu)
 	
 	/*
     if(sub_list.size() < index + 1) // if row at index does not exist, create it
 	{
-        sub_list.push_back(std::vector<Widget *>()); // create empty row
+        sub_list.push_back(std::vector<Box *>()); // create empty row
 	}
     if(menu_list.size() < index + 1) // if menu at index does not exist
 		Logger("Attempt to access invalid location in sub() | menubar.cpp (180)");	
-	sub_list[index].push_back(&const_cast<Widget&>(submenu));
-	const_cast<Widget&>(submenu).set_size(50, get_height());
-	const_cast<Widget&>(submenu).set_position(menu_list[index]->get_position().x, menu_list[index]->get_position().y + menu_list[index]->get_height());
-	const_cast<Widget&>(submenu).set_color(submenu_color);
-	const_cast<Widget&>(submenu).set_outline(true);
-	const_cast<Widget&>(submenu).set_outline_width(2.0);
-	const_cast<Widget&>(submenu).set_outline_color(32, 32, 32);
-	const_cast<Widget&>(submenu).set_visible(false);
+	sub_list[index].push_back(&const_cast<Box&>(submenu));
+	const_cast<Box&>(submenu).set_size(50, get_height());
+	const_cast<Box&>(submenu).set_position(menu_list[index]->get_position().x, menu_list[index]->get_position().y + menu_list[index]->get_height());
+	const_cast<Box&>(submenu).set_color(submenu_color);
+	const_cast<Box&>(submenu).set_outline(true);
+	const_cast<Box&>(submenu).set_outline_width(2.0);
+	const_cast<Box&>(submenu).set_outline_color(32, 32, 32);
+	const_cast<Box&>(submenu).set_visible(false);
 	if(sub_list[index].size() == 1) // if first sub_item has been added
 	{
-		const_cast<Widget&>(submenu).previous = menu_list[index]; // set menu as its previous
+		const_cast<Box&>(submenu).previous = menu_list[index]; // set menu as its previous
 	}*/
 }
 void Menubar::sub(const std::string& menu_name, const std::string& sub_name) // menu must exist
 {
 	// sub_menu
-	Widget * submenu = new Widget();
+	Box * submenu = new Box();
 	submenu->get_label()->set_string(sub_name);
 	for(int j = 0; j < menu_list.size(); j++)
 	{
@@ -228,7 +228,7 @@ int Menubar::set_outline_antialiased(lua_State *L)
 
 
 
-Widget * Menubar::get_menu(int index)
+Box * Menubar::get_menu(int index)
 {
 #ifdef DOKUN_DEBUG	
 	if(menu_list.size() < index + 1) Logger("Attempt to access invalid location | menubar.cpp (234)");
@@ -239,7 +239,7 @@ int Menubar::get_menu(lua_State * L)
 {
     return 1;
 }
-Widget * Menubar::get_submenu(int menu_index, int sub_index)
+Box * Menubar::get_submenu(int menu_index, int sub_index)
 {
 #ifdef DOKUN_DEBUG	
 	if(menu_list.size() < menu_index + 1) Logger("Attempt to access invalid location | menubar.cpp (243)");
@@ -280,7 +280,7 @@ bool Menubar::has_sub(int menu_index)
 }
 void Menubar::on_hover(void)
 {}
-void Menubar::on_menu_press(Widget * menu, int index)
+void Menubar::on_menu_press(Box * menu, int index)
 {
 	if(Mouse::is_over(menu->get_rect()))
 	{
@@ -292,7 +292,7 @@ void Menubar::on_menu_press(Widget * menu, int index)
 	{	
 		for(int j = 0; j < sub_list[index].size(); j++) // number of menus with subs
 		{
-			Widget * sub  = sub_list[index][j];
+			Box * sub  = sub_list[index][j];
 			
 			if(menu->is_pressed()) {sub->set_visible(true);} 
 			else 

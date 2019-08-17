@@ -23,7 +23,7 @@ struct Component // a part or attribute of an entity; This class is essential if
 	Component(const std::string& name, const Vector2& value);
 	Component(const std::string& name, const Vector3& value);
 	Component(const std::string& name, const Vector4& value);
-	Component(const std::string& name, void * value);
+	Component(const std::string& name, const void * value);
 	Component(const std::string& name, lua_CFunction value);
 	Component(const std::string& name, std::function<void (void)> function);
 	~Component();
@@ -37,7 +37,7 @@ struct Component // a part or attribute of an entity; This class is essential if
 	static Component * create(const std::string& name, const Vector2& value);
 	static Component * create(const std::string& name, const Vector3& value);
 	static Component * create(const std::string& name, const Vector4& value);
-	static Component * create(const std::string& name, void * value);
+	static Component * create(const std::string& name, const void * value);
 	static Component * create(const std::string& name, lua_CFunction value);
 	static Component * create(const std::string& name, std::function<void (void)> value);
 	void destroy();                                                     static int destroy(lua_State *L);// destroys a component
@@ -51,7 +51,7 @@ struct Component // a part or attribute of an entity; This class is essential if
 	void set_value(const Vector2& value);
 	void set_value(const Vector3& value);
 	void set_value(const Vector4& value);
-	void set_value(void * value);
+	void set_value(const void * value);
 	void set_value(lua_CFunction value);
 	void set_value(std::function<void (void)> value);
 	private:
@@ -68,7 +68,7 @@ struct Component // a part or attribute of an entity; This class is essential if
 	double to_double() const;
 	float to_float() const;
 	std::string to_string() const;
-	int to_boolean() const;	
+	bool to_boolean() const;	
 	Vector4 to_vector() const;
 	void * to_pointer() const;	
 	std::function<void (void)> to_function() const;

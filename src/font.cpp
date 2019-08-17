@@ -123,9 +123,11 @@ void FONT::generate() // load each character and store it in array for later use
 		    return;
     #endif
     #ifdef __gnu_linux__
+    #ifdef DOKUN_X11
         if(!glXGetCurrentContext())
 		    return;
     #endif	
+    #endif
 		glGenTextures(1, &texture_id);
             glBindTexture(GL_TEXTURE_2D, texture_id);
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, face->glyph->bitmap.width, face->glyph->bitmap.rows, 0, GL_RED, GL_UNSIGNED_BYTE, face->glyph->bitmap.buffer);
@@ -222,8 +224,10 @@ void FONT::destroy()
 		return;
 #endif
 #ifdef __gnu_linux__
+#ifdef DOKUN_X11
     if(!glXGetCurrentContext())
 		return;
+#endif
 #endif
     int character_count = character_array.size();	
     for(int i = 0; i < character_count; i++)

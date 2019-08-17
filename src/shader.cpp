@@ -17,8 +17,10 @@ void Shader::use()
 		return;
 #endif
 #ifdef __gnu_linux__
+#ifdef DOKUN_X11
     if(!glXGetCurrentContext())
 		return;
+#endif
 #endif	
 	if(glIsProgram(program))
 	{
@@ -35,8 +37,10 @@ void Shader::disable()
 		return;
 #endif
 #ifdef __gnu_linux__
+#ifdef DOKUN_X11
     if(!glXGetCurrentContext())
 		return;
+#endif
 #endif	
 	glUseProgram(0);
 	//Logger("Program is disabled");
@@ -50,8 +54,10 @@ void Shader::create()
 		return;
 #endif
 #ifdef __gnu_linux__
+#ifdef DOKUN_X11
     if(!glXGetCurrentContext())
 		return;
+#endif
 #endif	
 	if(!glIsProgram(program)) // not yet a program
 	{
@@ -188,8 +194,10 @@ void Shader::prepare()
 		return;
 #endif
 #ifdef __gnu_linux__
+#ifdef DOKUN_X11
     if(!glXGetCurrentContext())
 		return;
+#endif
 #endif	
 	if(glIsProgram(program))
 	{
@@ -231,8 +239,10 @@ void Shader::destroy()
 		return;
 #endif
 #ifdef __gnu_linux__
+#ifdef DOKUN_X11
     if(!glXGetCurrentContext())
 		return;
+#endif
 #endif	
     if(glIsProgram(program))
 	{
@@ -291,8 +301,10 @@ void Shader::bind(const std::string& attribute_name, unsigned int index)
 		return;
 #endif
 #ifdef __gnu_linux__
+#ifdef DOKUN_X11
     if(!glXGetCurrentContext())
 		return;
+#endif
 #endif	
 	if(glIsProgram(program))
 	    glBindAttribLocation(program, index, attribute_name.c_str());
@@ -312,8 +324,10 @@ bool Shader::load(const std::string& filename, int shader_type)
 		return false;
 #endif
 #ifdef __gnu_linux__
+#ifdef DOKUN_X11
     if(!glXGetCurrentContext())
 		return false;
+#endif
 #endif	
     switch(shader_type) // or type
 	{
@@ -358,8 +372,10 @@ void Shader::set_source(const char * const * source, int shader_type)
 		return;
 #endif
 #ifdef __gnu_linux__
+#ifdef DOKUN_X11
     if(!glXGetCurrentContext())
 		return;
+#endif
 #endif	
     switch(shader_type) // or type
 	{
@@ -410,8 +426,10 @@ void Shader::set_integer(const std::string& uniform_name, int integer)
 		return;
 #endif
 #ifdef __gnu_linux__
+#ifdef DOKUN_X11
     if(!glXGetCurrentContext())
 		return;
+#endif
 #endif	
 	if(glIsProgram(program))
 	{
@@ -430,8 +448,10 @@ void Shader::set_integer(const std::string& uniform_name, int x, int y)
 		return;
 #endif
 #ifdef __gnu_linux__
+#ifdef DOKUN_X11
     if(!glXGetCurrentContext())
 		return;
+#endif
 #endif	
 	if(glIsProgram(program))
 	{
@@ -450,8 +470,10 @@ void Shader::set_integer(const std::string& uniform_name, int x, int y, int z)
 		return;
 #endif
 #ifdef __gnu_linux__
+#ifdef DOKUN_X11
     if(!glXGetCurrentContext())
 		return;
+#endif
 #endif	
 	if(glIsProgram(program))
 	{
@@ -470,8 +492,10 @@ void Shader::set_integer(const std::string& uniform_name, int x, int y, int z, i
 		return;
 #endif
 #ifdef __gnu_linux__
+#ifdef DOKUN_X11
     if(!glXGetCurrentContext())
 		return;
+#endif
 #endif	
 	if(glIsProgram(program))
 	{
@@ -490,8 +514,10 @@ void Shader::set_float(const std::string& uniform_name, float floatp)
 		return;
 #endif
 #ifdef __gnu_linux__
+#ifdef DOKUN_X11
     if(!glXGetCurrentContext())
 		return;
+#endif
 #endif	
 	if(glIsProgram(program))
 	{
@@ -510,8 +536,10 @@ void Shader::set_float(const std::string& uniform_name, float x, float y)
 		return;
 #endif
 #ifdef __gnu_linux__
+#ifdef DOKUN_X11
     if(!glXGetCurrentContext())
 		return;
+#endif
 #endif	
 	if(glIsProgram(program))
 	{
@@ -530,8 +558,10 @@ void Shader::set_float(const std::string& uniform_name, float x, float y, float 
 		return;
 #endif
 #ifdef __gnu_linux__
+#ifdef DOKUN_X11
     if(!glXGetCurrentContext())
 		return;
+#endif
 #endif	
 	if(glIsProgram(program))
 	{
@@ -550,8 +580,10 @@ void Shader::set_float(const std::string& uniform_name, float x, float y, float 
 		return;
 #endif
 #ifdef __gnu_linux__
+#ifdef DOKUN_X11
     if(!glXGetCurrentContext())
 		return;
+#endif
 #endif	
 	if(glIsProgram(program))
 	{
@@ -570,8 +602,10 @@ void Shader::set_double(const std::string& uniform_name, double doublep)
 		return;
 #endif
 #ifdef __gnu_linux__
+#ifdef DOKUN_X11
     if(!glXGetCurrentContext())
 		return;
+#endif
 #endif	
 	if(glIsProgram(program))
 	{
@@ -590,8 +624,10 @@ void Shader::set_double(const std::string& uniform_name, double x, double y)
 		return;
 #endif
 #ifdef __gnu_linux__
+#ifdef DOKUN_X11
     if(!glXGetCurrentContext())
 		return;
+#endif
 #endif	
 	if(glIsProgram(program))
 	{
@@ -610,8 +646,10 @@ void Shader::set_double(const std::string& uniform_name, double x, double y, dou
 		return;
 #endif
 #ifdef __gnu_linux__
+#ifdef DOKUN_X11
     if(!glXGetCurrentContext())
 		return;
+#endif
 #endif	
 	if(glIsProgram(program))
 	{
@@ -630,8 +668,10 @@ void Shader::set_double(const std::string& uniform_name, double x, double y, dou
 		return;
 #endif
 #ifdef __gnu_linux__
+#ifdef DOKUN_X11
     if(!glXGetCurrentContext())
 		return;
+#endif
 #endif	
 	if(glIsProgram(program))
 	{
@@ -650,9 +690,11 @@ void Shader::set_vector2(const std::string& uniform_name, const Vector2& vector)
 		return;
 #endif
 #ifdef __gnu_linux__
+#ifdef DOKUN_X11
     if(!glXGetCurrentContext())
 		return;
 #endif	
+#endif
 	if(glIsProgram(program))
 	{
         GLint uniform_location = glGetUniformLocation(program, uniform_name.c_str());
@@ -670,8 +712,10 @@ void Shader::set_vector3(const std::string& uniform_name, const Vector3& vector)
 		return;
 #endif
 #ifdef __gnu_linux__
+#ifdef DOKUN_X11
     if(!glXGetCurrentContext())
 		return;
+#endif
 #endif	
 	if(glIsProgram(program))
 	{
@@ -690,8 +734,10 @@ void Shader::set_vector4(const std::string& uniform_name, const Vector4& vector)
 		return;
 #endif
 #ifdef __gnu_linux__
+#ifdef DOKUN_X11
     if(!glXGetCurrentContext())
 		return;
+#endif
 #endif	
 	if(glIsProgram(program))
 	{
@@ -750,8 +796,10 @@ void Shader::set_matrix4(const std::string& uniform_name, int count, const Matri
 		return;
 #endif
 #ifdef __gnu_linux__
+#ifdef DOKUN_X11
     if(!glXGetCurrentContext())
 		return;
+#endif
 #endif	
 	if(glIsProgram(program))
 	{
@@ -770,8 +818,10 @@ void Shader::set_matrix4(const std::string& uniform_name, int count, bool transp
 		return;
 #endif
 #ifdef __gnu_linux__
+#ifdef DOKUN_X11
     if(!glXGetCurrentContext())
 		return;
+#endif
 #endif	
 	if(glIsProgram(program))
 	{
@@ -810,8 +860,10 @@ unsigned int Shader::get_attribute(const std::string& attribute)const
 		return -1;
 #endif
 #ifdef __gnu_linux__
+#ifdef DOKUN_X11
     if(!glXGetCurrentContext())
 		return -1;
+#endif
 #endif
     if(glIsProgram(program))
         return glGetAttribLocation(program, attribute.c_str());
@@ -826,8 +878,10 @@ unsigned int Shader::get_uniform(const std::string& uniform)const
 		return -1;
 #endif
 #ifdef __gnu_linux__
+#ifdef DOKUN_X11
     if(!glXGetCurrentContext())
 		return -1;
+#endif
 #endif	
 	if(glIsProgram(program))
 		return glGetUniformLocation(program, uniform.c_str());
@@ -843,8 +897,10 @@ bool Shader::has_program()const
 		return false;
 #endif
 #ifdef __gnu_linux__
+#ifdef DOKUN_X11
     if(!glXGetCurrentContext())
 		return false;
+#endif
 #endif	
 	return (glIsProgram(program) != 0);
 #endif	
@@ -891,11 +947,13 @@ void Shader::context_check(void)
 	}
 #endif
 #ifdef __gnu_linux__
+#ifdef DOKUN_X11
     if(!glXGetCurrentContext())
 	{
 		Logger("Context check failed: No OpenGL context found.");
 		return;
 	}
+#endif
 #endif	
 #endif	
 }

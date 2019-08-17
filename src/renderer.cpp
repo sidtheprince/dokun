@@ -97,10 +97,10 @@ void Renderer::update_vertex_array(const std::vector<float>& vertex_array)
 #ifdef DOKUN_OPENGL
 	// Update vertex_buffer_obj (each frame) NOT the VAO!!
 	// This code is equivalent to glNamedBufferSubData
-    /*glBindBuffer(GL_ARRAY_BUFFER, sprite_vertex_buffer_obj);
+    glBindBuffer(GL_ARRAY_BUFFER, sprite_vertex_buffer_obj);
 	    glBufferSubData(GL_ARRAY_BUFFER, 0, vertex_array.size() * sizeof(GLfloat), vertex_array.data());
-	glBindBuffer(GL_ARRAY_BUFFER, 0);*/
-	glNamedBufferSubData(sprite_vertex_buffer_obj, 0, vertex_array.size() * sizeof(GLfloat), vertex_array.data()); //Logger("Sprite vertex data updated");// updates buffer_obj without having to bind it	
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	//glNamedBufferSubData(sprite_vertex_buffer_obj, 0, vertex_array.size() * sizeof(GLfloat), vertex_array.data()); //Logger("Sprite vertex data updated");// updates buffer_obj without having to bind it	
 #endif	
 }
 ////////////
@@ -109,11 +109,11 @@ void Renderer::destroy_vertex_array (void) // do not destroy vertex array until 
 #ifdef DOKUN_OPENGL	
 if(glIsVertexArray(sprite_vertex_array_obj)) {// if vao has been generated
 	// delete the buffers
-	glDeleteBuffers(1, &sprite_vertex_buffer_obj  );
-	glDeleteBuffers(1, &sprite_texcoord_buffer_obj);	
-	glDeleteBuffers(1, &sprite_element_buffer_obj );
+	glDeleteBuffers(1, &sprite_vertex_buffer_obj  );	Logger("Sprite vertex_buffer_object deleted");
+	glDeleteBuffers(1, &sprite_texcoord_buffer_obj);	Logger("Sprite texture_coordinate_buffer_object deleted");	
+	glDeleteBuffers(1, &sprite_element_buffer_obj );	Logger("Sprite element_buffer_object deleted");
     // delete the arrays
-	glDeleteVertexArrays(1, &sprite_vertex_array_obj);	Logger("Sprite vertex data destroyed");
+	glDeleteVertexArrays(1, &sprite_vertex_array_obj);	Logger("Sprite vertex_array_object deleted");
 }
 #endif	
 }
@@ -2872,10 +2872,10 @@ void Renderer::draw_slider(int x, int y, int width, int height, double angle, do
 		// position relative to the slider
 		float progress = value / max_value; // value changes when pivotx is moved
 		GLfloat vertices1[] = {
-		    static_cast<GLfloat>(x)                                           , static_cast<GLfloat>(y),
+		    static_cast<GLfloat>(x)                                       , static_cast<GLfloat>(y),
             static_cast<GLfloat>(x) + progress*static_cast<GLfloat>(width), static_cast<GLfloat>(y),
             static_cast<GLfloat>(x) + progress*static_cast<GLfloat>(width), static_cast<GLfloat>(y) + static_cast<GLfloat>(height),
-            static_cast<GLfloat>(x)                                           , static_cast<GLfloat>(y) + static_cast<GLfloat>(height),   
+            static_cast<GLfloat>(x)                                       , static_cast<GLfloat>(y) + static_cast<GLfloat>(height),   
         };      
         glBufferData(GL_ARRAY_BUFFER, sizeof(vertices1)* sizeof(GLfloat), vertices1, GL_STATIC_DRAW);
         glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (GLvoid*)0);
@@ -2920,17 +2920,277 @@ void Renderer::draw_slider(int x, int y, int width, int height, double angle, do
         glGenBuffers(1, &ball_vertex_buffer_obj);
         glBindBuffer(GL_ARRAY_BUFFER, ball_vertex_buffer_obj);
 		// pivot size = 10 x height = ball_width x ball_height
-		// position relative to slider
-		int ball_top_padding    = 1;     // space between handle and top part of slider
-		int ball_bottom_padding = 2;     // space between handle and bottom of slider
-		int ball_height = height - ball_bottom_padding; // adjust the height a bit                                                                // height (slider_height)
-		float ball_y    = 0 + ball_top_padding;             // move down 1 unit away from slider (bottom padding???)               // 0      (slider_y + ball_y) 
-		float ball_x    = (value / max_value) * static_cast<GLfloat>(width); // value starts at 0		
+		// position relative to slider       // padding is only used when the ball is inside the beam rather than it sticking out of the beam
+		int ball_top_padding    = 0;//1;    // space between handle and top part of slider
+		int ball_bottom_padding = 0;//2     // space between handle and bottom of slider
+		int ball_height = (height * 2) - ball_bottom_padding;//height - ball_bottom_padding; // adjust the height a bit                                                                // height (slider_height)
+		float ball_y    = -(height - height / 2) + ball_top_padding;//0 + ball_top_padding;             // move down 1 unit away from slider (bottom padding???)               // 0      (slider_y + ball_y) 
+		float ball_x    = (value / max_value) * static_cast<GLfloat>(width); // value starts at 0	//std::cout << "Renderer ball_height: " << ball_height << std::endl;	std::cout << "Renderer ball_y: " << y + ball_y << std::endl;	
 		GLfloat vertices2[] = {
-		    static_cast<GLfloat>(x + ball_x)                                     , static_cast<GLfloat>(y + ball_y),
+		    static_cast<GLfloat>(x + ball_x)                                   , static_cast<GLfloat>(y + ball_y),
             static_cast<GLfloat>(x + ball_x) + static_cast<GLfloat>(ball_width), static_cast<GLfloat>(y + ball_y),
             static_cast<GLfloat>(x + ball_x) + static_cast<GLfloat>(ball_width), static_cast<GLfloat>(y + ball_y) + static_cast<GLfloat>(ball_height),
-            static_cast<GLfloat>(x + ball_x)                                     , static_cast<GLfloat>(y + ball_y) + static_cast<GLfloat>(ball_height),   
+            static_cast<GLfloat>(x + ball_x)                                   , static_cast<GLfloat>(y + ball_y) + static_cast<GLfloat>(ball_height),   
+        };      //std::cout << x + ball_x << " pivot_x\n";
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices2)* sizeof(GLfloat), vertices2, GL_STATIC_DRAW);
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (GLvoid*)0);
+        glEnableVertexAttribArray(0);
+    glBindVertexArray(0); // vertex array obj (end 0)   
+	// element buffer obj
+	glBindVertexArray(ball_vertex_array_obj); // (vao start 1)
+	    GLuint ball_element_buffer_obj;
+        glGenBuffers(1, &ball_element_buffer_obj);
+	    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ball_element_buffer_obj); 
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices)* sizeof(GLuint), indices, GL_STATIC_DRAW); 
+	glBindVertexArray(0);                // (vao end 1  )
+	// Draw ball / handle
+	shader.set_float("color", (ball_color.x/ 255), (ball_color.y / 255), (ball_color.z / 255), (ball_color.w / 255));
+    glBindVertexArray(ball_vertex_array_obj); // (vao start 2)
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);                // (vao end 2  )	
+	// Clean textures
+	// Clean buffers
+	// :slider
+	glDeleteBuffers(1, &slider_tex_coord_buffer_obj);
+	glDeleteBuffers(1, &slider_element_buffer_obj  );
+	glDeleteBuffers(1, &slider_vertex_buffer_obj   );
+	// :bar
+	glDeleteBuffers(1, &bar_tex_coord_buffer_obj);
+	glDeleteBuffers(1, &bar_element_buffer_obj  );
+	glDeleteBuffers(1, &bar_vertex_buffer_obj   );
+	// :ball
+	glDeleteBuffers(1, &ball_tex_coord_buffer_obj);
+	glDeleteBuffers(1, &ball_element_buffer_obj  );
+	glDeleteBuffers(1, &ball_vertex_buffer_obj   );
+	// Clean arrays
+	glDeleteVertexArrays(1, &slider_vertex_array_obj);
+	glDeleteVertexArrays(1, &bar_vertex_array_obj   );
+	glDeleteVertexArrays(1, &ball_vertex_array_obj  );
+	// Restore defaults
+	glDisable(GL_LINE_SMOOTH);
+	glLineWidth(1.0);
+	// Disable program
+	shader.disable();
+	shader.destroy();
+	//std::cout << dokun_opengl_error() << std::endl;
+#endif
+}
+////////////
+void Renderer::draw_slider_vertical(int x, int y, int width, int height, double angle, double scale_x, double scale_y, double red, double green, double blue, double alpha,
+    // beam
+	double min_value, double max_value, double value, const Vector4& background_color,
+	// ball
+	int ball_height, const Vector4& ball_color)
+{
+#ifdef DOKUN_OPENGL	// OpenGL is defined
+	context_check();
+    // Disable 3d for User interdata
+	glDisable(GL_DEPTH_TEST);
+	// Enable transparent background
+    glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA); 
+	glEnable(GL_BLEND);
+	// Set polygon mode 
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe 
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // normal
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);  // points (that you can barely see)
+	// vertex shader
+	const char * vertex_source[] =
+	{
+        "#version 330\n"
+        "\n"
+        "layout (location = 0) in vec2 position ;\n"
+        "layout (location = 1) in vec2 tex_coord;\n"
+		"out vec2 Texcoord;\n"
+		"\n"
+		"\n"
+		"uniform mat4 model;\n"
+		"uniform mat4 proj ;\n"
+		"\n"
+        "void main()\n"
+        "{\n"
+		    "Texcoord    = tex_coord;\n"
+            "gl_Position = proj * model * vec4(position, 0.0, 1.0);\n"
+        "}\n"
+	};
+	const char * fragment_source[] =
+	{
+	    "#version 330\n"
+        "\n"
+		"out vec4 out_color;\n"
+        "uniform vec4 color;\n"
+        "//uniform sampler2D base;\n"
+		"in vec2 Texcoord;\n"
+		"\n"
+		"\n"
+        "void main()\n"
+        "{\n"
+		"\n"
+		"\n"
+		"\n"
+            "out_color = color;\n"
+        "}\n"
+	};
+	// Shader
+	Shader shader;
+	shader.create();
+	shader.set_source(vertex_source  , 0);
+	shader.set_source(fragment_source, 1);
+	shader.prepare();
+	shader.use ();
+#ifdef use_glm	
+	// uniform
+	glm::mat4 model = glm::mat4(1.0);;
+	model = glm::translate(model, glm::vec3(x + width/2, y + height/2, 0));//model = glm::translate(model, glm::vec3(x, y, 0));
+	model = glm::rotate(model, static_cast<float>(angle * 0.0174533), glm::vec3(0, 0, 1));
+	model = glm::scale(model, glm::vec3(scale_x, scale_y, 1));
+	model = glm::translate(model, glm::vec3(-x - width/2, -y - height/2, 0));
+	float window_width  = Renderer::get_display_width ();
+	float window_height = Renderer::get_display_height();
+	glm::mat4 proj  = glm::ortho(0.0f, window_width, window_height, 0.0f, -1.0f, 1.0f);
+	glUniformMatrix4fv(glGetUniformLocation(shader.get_program(), "model"), 1, GL_FALSE, glm::value_ptr(model));
+	glUniformMatrix4fv(glGetUniformLocation(shader.get_program(), "proj") , 1, GL_FALSE, glm::value_ptr(proj) );
+#endif	
+	//----------------------------
+	GLfloat tex_coords[] = { // texture coordinates range from (0,0) to (1, 1)
+		0.0, 0.0,
+        1.0, 0.0,
+        1.0, 1.0,
+        0.0, 1.0, 
+    };	
+	GLuint indices[] = {0, 1, 3,  1, 2, 3,}; 
+	//----------------------------
+	// BEAM (BACKGROUND)
+    // vertex array obj  - stores vertices
+    GLuint slider_vertex_array_obj;
+    glGenVertexArrays(1, &slider_vertex_array_obj);
+	// tex_coord buffer obj
+    glBindVertexArray(slider_vertex_array_obj); // bind again  
+	    GLuint slider_tex_coord_buffer_obj;
+        glGenBuffers( 1, &slider_tex_coord_buffer_obj);
+        glBindBuffer( GL_ARRAY_BUFFER, slider_tex_coord_buffer_obj);
+        glBufferData( GL_ARRAY_BUFFER, sizeof(tex_coords)* sizeof(GLfloat), tex_coords, GL_STATIC_DRAW);    
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), static_cast<void *>(0));			
+	    glEnableVertexAttribArray(1); 	
+	glBindVertexArray(0); // unbind
+	// vertex buffer obj
+    glBindVertexArray(slider_vertex_array_obj); // bind vertex array obj
+        GLuint slider_vertex_buffer_obj;
+        glGenBuffers(1, &slider_vertex_buffer_obj);
+        glBindBuffer(GL_ARRAY_BUFFER, slider_vertex_buffer_obj);
+		GLfloat vertices[] = { // when x and y are 0 then from wwidth-wheight
+		    static_cast<GLfloat>(x)                              , static_cast<GLfloat>(y),
+            static_cast<GLfloat>(x) + static_cast<GLfloat>(width), static_cast<GLfloat>(y),
+            static_cast<GLfloat>(x) + static_cast<GLfloat>(width), static_cast<GLfloat>(y) + static_cast<GLfloat>(height),
+            static_cast<GLfloat>(x)                              , static_cast<GLfloat>(y) + static_cast<GLfloat>(height),   
+        };      
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices)* sizeof(GLfloat), vertices, GL_STATIC_DRAW);
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (GLvoid*)0);
+        glEnableVertexAttribArray(0);
+    glBindVertexArray(0); // vertex array obj (end 0)   
+	// element buffer obj
+	glBindVertexArray(slider_vertex_array_obj); // (vao start 1)
+	    GLuint slider_element_buffer_obj;
+        glGenBuffers(1, &slider_element_buffer_obj);
+	    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, slider_element_buffer_obj); 
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices)* sizeof(GLuint), indices, GL_STATIC_DRAW); 
+	glBindVertexArray(0);                // (vao end 1  )
+	// Draw slider(beam) outline
+	/*shader.set_float("color", (outline_color.x / 255), (outline_color.y / 255), (outline_color.z / 255), (outline_color.w / 255));
+	//glEnable(GL_LINE_SMOOTH); // may slow down performance
+	glLineWidth(outline_width); // outline_width
+	glBindVertexArray(slider_vertex_array_obj); // use same vao data as _ but this time in a line loop
+        glDrawElements(GL_LINE_LOOP, 6, GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);*/
+	// Draw slider (beam)
+	shader.set_float("color", (background_color.x / 255), (background_color.y / 255), (background_color.z / 255), (background_color.w / 255));
+    glBindVertexArray(slider_vertex_array_obj); // (vao start 2)
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);                // (vao end 2  )
+    //----------------------------
+    // BEAM_BAR (foreground)
+    // vertex array obj  - stores vertices
+    GLuint bar_vertex_array_obj;
+    glGenVertexArrays(1, &bar_vertex_array_obj);
+	// tex_coord buffer obj
+    glBindVertexArray(bar_vertex_array_obj); // bind again  
+	    GLuint bar_tex_coord_buffer_obj;
+        glGenBuffers( 1, &bar_tex_coord_buffer_obj);
+        glBindBuffer( GL_ARRAY_BUFFER, bar_tex_coord_buffer_obj);
+        glBufferData( GL_ARRAY_BUFFER, sizeof(tex_coords)* sizeof(GLfloat), tex_coords, GL_STATIC_DRAW);    
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), static_cast<void *>(0));			
+	    glEnableVertexAttribArray(1); 	
+	glBindVertexArray(0); // unbind
+	// vertex buffer obj
+    glBindVertexArray(bar_vertex_array_obj); // bind vertex array obj
+        GLuint bar_vertex_buffer_obj;
+        glGenBuffers(1, &bar_vertex_buffer_obj);
+        glBindBuffer(GL_ARRAY_BUFFER, bar_vertex_buffer_obj);
+		// controls where the bar goes
+		// to get x position of pivot = x + (value * 2). If value is 100 then pivot_x is 200
+		// to get y position of pivot = y
+		// position relative to the slider
+		float progress = value / max_value; // value changes when pivotx is moved
+		GLfloat vertices1[] = {
+		    static_cast<GLfloat>(x)                              , static_cast<GLfloat>(y),
+            static_cast<GLfloat>(x) + static_cast<GLfloat>(width), static_cast<GLfloat>(y),
+            static_cast<GLfloat>(x) + static_cast<GLfloat>(width), static_cast<GLfloat>(y) + progress * static_cast<GLfloat>(height),
+            static_cast<GLfloat>(x)                              , static_cast<GLfloat>(y) + progress * static_cast<GLfloat>(height),   
+        };      
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices1)* sizeof(GLfloat), vertices1, GL_STATIC_DRAW);
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (GLvoid*)0);
+        glEnableVertexAttribArray(0);
+    glBindVertexArray(0); // vertex array obj (end 0)   
+	// element buffer obj
+	glBindVertexArray(bar_vertex_array_obj); // (vao start 1)
+	    GLuint bar_element_buffer_obj;
+        glGenBuffers(1, &bar_element_buffer_obj);
+	    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bar_element_buffer_obj);  
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices)* sizeof(GLuint), indices, GL_STATIC_DRAW); 
+	glBindVertexArray(0);                // (vao end 1  )
+	/* // Draw beam_bar outline
+	shader.set_float("color", (outline_color.x / 255), (outline_color.y / 255), (outline_color.z / 255), (outline_color.w / 255));
+	//glEnable(GL_LINE_SMOOTH); // may slow down performance
+	glLineWidth(outline_width); // outline_width
+	glBindVertexArray(vertex_array_obj); // use same vao data as _ but this time in a line loop
+        glDrawElements(GL_LINE_LOOP, 6, GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);*/
+	// Draw beam_bar (foreground)
+	shader.set_float("color", (red/ 255), (green / 255), (blue / 255), (alpha / 255)); //  foreground_color
+    glBindVertexArray(bar_vertex_array_obj); // (vao start 2)
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);                // (vao end 2  )
+    //-------------------------------------------
+    //---------BALL / HANDLE
+    // vertex array obj  - stores vertices
+    GLuint ball_vertex_array_obj;
+    glGenVertexArrays(1, &ball_vertex_array_obj);
+	// tex_coord buffer obj
+    glBindVertexArray(ball_vertex_array_obj); // bind again  
+	    GLuint ball_tex_coord_buffer_obj;
+        glGenBuffers( 1, &ball_tex_coord_buffer_obj);
+        glBindBuffer( GL_ARRAY_BUFFER, ball_tex_coord_buffer_obj);
+        glBufferData( GL_ARRAY_BUFFER, sizeof(tex_coords)* sizeof(GLfloat), tex_coords, GL_STATIC_DRAW);    
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), static_cast<void *>(0));			
+	    glEnableVertexAttribArray(1); 	
+	glBindVertexArray(0); // unbind
+	// vertex buffer obj
+    glBindVertexArray(ball_vertex_array_obj); // bind vertex array obj
+        GLuint ball_vertex_buffer_obj;
+        glGenBuffers(1, &ball_vertex_buffer_obj);
+        glBindBuffer(GL_ARRAY_BUFFER, ball_vertex_buffer_obj);
+		// pivot size = 10 x height = ball_width x ball_height
+		// position relative to slider       // padding is only used when the ball is inside the beam rather than it sticking out of the beam
+		int ball_left_padding  = 0;//1;    // space between handle and top part of slider
+		int ball_right_padding = 0;//2     // space between handle and bottom of slider
+		int ball_width  = (width * 2) - ball_right_padding;//height - ball_bottom_padding; // adjust the height a bit                                                                // height (slider_height)
+		float ball_x    = -(width - width / 2) + ball_left_padding;
+		float ball_y    = (value / max_value) * static_cast<GLfloat>(height);//0 + ball_top_padding;             // move down 1 unit away from slider (bottom padding???)               // 0      (slider_y + ball_y) 
+		// value starts at 0	//std::cout << "Renderer ball_width: " << ball_width << std::endl;	std::cout << "Renderer ball_x: " << x + ball_x << std::endl;	
+		GLfloat vertices2[] = {
+		    static_cast<GLfloat>(x + ball_x)                                   , static_cast<GLfloat>(y + ball_y),
+            static_cast<GLfloat>(x + ball_x) + static_cast<GLfloat>(ball_width), static_cast<GLfloat>(y + ball_y),
+            static_cast<GLfloat>(x + ball_x) + static_cast<GLfloat>(ball_width), static_cast<GLfloat>(y + ball_y) + static_cast<GLfloat>(ball_height),
+            static_cast<GLfloat>(x + ball_x)                                   , static_cast<GLfloat>(y + ball_y) + static_cast<GLfloat>(ball_height),   
         };      //std::cout << x + ball_x << " pivot_x\n";
         glBufferData(GL_ARRAY_BUFFER, sizeof(vertices2)* sizeof(GLfloat), vertices2, GL_STATIC_DRAW);
         glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (GLvoid*)0);

@@ -49,7 +49,7 @@
 #include "font.h"
 // ui
 #include "ui.h"
-#include "widget.h" 
+#include "box.h" 
 #include "button.h" 
 #include "label.h"
 #include "edit.h"
@@ -98,8 +98,7 @@
 #include "file.h"
 // event system
 #include "event.h"
-// file format loader
-#include "loader.h"
+// file format loader #include "loader.h" // deprecated
 // renderer
 #include "renderer.h"
 // process
@@ -107,4 +106,4 @@
 // browser
 #include "http.h"
 #endif 
-// about 60-70 headers; 50-80 sources                     missing (or not included here): dokun.h, build.h,  
+// about 60-70 headers; 50-80 sources                     missing (or not included here): dokun.h, build.h,  (dokun.h cannot include itself and build.h already includes dokun.h)

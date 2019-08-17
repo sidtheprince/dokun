@@ -38,7 +38,8 @@ endif()
 #############
 # engine (dokun)
 set(dokun_res  dokun.rc      )
-set(dokun_src  src/engine.cpp src/window.cpp src/sprite.cpp src/model.cpp src/texture.cpp src/image.cpp src/vertex.cpp src/mouse.cpp src/keyboard.cpp src/joystick.cpp src/touch.cpp src/virtual.cpp src/brain.cpp src/audio.cpp src/sound.cpp src/music.cpp src/voice.cpp src/font.cpp src/ui.cpp src/widget.cpp src/button.cpp src/label.cpp src/edit.cpp src/progressbar.cpp src/slider.cpp src/toggle.cpp src/scrollbar.cpp src/list.cpp src/spinner.cpp src/menubar.cpp src/grid.cpp src/combo.cpp src/tab.cpp src/server.cpp src/client.cpp src/entity.cpp src/component.cpp src/camera.cpp src/level.cpp src/timer.cpp src/light.cpp src/shader.cpp src/resource.cpp src/animator.cpp src/data.cpp src/factory.cpp src/script.cpp src/console.cpp src/video.cpp src/plugin.cpp src/file.cpp src/event.cpp src/loader.cpp src/renderer.cpp src/process.cpp src/http.cpp)
+set(dokun_src  src/engine.cpp src/window.cpp src/sprite.cpp src/model.cpp src/texture.cpp src/image.cpp src/vertex.cpp src/mouse.cpp src/keyboard.cpp src/joystick.cpp src/touch.cpp src/virtual.cpp src/brain.cpp src/audio.cpp src/sound.cpp src/music.cpp src/voice.cpp src/font.cpp src/ui.cpp src/box.cpp src/button.cpp src/label.cpp src/edit.cpp src/progressbar.cpp src/slider.cpp src/toggle.cpp src/scrollbar.cpp src/list.cpp src/spinner.cpp src/menubar.cpp src/grid.cpp src/combo.cpp src/tab.cpp src/server.cpp src/client.cpp src/entity.cpp src/component.cpp src/camera.cpp src/level.cpp src/timer.cpp src/light.cpp src/shader.cpp src/resource.cpp src/animator.cpp src/data.cpp src/factory.cpp src/script.cpp src/console.cpp src/video.cpp src/plugin.cpp src/file.cpp src/event.cpp src/renderer.cpp src/process.cpp src/http.cpp src/logger.cpp
+  src/player.cpp)
 set(editor_src src/editor.cpp)
 set(game_src   src/game.cpp  ) # game demo
 #############
@@ -85,7 +86,8 @@ endif()
 #############
 # window + screen
 set(win32_src)
-set(x11_src libX11.a libxcb.a libXau.a libXdmcp.a) # might consider using gtk instead
+set(x11_src     libX11.a libxcb.a libXau.a libXdmcp.a) # might consider using gtk instead
+set(wayland_src libwayland-client.so libwayland-server.so libwayland-cursor.so libwayland-egl.so libEGL.so)
 set(cocoa_src)
 #############
 # input
@@ -122,6 +124,11 @@ set(silk_src   dependencies/opus/silk/A2NLSF.c dependencies/opus/silk/ana_filt_b
 set(opus_src   dependencies/opus/src/analysis.c dependencies/opus/src/mlp.c dependencies/opus/src/mlp_data.c dependencies/opus/src/opus.c dependencies/opus/src/opus_decoder.c dependencies/opus/src/opus_encoder.c dependencies/opus/src/opus_multistream.c dependencies/opus/src/opus_multistream_decoder.c dependencies/opus/src/opus_multistream_encoder.c dependencies/opus/src/repacketizer.c ${celt_src} ${silk_src})
 add_definitions(-DUSE_ALLOCA)
 add_definitions(-DOPUS_BUILD)
+set(flac_src dependencies/flac/src/libFLAC/cpu.c dependencies/flac/src/libFLAC/crc.c dependencies/flac/src/libFLAC/lpc.c dependencies/flac/src/libFLAC/md5.c dependencies/flac/src/libFLAC/fixed.c dependencies/flac/src/libFLAC/float.c dependencies/flac/src/libFLAC/format.c dependencies/flac/src/libFLAC/memory.c dependencies/flac/src/libFLAC/window.c dependencies/flac/src/libFLAC/bitmath.c dependencies/flac/src/libFLAC/bitreader.c dependencies/flac/src/libFLAC/bitwriter.c dependencies/flac/src/libFLAC/ogg_helper.c dependencies/flac/src/libFLAC/ogg_mapping.c dependencies/flac/src/libFLAC/lpc_intrin_sse.c dependencies/flac/src/libFLAC/stream_decoder.c dependencies/flac/src/libFLAC/stream_encoder.c dependencies/flac/src/libFLAC/lpc_intrin_avx2.c dependencies/flac/src/libFLAC/lpc_intrin_sse2.c dependencies/flac/src/libFLAC/metadata_object.c dependencies/flac/src/libFLAC/lpc_intrin_sse41.c dependencies/flac/src/libFLAC/fixed_intrin_sse2.c dependencies/flac/src/libFLAC/fixed_intrin_ssse3.c dependencies/flac/src/libFLAC/metadata_iterators.c dependencies/flac/src/libFLAC/ogg_decoder_aspect.c dependencies/flac/src/libFLAC/ogg_encoder_aspect.c dependencies/flac/src/libFLAC/stream_encoder_framing.c dependencies/flac/src/libFLAC/windows_unicode_filenames.c dependencies/flac/src/libFLAC/stream_encoder_intrin_avx2.c dependencies/flac/src/libFLAC/stream_encoder_intrin_sse2.c dependencies/flac/src/libFLAC/stream_encoder_intrin_ssse3.c) # flac-1.3.3       # flac - a command-line program for encoding and decoding files # libFLAC - for native Ogg Flac and Flac #libFlac++ - a c++ object wrapper # https://xiph.org/flac/license.html
+if(NOT WIN32)
+    list(REMOVE_ITEM flac_src "dependencies/flac/src/libFLAC/windows_unicode_filenames.c")
+endif()
+add_definitions(-DFLAC__NO_DLL -DHAVE_LROUND -DFLAC__HAS_OGG)
 #############
 # video (codec)
 set(theora_src dependencies/theora/lib/analyze.c dependencies/theora/lib/apiwrapper.c dependencies/theora/lib/bitpack.c dependencies/theora/lib/cpu.c dependencies/theora/lib/decapiwrapper.c dependencies/theora/lib/decinfo.c dependencies/theora/lib/decode.c dependencies/theora/lib/dequant.c dependencies/theora/lib/encapiwrapper.c dependencies/theora/lib/encfrag.c dependencies/theora/lib/encinfo.c dependencies/theora/lib/encode.c dependencies/theora/lib/enquant.c dependencies/theora/lib/fdct.c dependencies/theora/lib/fragment.c dependencies/theora/lib/huffdec.c dependencies/theora/lib/huffenc.c dependencies/theora/lib/idct.c dependencies/theora/lib/info.c dependencies/theora/lib/internal.c dependencies/theora/lib/mathops.c dependencies/theora/lib/mcenc.c dependencies/theora/lib/quant.c dependencies/theora/lib/rate.c dependencies/theora/lib/state.c dependencies/theora/lib/tokenize.c) # libtheora-1.1.1 (https://xiph.org/downloads/)
@@ -195,9 +202,9 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/dependencies
    ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/jpeg/jpeg-6b
    ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/tiff/libtiff
    ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/gif/lib
-   ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/flac
+   #${CMAKE_CURRENT_SOURCE_DIR}/dependencies/flac # config.h
    ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/flac/include
-   ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/flac/src/libFLAC/include
+   ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/flac/src/libFLAC/include # for "private/cpu.h"
    ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/opus/include
    ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/opus/celt # Xiph.Org's Celt
    ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/opus/silk # Skype Limited's Silk
@@ -226,7 +233,8 @@ link_directories(${CMAKE_CURRENT_SOURCE_DIR}/src) # stored in 'src' since librar
 #############
 # API definitions
 add_definitions(-DDOKUN_OPENGL) # add_definitions(-DDOKUN_VULKAN)
-add_definitions(-DDOKUN_DEBUG ) # dokun debug mode. Use -DDOKUN_DEBUG0 for more intense debugging
+add_definitions(-DDOKUN_OPENAL)
+add_definitions(-DDOKUN_DEBUG ) # dokun debug mode. Use -DDOKUN_DEBUG0 for more intense debugging#add_definitions(-DDOKUN_WAYLAND)
 #############
 # output folder - '.a' and '.lib' will go in folder "src"
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/src)
@@ -234,9 +242,9 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/src)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}    )
 #############
 # build dokun
-add_executable(dokun           ${dokun_src} ${lua_src} ${png_src} ${gif_src} ${jpeg_src} ${tiff_src} ${ogg_src} ${vorbis_src} ${theora_src} ${freetype_src} ${box2d_src} ${sqlite_src} ${zlib_src} ${glew_src} ${dokun_res}              )
-add_library   (libdokun STATIC ${dokun_src} ${lua_src} ${png_src} ${gif_src} ${jpeg_src} ${tiff_src} ${ogg_src} ${vorbis_src} ${theora_src} ${freetype_src} ${box2d_src} ${sqlite_src} ${zlib_src} ${glew_src}                           )
-add_executable(editor          ${dokun_src} ${editor_src} ${lua_src} ${png_src} ${gif_src} ${jpeg_src} ${tiff_src} ${ogg_src} ${vorbis_src} ${theora_src} ${freetype_src} ${box2d_src} ${sqlite_src} ${zlib_src} ${glew_src}             )
+add_executable(dokun           ${dokun_src} ${lua_src} ${png_src} ${gif_src} ${jpeg_src} ${tiff_src} ${ogg_src} ${vorbis_src} ${flac_src} ${theora_src} ${freetype_src} ${box2d_src} ${sqlite_src} ${zlib_src} ${glew_src} ${dokun_res}              )
+add_library   (libdokun STATIC ${dokun_src} ${lua_src} ${png_src} ${gif_src} ${jpeg_src} ${tiff_src} ${ogg_src} ${vorbis_src} ${flac_src} ${theora_src} ${freetype_src} ${box2d_src} ${sqlite_src} ${zlib_src} ${glew_src}                           )
+add_executable(editor          ${dokun_src} ${editor_src} ${lua_src} ${png_src} ${gif_src} ${jpeg_src} ${tiff_src} ${ogg_src} ${vorbis_src} ${flac_src} ${theora_src} ${freetype_src} ${box2d_src} ${sqlite_src} ${zlib_src} ${glew_src}             )
 #############
 # set properties
 set_target_properties(dokun    PROPERTIES COMPILE_DEFINITIONS "DOKUN_BUILD_CONSOLE")

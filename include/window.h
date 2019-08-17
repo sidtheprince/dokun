@@ -200,6 +200,15 @@ public:
 		#ifdef DOKUN_WAYLAND
 		    struct wl_display*                display;
             struct wl_surface*                surface;
+            struct wl_shell_surface *         shell_surface;
+            struct wl_compositor *compositor = nullptr;
+            struct wl_shell *shell = nullptr;
+        #ifdef DOKUN_OPENGL
+            EGLDisplay egl_display;
+        	EGLContext egl_context;
+	        struct wl_egl_window *egl_window;
+	        EGLSurface egl_surface;
+        #endif    
 		#endif
 		#ifdef DOKUN_MIR
 		    MirConnection*                connection;

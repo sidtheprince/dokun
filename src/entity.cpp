@@ -21,19 +21,14 @@ Entity::~Entity()
 {
 	for(int i = 0; i < component_list.size(); i++)
 	{
-		if(component_list[i])
-		    delete component_list[i];
+		if(component_list[i]) delete component_list[i];
 	}
 	for(int i = 0; i < shader_list.size(); i++)
 	{
-		if(shader_list[i])
-			delete shader_list[i];
+		if(shader_list[i]) delete shader_list[i];
 	}
-	for(int i = 0; i < script_list.size(); i++)
-	{
-		if(script_list[i])
-			delete script_list[i];
-	}
+    if(script) delete script;
+    
 	Factory::get_entity_factory()->release(this);
 #ifdef DOKUN_DEBUG 	
 	Logger::push(DOKUN_LOGTAG + "Entity " + String(this).str() + " deallocated (total_entity_instances=" + String(Factory::get_entity_factory()->get_size()).str() + ")");
@@ -237,7 +232,7 @@ void Entity::set_component(const std::string& name, const Vector4& value)
     get_component(name)->set_value(value);
 }
 ///////////
-void Entity::set_component(const std::string& name, void * value)
+void Entity::set_component(const std::string& name, const void * value)
 {
     get_component(name)->set_value(value);
 }
@@ -299,22 +294,21 @@ int Entity::set_shader(lua_State *L)
 	return 0;
 }
 ///////////
-void Entity::set_script(lua_State *L, std::string file_name)
+void Entity::set_script(lua_State *L, const std::string& file_name)
 {
 	Script * script = new Script(L, file_name);
-	set_script(script);
+	set_script(*static_cast<Script *>(script));
 }
 ///////////
-void Entity::set_script(Script * script)
+void Entity::set_script(const Script& script)
 {
-	script_list.push_back(script);
+	this->script = &const_cast<Script&>(script);
 }
 ///////////
 int Entity::set_script(lua_State *L)
 {
     luaL_checktype(L, 1, LUA_TTABLE);
 	luaL_checkany(L, 2);
-	
     if(lua_istable(L, 2)) 
 	{	
         lua_getfield(L, 2, "udata");
@@ -325,7 +319,7 @@ int Entity::set_script(lua_State *L)
 	        if(lua_isuserdata(L, -1)) 
 	        {
 		        Entity * entity = *static_cast<Entity **>(lua_touserdata(L, -1));	
-                entity->set_script(script);	
+                entity->set_script(*static_cast<Script *>(script));
                 // set script in Lua
 			    lua_pushvalue(L, 2);
 		        lua_setfield(L, 1, "script");	        				
@@ -403,9 +397,9 @@ int Entity::get_shader(lua_State *L)
 	return 1;
 }
 ///////////
-Script * Entity::get_script(int index)const
+Script * Entity::get_script() const
 {
-    return script_list[index];	
+    return script;
 }
 ///////////
 int Entity::get_script(lua_State *L)
@@ -441,7 +435,7 @@ int Entity::get_count(const std::string& what)const
 	if(String::lower(what).find("shader") != std::string::npos)
 		return shader_list.size();
 	if(String::lower(what).find("script") != std::string::npos)
-		return script_list.size();
+		return 1;
 	return 0;
 }
 ///////////
@@ -471,10 +465,6 @@ std::vector<Shader *> Entity::get_shader_array()       const
 	return shader_list;
 }
 ///////////
-std::vector<Script *> Entity::get_script_array()       const
-{
-	return script_list;
-}
 ///////////
 ///////////
 ///////////

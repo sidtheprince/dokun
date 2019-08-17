@@ -336,7 +336,7 @@ bool Editor::load_sprite_custom()
 {
 	// FILE_DIALOG
 	// create file dialog widget
-	file_dialog = new Widget();
+	file_dialog = new Box();
 	file_dialog->set_size(500, 300);
 	// position at center of window
 	file_dialog->set_position((window->get_width() - file_dialog->get_width()) / 2,
@@ -367,7 +367,7 @@ bool Editor::load_sprite_custom()
 		Label * label = new Label();
 		label->set_string(directory[i]);
 		// create a list item
-		Widget * widget = new Widget(); widget->set_color(160, 160, 160);
+		Box * widget = new Box(); widget->set_color(160, 160, 160);
 		//assign label to list item 
 		widget->set_label(*label);
 		// add item to list
@@ -767,12 +767,12 @@ void Editor::setup(void) // create then initialize Window and UI Elements
 #endif	
 
 	// titlebar	- only when in dock mode (DOKUN_DOCK)
-	titlebar = new Widget();
+	titlebar = new Box();
 	titlebar->set_position(0, 0);
 	titlebar->set_size(window->get_width(), 20);
 	titlebar->set_color(0, 51, 102);
 	// titlebar closebutton (closebutton is its own widget)
-	titlebar_close_button = new Widget();
+	titlebar_close_button = new Box();
 	titlebar_close_button->set_parent(*titlebar);
 	titlebar_close_button->set_size(20, titlebar->get_height() - 4); // bottom_padding
 	titlebar_close_button->set_position(titlebar->get_x() + (titlebar->get_width() - titlebar_close_button->get_width()) - 5, titlebar->get_y() + 2);
@@ -815,11 +815,11 @@ void Editor::setup(void) // create then initialize Window and UI Elements
 /* 	
 	// toolbar or sidebar
 	// sidebar	
-	sidebar = new Widget();
+	sidebar = new Box();
 	sidebar->set_position(0, 0);
 	sidebar->set_size(20, window->get_height()-menubar->get_height());
 	sidebar->set_color(0, 51, 102, 255);
-	mainbar = new Widget();
+	mainbar = new Box();
 	mainbar->set_size(500, window->get_height()-menubar->get_height());
 	mainbar->set_position(window->get_width()-sidebar->get_width(), 0); // show sidebar while hiding mainbar at window_width
 	sidebar->set_parent(*mainbar);
@@ -827,32 +827,32 @@ void Editor::setup(void) // create then initialize Window and UI Elements
 	mainbar->set_position(window->get_width()-sidebar->get_width(), 
 	      menubar->get_height());
 	// tool button
-	play_button  = new Widget();
+	play_button  = new Box();
 	play_button->set_as_icon(true);
 	Image  play_image("res/Play.png");
 	play_button->set_image(play_image);
 	play_button->set_parent(*mainbar);
 	play_button->set_position(20, 20);
 	*/
-	//pause_button = new Widget();
+	//pause_button = new Box();
 	//pause_button->set_as_icon(true);
 	//Image  pause_image("res/Pause.png");
 	//pause_button->set_image(pause_image);
 	//pause_button->set_parent(*mainbar);
 	
-	//stop_button  = new Widget();
+	//stop_button  = new Box();
 	//stop_button->set_as_icon(true);
 	//Image  stop_image("res/Stop.png");
 	//stop_button->set_image(stop_image);
 	//stop_button->set_parent(*mainbar);
 	
-	//run_button   = new Widget();
+	//run_button   = new Box();
 	//run_button->set_as_icon(true);
 	//Image  run_image();
 	//run_button->set_image(run_image);
 	//run_button->set_parent(*mainbar);
 	
-	//build_button = new Widget();
+	//build_button = new Box();
 	//build_button->set_as_icon(true);
 	//Image  build_image();
 	//build_button->set_image(build_image);
@@ -860,14 +860,14 @@ void Editor::setup(void) // create then initialize Window and UI Elements
 	/*
 
 	// selection
-	property_box = new Widget();
+	property_box = new Box();
 	property_box->set_size(300, 500);
 	property_box->set_position(10, window->get_height() - (property_box->get_height() + 30));
 	property_box->set_outline(true);
 	property_box->set_outline_width(2.0);
 	property_box->set_outline_color(255, 255, 255);
 	// dialogue
-    dialog = new Widget();
+    dialog = new Box();
 	dialog->set_size(300, 50);
 	dialog->set_position(500, 500);
 	dialog->set_title_bar(true);
@@ -893,7 +893,7 @@ void Editor::setup(void) // create then initialize Window and UI Elements
 	
     dialog->hide();	
 		
-	selection_box = new Widget();
+	selection_box = new Box();
     selection_box->set_size(50, 50);	
 	selection_box->set_color(128, 128, 128);
 	selection_box->set_parent(*property_box);
@@ -915,7 +915,7 @@ void Editor::setup(void) // create then initialize Window and UI Elements
 	Viewer.get_window()->show();
 	*/	
 /*
-dialog = new Widget();
+dialog = new Box();
 	dialog->set_size(300, 50);
 	dialog->set_position(500, 500);
 	dialog->set_title_bar(true);
@@ -925,7 +925,7 @@ dialog = new Widget();
 	dialog->set_text("This is a message");
 	dialog->set_draggable(true);
 	// toolbar
-	toolbar = new Widget();
+	toolbar = new Box();
 	toolbar->set_position(0, 0);
 	toolbar->set_size(window->get_width(), 32);
 	//toolbar->set_draggable(true);
@@ -970,7 +970,7 @@ dialog = new Widget();
 	}
 	//-------------------------------------
 	// mouse box
-	mouse_box = new Widget();
+	mouse_box = new Box();
 	mouse_box->set_size(32, 32);
 	mouse_box->set_position(Mouse::get_position(*WINDOW::get_active()));
 	mouse_box->set_outline(true);
@@ -983,7 +983,7 @@ dialog = new Widget();
 	combo = new Combobox();
 	List * list = new List();
 	for(int i = 0; i < 10; i++)
-		list->add(*new Widget());
+		list->add(*new Box());
 	combo->set_list(*list);
 	combo->set_position(520, 250);*/
 	//-------------------------------------
@@ -1029,7 +1029,7 @@ void Editor::on_interact(void)
 			{
 				if(Mouse::is_pressed(1))
 				{
-				//Widget * block = collection_box->get_block(0, i);
+				//Box * block = collection_box->get_block(0, i);
 				   Image * image = collection_box->get_block(0, i)->get_image();
 				   if(image != nullptr)
 				   {

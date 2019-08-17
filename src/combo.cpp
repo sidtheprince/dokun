@@ -66,7 +66,7 @@ int Combobox::draw(lua_State * L)
 {
     return 0;
 }
-void Combobox::add(const Widget& widget){}                   
+void Combobox::add(const Box& widget){}                   
 int Combobox::add(lua_State * L)
 {
     return 0;
@@ -250,7 +250,7 @@ void Combobox::on_button() // show or hide list on buttonpress or buttonrelease
 		{
 		    for(int i = 0; i < list->get_item_count(); i++)
 		    {
-			    Widget * item = list->get_item(i);
+			    Box * item = list->get_item(i);
 	            if(Mouse::is_over(item->get_rect())) 
 				{
 	                if(Mouse::is_pressed(1))
@@ -276,7 +276,7 @@ void Combobox::on_select()
 {
 	if(list)
 	{
-		Widget * selection = list->get_selection();
+		Box * selection = list->get_selection();
 		if(selection)
 		{
 			set_color(selection->get_color()); 

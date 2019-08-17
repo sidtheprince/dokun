@@ -194,6 +194,32 @@ if(Renderer::get_current_API() == "OpenGL") {
 #ifdef DOKUN_XCB
     connection = xcb_connect (nullptr, nullptr);
 #endif
+#ifdef DOKUN_WAYLAND
+    display = wl_display_connect (nullptr);
+    wl_display_roundtrip (display);
+#ifdef DOKUN_OPENGL
+    egl_display = eglGetDisplay (display);
+	eglInitialize (egl_display, nullptr, nullptr);
+	
+	eglBindAPI (EGL_OPENGL_API);
+	EGLint attributes[] = {
+		EGL_RED_SIZE, 8,
+		EGL_GREEN_SIZE, 8,
+		EGL_BLUE_SIZE, 8,
+	EGL_NONE};
+	EGLConfig config;
+	EGLint num_config;
+	eglChooseConfig (egl_display, attributes, &config, 1, &num_config);
+	this->egl_context = eglCreateContext (egl_display, config, EGL_NO_CONTEXT, nullptr);
+	
+	this->surface = wl_compositor_create_surface (compositor);
+	this->shell_surface = wl_shell_get_shell_surface (shell, this->surface);
+	//wl_shell_surface_add_listener (this->shell_surface, &shell_surface_listener, window);
+	wl_shell_surface_set_toplevel (this->shell_surface);
+	this->egl_window = wl_egl_window_create (this->surface, width, height);
+	this->egl_surface = eglCreateWindowSurface (egl_display, config, this->egl_window, nullptr);
+#endif    
+#endif // endif DOKUN_WAYLAND
 #endif // endif __gnu_linux__
 #ifdef DOKUN_OPENGL
 	if(Renderer::get_current_API() == "OpenGL") {	// must set the current API before creating a window
@@ -397,6 +423,12 @@ void WINDOW::update() // retrieves window messages; updates drawing (called in a
 #ifdef DOKUN_VULKAN
 #endif
 #endif // endif DOKUN_X11
+#ifdef DOKUN_WAYLAND
+    wl_display_dispatch_pending (display);
+#ifdef DOKUN_OPENGL
+    eglSwapBuffers (egl_display, this->egl_surface);
+#endif
+#endif //endif DOKUN_WAYLAND
 #endif // endif __gnu_linux__
 }
 ////////////
@@ -446,6 +478,17 @@ void WINDOW::destroy()
 #ifdef DOKUN_XCB
 	xcb_disconnect (connection);
 #endif
+#ifdef DOKUN_WAYLAND
+#ifdef DOKUN_OPENGL
+    eglDestroySurface (egl_display, this->egl_surface);
+	wl_egl_window_destroy (this->egl_window);
+	wl_shell_surface_destroy (this->shell_surface);
+	wl_surface_destroy (this->surface);
+	eglDestroyContext (egl_display, this->egl_context);
+	eglTerminate (egl_display);
+	wl_display_disconnect (display);
+#endif
+#endif // endif DOKUN_WAYLAND
 #endif // endif __gnu_linux__
 }
 ////////////
@@ -899,9 +942,9 @@ void WINDOW::set_style(long style)
 	}
     XChangeProperty(display, window, XInternAtom(display, "_NET_WM_WINDOW_TYPE", False),
         XA_ATOM, 32, PropModeReplace, (unsigned char *)&style, 1);
-#endif   
-#endif
     this->style = style;
+#endif   
+#endif    
 }
 ////////////
 int WINDOW::set_style(lua_State *L)
@@ -1125,8 +1168,10 @@ void WINDOW::set_cursor(int cursor) // DWORD = unsigned long
 		}	
 	}
 	#ifdef __gnu_linux__
+	#ifdef DOKUN_X11
 	    this->cursor = XCreateFontCursor(display, XC_xterm); 
         XDefineCursor(display, window, cursor);
+    #endif    
 	#endif
 }
 ////////////
@@ -1349,6 +1394,9 @@ void WINDOW::set_context()
         exit(1);
     }
     glXMakeCurrent(display, window, context); // set context       
+#endif
+#ifdef DOKUN_WAYLAND
+    eglMakeCurrent (egl_display, this->egl_surface, this->egl_surface, this->egl_context);
 #endif
 #endif
 	glewExperimental = GL_TRUE;

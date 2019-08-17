@@ -55,32 +55,7 @@ bool Engine::on_open()
     std::atexit(Engine::close);
     std::at_quick_exit(Engine::close);
 #endif // start session
-    Logger::push("=======================================================================================================");
-	Logger::push("Started dokun at " + Logger::format("[%Y-%m-%d  %H:%M:%S %p]"));
-	Logger::push("=======================================================================================================");	
-    Logger::push("\n\n");	
-	Logger::push(String("Running dokun version  ") + String(ENGINE_VERSION));
-	Logger::push(String("Running Lua version    ") + String::to_string(LUA_VERSION_MAJOR) + "." + String::to_string(LUA_VERSION_MINOR) + "." + String::to_string(LUA_VERSION_RELEASE));//Logger::push("\n\n");
-#ifdef DOKUN_PRINT_ALL_LIB_VERSIONS // native - these libearies are a core part of dokun
-    Logger::push(String("Using png version      ") + String("1.6.x"));
-    Logger::push(String("Using ogg version      ") + String("1.3.3"));
-    Logger::push(String("Using vorbis version   ") + String("1.3.6"));
-    Logger::push(String("Using theora version   ") + String("1.1.1"));
-    Logger::push(String("Using freetype version ") + String(FREETYPE_MAJOR).str() + "." + String(FREETYPE_MINOR).str() +  "." + String(FREETYPE_PATCH).str());
-    // non-native - these libraries are just extras and can be dropped anytime
-    Logger::push(String("Using jpeg version     ") + String::get_first_character(std::to_string(JPEG_LIB_VERSION)) + String(".x.x"));
-    Logger::push(String("Using gif version      ") + String(GIFLIB_MAJOR).str  () + "." + String(GIFLIB_MINOR).str  () +  "." + String(GIFLIB_RELEASE).str()); // JPEG_LIB_VERSION, TIFFLIB_VERSION
-    Logger::push(String("Using tiff version     ") + String("4.0.x"));// # 14//Logger::push(String("   ") + String(""));
-#endif
-    // create dir for logfiles//if(!File::checkdir("log")) File::makedir("log");
-	if(!Logger::save("dokun_log.txt")) Logger("Failure to save log");// save in append mode
-	// pop a number of times after saving first section
-#ifndef DOKUN_PRINT_ALL_LIB_VERSIONS
-	for(int i = 0; i < 6; i++) Logger::pop();	
-#endif
-#ifdef DOKUN_PRINT_ALL_LIB_VERSIONS
-	for(int i = 0; i < 14; i++) Logger::pop();	
-#endif
+    Logger::open();
 	/////////////////////////////////////////
 #ifdef DOKUN_VULKAN
 #ifdef __windows__
@@ -181,16 +156,14 @@ void Engine::on_close()
 	/////////////////////////////////////////
     /////////////////////////////////////////
     // save session
-    Logger::push("\n=======================================================================================================");
-    Logger::push("Closed dokun at " + Logger::format("[%Y-%m-%d  %H:%M:%S %p]"));
-    Logger::push("=======================================================================================================\n");
-	if(!Logger::save("dokun_log.txt")) Logger("Could not save log");
+    Logger::close();
 	// reset status to its default (turns engine off)
 	status = 0;
     Logger("Exiting engine with code 0 ..."); // exit message
 }
 ////////////
 ////////////
+#include "../include/player.h"
 ////////////
 int Engine::test(lua_State *L)
 {
@@ -202,20 +175,23 @@ int Engine::test(lua_State *L)
     //=================== misc
     //=================== sprite
 	Sprite * sprite = new Sprite();
-	Texture * texture = new Texture(Resource::get_image("box")->get_data(), 102, 102);//("res/SVG_logo.svg");//("res/image.png");
+	Texture * texture = new Texture();//(Resource::get_image("box")->get_data(), 102, 102);//("res/SVG_logo.svg");//("res/image.png");
 	sprite->set_texture(*texture); // set empty texture to sprite
 	if(texture->get_data ()) sprite->set_size(32, 32); 
 	if(!texture->get_data()) sprite->set_color(0, 51, 102);
-	sprite->set_position(200, 200);
+	sprite->set_position(0, 0);//(200, 200);
     //=================== 
     Model * model = new Model();
     model->load("res/monkey.obj");
     model->set_position(0, 0, -6);
     //=================== music
-    Music * music = new Music("res/Oniku.ogg");
+    Timer * music_timer = new Timer();
+    Music * music = new Music("res/angel.flac");//("res/Oniku.ogg");
     music->set_loop(true);
     music->set_volume(1);
-    music->play();
+    //music->play();
+    //std::cout << "duration of res/Oniku.ogg" << " is: " << music->get_duration() << " secs" << std::endl;
+    music_timer->start();
     //=================== variable time step (recommended)
     double old_time = 0; 
     double new_time = (clock() / (double)CLOCKS_PER_SEC);
@@ -224,16 +200,17 @@ int Engine::test(lua_State *L)
     //===================
 	//Voice * voice = new Voice();
     std::vector<Sprite *> sprite_array;
-    for(int i = 0; i < 100; i++)
+    for(int i = 0; i < 10; i++)
     {
         Sprite * sprite_obj = new Sprite();
-        sprite_obj->set_position((rand() % 1000) + 1, (rand() % 100) + 1); // rand
+        sprite_obj->set_position(Math::random_generator(32, window.get_client_width()), Math::random_generator(32, window.get_client_height())); // rand
         sprite_obj->set_texture(* new Texture());
+        sprite_obj->set_size(32, 32);
         sprite_obj->set_color((rand() % 100) + 1, (rand() % 100) + 1, (rand() % 100) + 1);
         sprite_array.push_back(sprite_obj);
     }
     //===================
-    Widget * widget = new Widget();
+    Box * widget = new Box();
 	widget->set_title_bar(true);
 	widget->set_title_bar_size(20); // update titlebar_size before doing any operations with it
     widget->set_title_bar_button_close(true);
@@ -276,10 +253,47 @@ int Engine::test(lua_State *L)
 	// button
 	Button * button = new Button();
 	button->set_position(300, 200);
+	// slider
+	Slider * slider = new Slider();
+	slider->set_position(429, 324);
+	slider->set_maximum_value(music->get_duration());
+	//slider->set_ball_size(5); 
+	//slider->set_size(slider->get_width(), 5);// if the beam's height is smaller than ball_height * 1.5
+	// for vertical
+	/*slider->set_size(20, 200);
+	slider->set_orientation(1);*/
 	// unicode
 	//std::cout << "Hello, ф or \u0444!\n";
     //std::wcout << u8"Hello, \u00C5!\n";
     //std::wcout << L"Hello, \u00A9! 平仮名, ひらがな\n";
+    //std::cout << Console::execute("ls") << std::endl; // start script
+    std::string colored_text = Console::color("Hello there Sid", "Yellow", "Blue");
+    std::cout << colored_text << std::endl;
+    
+    //Logger::set_type("special");
+    Logger("Hello from Logger", "info");
+    //Logger::set_type("default");
+    
+    Logger(1, "error");
+    Logger::push(Logger("This is a warning", "warning"));
+	//===================
+	Player * player = new Player();
+	player->get_box()->set_position(window.get_client_width()/2, 186);
+	player->add(* new Music("res/momentum.wav")); // 68s //("res/guardia.ogg"));
+	player->add(* new Music("res/Oniku.ogg")); // 17s
+	player->add(* new Music("res/cup_of_lartey.ogg")); // 51s
+	player->set_repeat_type(0); // 0=repeat_none, 1=repeat_one, 2=repeat_all
+	player->play();
+	
+	
+	std::cout << "Total duration of all songs in Player: " << player->get_total_duration() << "s" << std::endl;
+    std::cout <<"The title is: " << player->get_current_song()->get_title() << std::endl;
+    std::cout <<"The artist is: " << player->get_current_song()->get_artist() << std::endl;
+    std::cout <<"The genre is: " << player->get_current_song()->get_genre() << std::endl;
+    std::cout <<"The album is: " << player->get_current_song()->get_album() << std::endl;
+    std::cout <<"The track_number is: " << player->get_current_song()->get_track_number() << std::endl;
+    std::cout <<"The date is: " << player->get_current_song()->get_date() << std::endl;
+    std::cout <<"The cover_art is: " << String((unsigned char *)player->get_current_song()->get_cover()) << std::endl;
 	//===================
     while(window.is_open()) // main loop
     {
@@ -290,6 +304,7 @@ int Engine::test(lua_State *L)
         new_time = (clock() / (double)CLOCKS_PER_SEC) * 1000;// get time in milliseconds or something; increments by the 100s
         delta_time = new_time - old_time;
         //std::cout << "delta_time: " << delta_time << "\n"; 
+        //std::cout << "Sprite_position: " << sprite->get_position() << std::endl;
 		//////////////////////////////////////////////////////
 		//voice->start();
         Camera * camera = Renderer::get_camera();            //std::cout<<"Rendering area: " << Renderer::get_display_size() << std::endl;//Renderer::set_display_size(window.get_client_width(), window.get_client_height());//on linux the rendering area is the usual full window size, on windows, the rendering area is the client area and not the full window_size
@@ -298,9 +313,9 @@ int Engine::test(lua_State *L)
         Vector3 model_pos  = model->get_position();
         Vector3 sprite_pos = Vector3(sprite->get_position(), -1);
         ////////////////////////////////////////////////////// Camera
-        // camera follow sprite test
+        // camera follow sprite test (will affect Mouse_position)
         int camera_height = -(window.get_client_height() / 2);// keep camera at center height of screen;  negative = up   positive = down
-        camera->set_position(Vector3(sprite->get_position(), 0.0) + Vector3(-(window.get_client_width() - window.get_client_height() / 2), camera_height, 0) );//Vector3(0, camera_height, 0)//Vector3(cam_x_position_away_from_sprite, camera_height, 0)
+        //camera->set_position(Vector3(sprite->get_position(), 0.0) + Vector3(-(window.get_client_width() - window.get_client_height() / 2), camera_height, 0) );//Vector3(0, camera_height, 0)//Vector3(cam_x_position_away_from_sprite, camera_height, 0)
         ////////////////////////////////////////////////////// Controls
         //using namespace std::chrono_literals;
     //std::cout << "Hello waiter\n" << std::flush;
@@ -317,15 +332,23 @@ int Engine::test(lua_State *L)
         std::cout << "Days   passed     : " << Timer::days       () << std::endl;
         */
         //////////////////////////////////////////////////////
+        //std::cout << "Slider ball_width: " << slider->get_ball_width() << std::endl;	std::cout << "Slider ball_x: " << slider->get_ball_x() << std::endl;
+        //std::cout << "Slider ball_height: " << slider->get_ball_height() << std::endl;	std::cout << "Slider ball_y: " << slider->get_ball_y() << std::endl;//std::cout << "Slider value: " << slider->get_value() << std::endl;
+        /*if(!music->is_done())*/
+        //if(slider->get_value() >= music->get_duration()) { music_timer->stop(); music_timer->reset(); slider->reset(); music_timer->start();}// if end has been reached, reset timer, reset slider and start timer all over again (will not work for looped audibles as music never stops) // start all over again
+        //if(slider->get_value() < music->get_duration() && music->is_playing()) {slider->set_value( music_timer->increment    ());} // if music has not reached its end
+        
+        //std::cout << "Slider: " << slider->get_value() << std::endl;
+        //std::cout << "Seconds passed     : " << music_timer->increment    ()<< std::endl;
         //////////////////////////////////////////////////////
 	    if(window.is_focused()) // if window is focused
 	    {
             if(music->is_paused()) music->play();
 
-			if(Keyboard::is_pressed(DOKUN_KEY_UP   )){ label->set_position(label->get_position().x, label->get_position().y-1);model->translate(0, 0, -1);sprite->translate(0                  ,-2 * Timer::delta());}
-			if(Keyboard::is_pressed(DOKUN_KEY_DOWN )){ label->set_position(label->get_position().x, label->get_position().y+1);model->translate(0, 0, 1); sprite->translate(0                  , 2 * Timer::delta());}
-			if(Keyboard::is_pressed(DOKUN_KEY_LEFT )){ label->set_position(label->get_position().x-1, label->get_position().y);model->translate(1, 0, 0); sprite->translate(-2 * Timer::delta(), 0 );}
-			if(Keyboard::is_pressed(DOKUN_KEY_RIGHT)){ label->set_position(label->get_position().x+1, label->get_position().y);model->translate(-1, 0, 0);sprite->translate(2  * Timer::delta(), 0 );}
+			if(Keyboard::is_pressed(DOKUN_KEY_UP   )){ label->set_position(label->get_position().x, label->get_position().y-1);model->translate(0, 0, -1);sprite->translate(0                  ,-2 /* * Timer::delta()*/);}
+			if(Keyboard::is_pressed(DOKUN_KEY_DOWN )){ label->set_position(label->get_position().x, label->get_position().y+1);model->translate(0, 0, 1); sprite->translate(0                  , 2 /* * Timer::delta()*/);}
+			if(Keyboard::is_pressed(DOKUN_KEY_LEFT )){ slider->set_value(slider->get_value() - 1);         label->set_position(label->get_position().x-1, label->get_position().y);model->translate(1, 0, 0); sprite->translate(-2 /* * Timer::delta()*/, 0 );}
+			if(Keyboard::is_pressed(DOKUN_KEY_RIGHT)){ slider->set_value(slider->get_value() + 1);         label->set_position(label->get_position().x+1, label->get_position().y);model->translate(-1, 0, 0);sprite->translate(2  /* * Timer::delta()*/, 0 );}
 			
 			if(Keyboard::is_pressed(DOKUN_KEY_1)) camera->set_zoom(camera->get_zoom() + 1); // zoom_out
 			if(Keyboard::is_pressed(DOKUN_KEY_2)) camera->set_zoom(camera->get_zoom() - 1); // zoom_in
@@ -364,7 +387,8 @@ int Engine::test(lua_State *L)
         // draw multiple sprites
         for(int i = 0; i < sprite_array.size(); i++) {
             sprite_array[i]->draw();
-            //if(Sprite::collide(*sprite, *sprite_array[i])) label2->set_string("Sprite " + String(sprite).str() + " has collided with another Sprite " + String(sprite_array[i]).str()); //std::cout << "Sprite " << String(sprite) << " has collided with another Sprite " << String(sprite_array[i]) << "!\n";
+            if(Mouse::is_over(sprite_array[i]->get_position(), sprite_array[i]->get_size())) {std::cout << "Sprite " << String(sprite_array[i]) << " with color (" << sprite_array[i]->get_color() << ")" << std::endl;} 
+            //if(Sprite::collide(*sprite, *sprite_array[i])) label->set_string("Sprite " + String(sprite).str() + " has collided with another Sprite " + String(sprite_array[i]).str()); //std::cout << "Sprite " << String(sprite) << " has collided with another Sprite " << String(sprite_array[i]) << "!\n";
         }
         model->draw();
         widget->draw();
@@ -373,6 +397,8 @@ int Engine::test(lua_State *L)
         edit->draw();
         toggle->draw();
         button->draw();
+        slider->draw();
+        player->draw();
         //label2->draw();
         //grid->draw();
 		// update window
@@ -458,7 +484,9 @@ int Engine::reg(lua_State *L)
 	Script::function(L, "Window", "is_iconified", WINDOW::is_iconified);
 	Script::function(L, "Window", "is_context", WINDOW::is_context);		
 	#ifdef __gnu_linux__
+	#ifdef DOKUN_X11
 	    Script::function (L, "Window", "get_display", WINDOW::get_display);
+	#endif    
 	#endif
 	// sprite -----------------------------------------------------------
 	Script::table   (L, "Sprite");
@@ -658,37 +686,38 @@ int Engine::reg(lua_State *L)
 	Script::table(L, "Brain"   );
 	//Script::function(L, "", ""        , ::);
 	// audio -----------------------------------------------------------
-	Script::table   (L, "Audio");
-	Script::function(L, "Audio", "play",   Audio::play);
-	Script::function(L, "Audio", "pause", Audio::pause);
-	Script::function(L, "Audio", "stop", Audio::stop);
-	Script::function(L, "Audio", "set_volume", Audio::set_volume);
-	Script::function(L, "Audio", "set_loop", Audio::set_loop);		
-	Script::function(L, "Audio", "set_pitch", Audio::set_pitch);
-	Script::function(L, "Audio", "set_position", Audio::set_position);		
-	Script::function(L, "Audio", "get_volume", Audio::get_volume);
-	Script::function(L, "Audio", "get_pitch", Audio::get_pitch);		
-	Script::function(L, "Audio", "get_duration", Audio::get_duration);
-	Script::function(L, "Audio", "get_position", Audio::get_position);
-	Script::function(L, "Audio", "get_data", Audio::get_data);		
-	Script::function(L, "Audio", "is_playing", Audio::is_playing);
-	Script::function(L, "Audio", "is_paused", Audio::is_paused);		
-	Script::function(L, "Audio", "is_stopped", Audio::is_stopped);
-	Script::function(L, "Audio", "is_looped", Audio::is_looped);
+	Script::table   (L, "Audible");
+	Script::function(L, "Audible", "play"        , Audible::play        );
+	Script::function(L, "Audible", "pause"       , Audible::pause       );
+	Script::function(L, "Audible", "stop"        , Audible::stop        );
+	Script::function(L, "Audible", "set_volume"  , Audible::set_volume  );
+	Script::function(L, "Audible", "set_loop"    , Audible::set_loop    );		
+	Script::function(L, "Audible", "set_pitch"   , Audible::set_pitch   );
+	Script::function(L, "Audible", "set_position", Audible::set_position);		
+	Script::function(L, "Audible", "get_volume"  , Audible::get_volume  );
+	Script::function(L, "Audible", "get_pitch"   , Audible::get_pitch   );		
+	Script::function(L, "Audible", "get_duration", Audible::get_duration);
+	Script::function(L, "Audible", "get_position", Audible::get_position);
+	Script::function(L, "Audible", "get_data"    , Audible::get_data    );
+	Script::function(L, "Audible", "get_file"    , Audible::get_file    );		
+	Script::function(L, "Audible", "is_playing"  , Audible::is_playing  );
+	Script::function(L, "Audible", "is_paused"   , Audible::is_paused   );		
+	Script::function(L, "Audible", "is_stopped"  , Audible::is_stopped  );
+	Script::function(L, "Audible", "is_looped"   , Audible::is_looped   );
 	//Script::function(L, "", ""        , ::);
 	// sound -----------------------------------------------------------
 	Script::table   (L, "Sound");
-	Script::function(L, "Sound", "new", Sound::new_);
-	Script::function(L, "Sound", "load", Sound::load);
+	Script::function(L, "Sound", "new" , Sound::sound_new);
+	Script::function(L, "Sound", "load", Sound::load     );
 	//Script::function(L, "", ""        , ::);
 	// music -----------------------------------------------------------
 	Script::table   (L, "Music");
-	Script::function(L, "Music", "new",  Music::new_);
-	Script::function(L, "Music", "load", Music::load);		
-	Script::function(L, "Music", "play", Music::play);	
+	Script::function(L, "Music", "new",  Music::music_new);
+	Script::function(L, "Music", "load", Music::load     );		
+	Script::function(L, "Music", "play", Music::play     );	
     // sound, music inherit audio metatable (and functions) 		
-    Script::inherit (L, "Audio", "Sound");
-    Script::inherit (L, "Audio", "Music");	
+    Script::inherit (L, "Audible", "Sound");
+    Script::inherit (L, "Audible", "Music");	
 	//Script::function(L, "", ""        , ::);
 	// voice -----------------------------------------------------------
 	Script::table   (L, "Voice");
@@ -762,59 +791,59 @@ int Engine::reg(lua_State *L)
 	Script::function(L, "GUI", "is_parent_of", GUI::is_parent_of);
 	//Script::function(L, "GUI", ""        , GUI::);
 	// widget -----------------------------------------------------------
-    Script::table   (L, "Widget"          ); 
-	Script::attach  (L, "GUI"   , "Widget"); // attach Widget to GUI : GUI.Widget 
-	Script::inherit (L, "GUI"   , "Widget"); 
-    Script::function(L, "Widget", "add", Widget::add);
-	Script::function(L, "Widget", "new" , Widget::widget_new);
-	Script::function(L, "Widget", "draw", Widget::draw      );
-	Script::function(L, "Widget", "set_color", Widget::set_color);
-	//Script::function(L, "Widget", "set_alpha", Widget::set_alpha);
-	//Script::function(L, "Widget", "set_fill", Widget::set_fill);
-	Script::function(L, "Widget", "set_outline", Widget::set_outline);
-	Script::function(L, "Widget", "set_outline_width", Widget::set_outline_width);
-	Script::function(L, "Widget", "set_outline_color", Widget::set_outline_color);
-	//Script::function(L, "Widget", "set_outline_style", Widget::set_outline_style);
-	//Script::function(L, "Widget", "set_outline_antialiased", Widget::set_outline_antialiased);
-	//Script::function(L, "Widget", "set_border", Widget::set_border);
-	//Script::function(L, "Widget", "set_border_size", Widget::set_border_size);
-	//Script::function(L, "Widget", "set_border_width", Widget::set_border_width);
-	//Script::function(L, "Widget", "set_border_color", Widget::set_border_color);
-	//Script::function(L, "Widget", "set_border_style", Widget::set_border_style);
-	//Script::function(L, "Widget", "set_border_radius", Widget::set_border_radius);
-	//Script::function(L, "Widget", "set_radius", Widget::set_radius);
-	//Script::function(L, "Widget", "set_trim", Widget::set_trim);
-	Script::function(L, "Widget", "set_gradient", Widget::set_gradient);
-	//Script::function(L, "Widget", "set_gradient_color", Widget::set_gradient_color);
-	Script::function(L, "Widget", "set_title_bar", Widget::set_title_bar);
-	Script::function(L, "Widget", "set_title_bar_size", Widget::set_title_bar_size);
-	Script::function(L, "Widget", "set_title_bar_text", Widget::set_title_bar_text);
-	Script::function(L, "Widget", "set_title_bar_text_color", Widget::set_title_bar_text_color);
-    Script::function(L, "Widget", "set_title_bar_label", Widget::set_title_bar_label);
-    Script::function(L, "Widget", "set_title_bar_image", Widget::set_title_bar_image);
-	Script::function(L, "Widget", "set_title_bar_icon", Widget::set_title_bar_image);
-	Script::function(L, "Widget", "set_title_bar_color", Widget::set_title_bar_color);
-	Script::function(L, "Widget", "set_title_bar_button_iconify", Widget::set_title_bar_button_iconify);
-	Script::function(L, "Widget", "set_title_bar_button_maximize", Widget::set_title_bar_button_maximize);
-	Script::function(L, "Widget", "set_title_bar_button_close", Widget::set_title_bar_button_close);
-	//Script::function(L, "Widget", "set_as_icon", Widget::set_as_icon);
-	Script::function(L, "Widget", "set_image", Widget::set_image);
-	Script::function(L, "Widget", "set_label", Widget::set_label);
-	Script::function(L, "Widget", "set_text", Widget::set_text);
-    Script::function(L, "Widget", "set_image_list", Widget::set_image_list);
-    Script::function(L, "Widget", "set_label_list", Widget::set_label_list);
-	//Script::function(L, "Widget", "set_", Widget::set_);
-	//Script::function(L, "Widget", "", Widget::);
-	Script::function(L, "Widget", "get_image", Widget::get_image);
-	Script::function(L, "Widget", "get_label", Widget::get_label);
-    Script::function(L, "Widget", "get_image_list", Widget::get_image_list);
-    Script::function(L, "Widget", "get_label_list", Widget::get_label_list);
-	//Script::function(L, "Widget", "get_text", Widget::get_text);
-	//Script::function(L, "Widget", "", Widget::);
-	//Script::function(L, "Widget", "", Widget::);
-	//Script::function(L, "Widget", "", Widget::);
-	//Script::function(L, "Widget", "", Widget::);
-    Script::execute(L, "Box = Widget"); // assign Box to Widget as another name for Widget (You can also use Box in place of Widget)
+    Script::table   (L, "Box"          ); 
+	Script::attach  (L, "GUI"   , "Box"); // attach Box to GUI : GUI.Box 
+	Script::inherit (L, "GUI"   , "Box"); 
+    Script::function(L, "Box", "add", Box::add);
+	Script::function(L, "Box", "new" , Box::widget_new);
+	Script::function(L, "Box", "draw", Box::draw      );
+	Script::function(L, "Box", "set_color", Box::set_color);
+	//Script::function(L, "Box", "set_alpha", Box::set_alpha);
+	//Script::function(L, "Box", "set_fill", Box::set_fill);
+	Script::function(L, "Box", "set_outline", Box::set_outline);
+	Script::function(L, "Box", "set_outline_width", Box::set_outline_width);
+	Script::function(L, "Box", "set_outline_color", Box::set_outline_color);
+	//Script::function(L, "Box", "set_outline_style", Box::set_outline_style);
+	//Script::function(L, "Box", "set_outline_antialiased", Box::set_outline_antialiased);
+	//Script::function(L, "Box", "set_border", Box::set_border);
+	//Script::function(L, "Box", "set_border_size", Box::set_border_size);
+	//Script::function(L, "Box", "set_border_width", Box::set_border_width);
+	//Script::function(L, "Box", "set_border_color", Box::set_border_color);
+	//Script::function(L, "Box", "set_border_style", Box::set_border_style);
+	//Script::function(L, "Box", "set_border_radius", Box::set_border_radius);
+	//Script::function(L, "Box", "set_radius", Box::set_radius);
+	//Script::function(L, "Box", "set_trim", Box::set_trim);
+	Script::function(L, "Box", "set_gradient", Box::set_gradient);
+	//Script::function(L, "Box", "set_gradient_color", Box::set_gradient_color);
+	Script::function(L, "Box", "set_title_bar", Box::set_title_bar);
+	Script::function(L, "Box", "set_title_bar_size", Box::set_title_bar_size);
+	Script::function(L, "Box", "set_title_bar_text", Box::set_title_bar_text);
+	Script::function(L, "Box", "set_title_bar_text_color", Box::set_title_bar_text_color);
+    Script::function(L, "Box", "set_title_bar_label", Box::set_title_bar_label);
+    Script::function(L, "Box", "set_title_bar_image", Box::set_title_bar_image);
+	Script::function(L, "Box", "set_title_bar_icon", Box::set_title_bar_image);
+	Script::function(L, "Box", "set_title_bar_color", Box::set_title_bar_color);
+	Script::function(L, "Box", "set_title_bar_button_iconify", Box::set_title_bar_button_iconify);
+	Script::function(L, "Box", "set_title_bar_button_maximize", Box::set_title_bar_button_maximize);
+	Script::function(L, "Box", "set_title_bar_button_close", Box::set_title_bar_button_close);
+	//Script::function(L, "Box", "set_as_icon", Box::set_as_icon);
+	Script::function(L, "Box", "set_image", Box::set_image);
+	Script::function(L, "Box", "set_label", Box::set_label);
+	Script::function(L, "Box", "set_text", Box::set_text);
+    Script::function(L, "Box", "set_image_list", Box::set_image_list);
+    Script::function(L, "Box", "set_label_list", Box::set_label_list);
+	//Script::function(L, "Box", "set_", Box::set_);
+	//Script::function(L, "Box", "", Box::);
+	Script::function(L, "Box", "get_image", Box::get_image);
+	Script::function(L, "Box", "get_label", Box::get_label);
+    Script::function(L, "Box", "get_image_list", Box::get_image_list);
+    Script::function(L, "Box", "get_label_list", Box::get_label_list);
+	//Script::function(L, "Box", "get_text", Box::get_text);
+	//Script::function(L, "Box", "", Box::);
+	//Script::function(L, "Box", "", Box::);
+	//Script::function(L, "Box", "", Box::);
+	//Script::function(L, "Box", "", Box::);
+    Script::execute(L, "Widget = Box"); // assign Box to Box as another name for Box (You can also use Box in place of Box)
 	// button -----------------------------------------------------------
 	Script::table   (L, "Button"); // Button = {}  Button_mt = {__index = Button }
 	Script::attach  (L, "GUI", "Button"); // GUI.Button = Button
@@ -903,11 +932,11 @@ int Engine::reg(lua_State *L)
 	//Script::function(L, "Progressbar", "", Progressbar::);
 	// slider -----------------------------------------------------------
 	Script::table   (L, "Slider");
+	Script::inherit (L, "GUI", "Slider");
 	//Script::function(L, "Slider", ""        , Slider::);
-	//Script::inherit (L, "GUI", "");
 	// toggle -----------------------------------------------------------
 	Script::table   (L, "Toggle");
-	//Script::inherit (L, "GUI", "");
+	//Script::inherit (L, "GUI", "Toggle");
 	//Script::function(L, "Toggle", ""        , ::);
 	// scrollbar -----------------------------------------------------------
 	Script::table   (L, "Scrollbar");

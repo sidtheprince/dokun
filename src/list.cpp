@@ -52,7 +52,7 @@ void List::draw()
 	{
 	    for(int i = 0; i < item_list.size(); i++)
 	    {
-			Widget * item = item_list[i];
+			Box * item = item_list[i];
 			if(i == 0) item->set_position(get_position()); // first item is set at position of list (this)
 		    if(i != 0) {item->previous = item_list[i - 1];  item->set_position(get_position().x, item->previous->get_position().y + item->previous->get_height());} // item[0] is the first item so it won't have any previous
             on_item(item, i);
@@ -87,15 +87,15 @@ int List::draw(lua_State *L)
 {
     return 0;
 }
-void List::add(const Widget& item)
+void List::add(const Box& item)
 {
-	item_list.push_back(&const_cast<Widget&>(item));
-	if(item_list.size() == 1) const_cast<Widget&>(item).set_position(get_position());
-	const_cast<Widget&>(item).set_size(get_width(), get_height());
-	const_cast<Widget&>(item).set_outline(outline);
-	const_cast<Widget&>(item).set_outline_width(outline_width);
-	const_cast<Widget&>(item).set_outline_color(outline_color);
-	const_cast<Widget&>(item).set_outline_antialiased(outline_antialiased);
+	item_list.push_back(&const_cast<Box&>(item));
+	if(item_list.size() == 1) const_cast<Box&>(item).set_position(get_position());
+	const_cast<Box&>(item).set_size(get_width(), get_height());
+	const_cast<Box&>(item).set_outline(outline);
+	const_cast<Box&>(item).set_outline_width(outline_width);
+	const_cast<Box&>(item).set_outline_color(outline_color);
+	const_cast<Box&>(item).set_outline_antialiased(outline_antialiased);
 }
 int List::add(lua_State *L)
 {
@@ -118,9 +118,9 @@ void List::set_color(const Vector4& color)
 {
 	this->color = color;
 }
-void List::set_selection(const Widget& selection)
+void List::set_selection(const Box& selection)
 {
-	this->selection = &const_cast<Widget&>(selection);
+	this->selection = &const_cast<Box&>(selection);
 }
 int List::set_selection(lua_State * L)
 {
@@ -135,7 +135,7 @@ Vector4 List::get_color() const
 {
 	return color;
 }
-Widget * List::get_item(int index) const
+Box * List::get_item(int index) const
 {
 	if(item_list.size() < index + 1)
 	{
@@ -148,7 +148,7 @@ int List::get_item_count()const // returns number of items added to list
 {
 	return item_list.size();
 }
-Widget * List::get_selection() const
+Box * List::get_selection() const
 {
 	return selection;
 }
@@ -195,7 +195,7 @@ void List::set_outline_antialiased(bool antialiased)
 	outline_antialiased = antialiased;
 }
 //////////////////
-void List::on_item(Widget* item, int index) // will not work under list->is_visible
+void List::on_item(Box* item, int index) // will not work under list->is_visible
 {
     if(Mouse::is_over(item->get_rect()))
 	{

@@ -1,26 +1,29 @@
 #include "../include/voice.h"
 
 /////////////
-Voice::Voice() : recording(false), device(nullptr)
+Voice::Voice() : recording(false)
+#ifdef DOKUN_OPENAL
+, device(nullptr)
+#endif
 {
-	#ifdef DOKUN_OPENAL
+#ifdef DOKUN_OPENAL
 	// generate    
-		alGenBuffers(1, static_cast<ALuint*>(&buffer));
-	    alGenSources(1, static_cast<ALuint*>(&source));	
+	alGenBuffers(1, static_cast<ALuint*>(&buffer));
+	alGenSources(1, static_cast<ALuint*>(&source));	
 	// source
-	    alSourcef(static_cast<ALuint>(source), AL_GAIN, volume * 0.1);    
-	    alSource3f(source, AL_POSITION, static_cast<ALfloat>(0.0), static_cast<ALfloat>(0.0), static_cast<ALfloat>(0.0));	
+	alSourcef(static_cast<ALuint>(source), AL_GAIN, volume * 0.1);    
+	alSource3f(source, AL_POSITION, static_cast<ALfloat>(0.0), static_cast<ALfloat>(0.0), static_cast<ALfloat>(0.0));	
 	// listener
-	    alListener3f(AL_POSITION, static_cast<ALfloat>(0.0), static_cast<ALfloat>(0.0), static_cast<ALfloat>(0.0));
-	#endif
+	alListener3f(AL_POSITION, static_cast<ALfloat>(0.0), static_cast<ALfloat>(0.0), static_cast<ALfloat>(0.0));
+#endif
 	Factory::get_voice_factory()->store(this);
 }
 /////////////
 Voice::~Voice()
 {
 	stop(); // stop recording
-	// delete buffers
 #ifdef DOKUN_OPENAL
+    // delete buffers
 	alDeleteBuffers(1, static_cast<ALuint*>(&buffer));
 	alDeleteSources(1, static_cast<ALuint*>(&source));
     // close the device	
@@ -33,27 +36,27 @@ double Voice::volume (100);
 /////////////
 void Voice::start()
 {
-	#ifdef DOKUN_OPENAL
-	    device = alcCaptureOpenDevice(alcGetString(nullptr, ALC_CAPTURE_DEFAULT_DEVICE_SPECIFIER), 44100, AL_FORMAT_MONO16, 44100); // sample rate at 44100
-        if(device == nullptr)
-	    {   
-		    Logger("Could not start voice"); return;
-	    }
-	    if (!is_recording())
-	    {
-            alcCaptureStart(device);	 // Start the device
-            recording = (true);    
-	    }
-	    while(is_recording())
-	    {
-		    alcGetIntegerv(device, ALC_CAPTURE_SAMPLES, 1, &sample); // deviced audio
-            alcCaptureSamples(device, static_cast<ALCvoid *>(&data[0]), static_cast<ALint>(sample)); // grab the sound
-	    }	
+#ifdef DOKUN_OPENAL
+	device = alcCaptureOpenDevice(alcGetString(nullptr, ALC_CAPTURE_DEFAULT_DEVICE_SPECIFIER), 44100, AL_FORMAT_MONO16, 44100); // sample rate at 44100
+    if(device == nullptr)
+	{   
+	    Logger("Could not start recorder"); return;
+	}
+	if (!is_recording())
+	{
+        alcCaptureStart(device);	 // Start the device
+        recording = true;    
+	}
+	while(is_recording())
+	{
+		alcGetIntegerv(device, ALC_CAPTURE_SAMPLES, 1, &sample); // deviced audio
+        alcCaptureSamples(device, static_cast<ALCvoid *>(&data[0]), static_cast<ALint>(sample)); // grab the sound
+	}
 	// pass data (to openal)
- 	    alSourceUnqueueBuffers(static_cast<ALuint>(source), 1, static_cast<ALuint*>(&buffer)); 
-	    alBufferData(static_cast<ALuint>(buffer), AL_FORMAT_STEREO16, &data[0], static_cast<ALsizei>(data.size()), 44100);
-	    alSourceQueueBuffers(static_cast<ALuint>(source), 1, static_cast<ALuint*>(&buffer)); 
-	#endif
+ 	alSourceUnqueueBuffers(static_cast<ALuint>(source), 1, static_cast<ALuint*>(&buffer)); 
+	alBufferData(static_cast<ALuint>(buffer), AL_FORMAT_STEREO16, &data[0], static_cast<ALsizei>(data.size()), 44100);
+	alSourceQueueBuffers(static_cast<ALuint>(source), 1, static_cast<ALuint*>(&buffer)); 
+#endif
 }
 /////////////
 int Voice::start(lua_State *L)
@@ -72,16 +75,16 @@ void Voice::stop()
 {
 	if(is_recording())
 	{ 
-        #ifdef DOKUN_OPENAL
-            alcCaptureStop(device);  // Stop the device	
-		#endif
+    #ifdef DOKUN_OPENAL
+        alcCaptureStop(device);  // Stop the device	
+	#endif
 		recording = false;
 	}
 	if(is_playing())
 	{
-		#ifdef DOKUN_OPENAL
-		    alSourceStop(static_cast<ALuint>(source));
-		#endif
+	#ifdef DOKUN_OPENAL
+		alSourceStop(static_cast<ALuint>(source));
+	#endif
 	}
 }
 /////////////
@@ -98,9 +101,9 @@ int Voice::stop(lua_State *L)
 /////////////
 void Voice::play()
 {
-	#ifdef DOKUN_OPENAL
-	    alSourcePlay(static_cast<ALuint>(source));
-	#endif
+#ifdef DOKUN_OPENAL
+	alSourcePlay(static_cast<ALuint>(source));
+#endif
 }
 /////////////
 int Voice::play(lua_State *L)
@@ -117,9 +120,9 @@ int Voice::play(lua_State *L)
 /////////////
 void Voice::pause()
 {
-	#ifdef DOKUN_OPENAL
-	    alSourcePause(static_cast<ALuint>(source));
-	#endif
+#ifdef DOKUN_OPENAL
+	alSourcePause(static_cast<ALuint>(source));
+#endif
 }
 /////////////
 int Voice::pause(lua_State *L)
@@ -168,7 +171,10 @@ int Voice::save(lua_State *L)
 /////////////
 void * Voice::get_device()
 {
+#ifdef DOKUN_OPENAL
 	return device;
+#endif
+    return nullptr;
 }
 /////////////
 int Voice::get_device(lua_State *L)
@@ -220,11 +226,11 @@ int Voice::is_recording(lua_State *L)
 /////////////
 bool Voice::is_playing()
 {
-	#ifdef DOKUN_OPENAL
-        ALenum playing;
-        alGetSourcei(source, AL_SOURCE_STATE, &playing);
-        return (playing == AL_PLAYING);	
-	#endif
+#ifdef DOKUN_OPENAL
+    ALenum playing;
+    alGetSourcei(source, AL_SOURCE_STATE, &playing);
+    return (playing == AL_PLAYING);	
+#endif
 	return false;
 }
 /////////////
@@ -243,11 +249,11 @@ int Voice::is_playing(lua_State *L)
 /////////////
 bool Voice::is_paused()
 {
-	#ifdef DOKUN_OPENAL
-        ALenum paused;
-        alGetSourcei(source, AL_SOURCE_STATE, &paused);
-        return paused = (paused == AL_PAUSED);	
-	#endif
+#ifdef DOKUN_OPENAL
+    ALenum paused;
+    alGetSourcei(source, AL_SOURCE_STATE, &paused);
+    return paused = (paused == AL_PAUSED);	
+#endif
 	return false;
 }
 /////////////
@@ -266,11 +272,11 @@ int Voice::is_paused(lua_State *L)
 /////////////
 bool Voice::is_stopped()
 {
-	#ifdef DOKUN_OPENAL
-        ALenum stopped;
-        alGetSourcei(source, AL_SOURCE_STATE, &stopped);
-        return stopped = (stopped == AL_STOPPED);	
-	#endif
+#ifdef DOKUN_OPENAL
+    ALenum stopped;
+    alGetSourcei(source, AL_SOURCE_STATE, &stopped);
+    return stopped = (stopped == AL_STOPPED);	
+#endif
 	return false;
 }
 /////////////

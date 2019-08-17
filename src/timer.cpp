@@ -30,7 +30,7 @@ std::chrono::time_point<std::chrono::high_resolution_clock> Timer::beg_(std::chr
 /////////////
 void Timer::start()
 {
-    if(status) {std::cout << "Timer is already on." << std::endl; return;}
+    if(status) {/*std::cout << "Timer is already on." << std::endl;*/ return;}
 
 	status = true; // turn the timer on  
     start_ = std::chrono::high_resolution_clock::now();
@@ -50,7 +50,7 @@ int Timer::start(lua_State *L)
 /////////////
 void Timer::stop()
 {
-    if(!status) {std::cout << "Timer is already off." << std::endl; return;}
+    if(!status) {/*std::cout << "Timer is already off." << std::endl;*/ return;}
     
 	end_ = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<double> elapsed = end_ - start_;
@@ -78,6 +78,27 @@ int Timer::stop(lua_State *L)
 		timer->stop();
 	}		
 	return 0;
+}
+/////////////
+double Timer::increment() // realtime increment between start and stop (in seconds)
+{
+     // if timer is off, return the time it stopped (end)
+    if(!status) { std::chrono::duration<double> elapsed = end_ - start_; return elapsed.count();}
+    // as long as timer is on, get the increments between start and stop
+    return std::chrono::duration_cast<second_>(std::chrono::high_resolution_clock::now() - start_).count();
+}
+/////////////
+int Timer::increment(lua_State *L)
+{
+	luaL_checktype(L, 1, LUA_TTABLE);	
+	lua_getfield(L, 1, "udata");
+	if(lua_isuserdata(L, -1))
+	{
+		Timer * timer = *static_cast<Timer **>(lua_touserdata(L, -1));
+		lua_pushnumber(L, timer->increment());
+	}		
+	lua_pushnumber(L, -1);
+	return 1;
 }
 /////////////
 void Timer::reset() // reset time

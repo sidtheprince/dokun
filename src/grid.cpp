@@ -103,11 +103,11 @@ void Grid::update()
 	for(int i = 0; i < rows; i++)
 	{
 		// create empty rows
-		block.push_back(std::vector<Widget>());
+		block.push_back(std::vector<Box>());
 		// store row items based on # of columns
 		for(int j = 0; j < columns; j++)
 		{
-			block[i].push_back(Widget());
+			block[i].push_back(Box());
 		}
 	}	
 }
@@ -199,7 +199,7 @@ int Grid::set_color(lua_State *L)
 }
 /////////////
 /////////////
-Widget * Grid::get_block(int row, int column)
+Box * Grid::get_block(int row, int column)
 {
 	if(block.size() < row + 1) 
 	{

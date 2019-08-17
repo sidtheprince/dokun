@@ -483,9 +483,11 @@ void Edit::on_hover()
 		    //SetCursor(HCURSOR hCursor);//SetClassLong(window->get_handle(), GCL_HCURSOR, (DWORD)ibeam); // DWORD = unsigned long
         #endif		
 		#ifdef __gnu_linux__		
+		#ifdef DOKUN_X11
 		    Cursor cursor = XCreateFontCursor(window->get_display(), XC_xterm); 
             XDefineCursor(window->get_display(), window->get_handle(), cursor);
 			XFreeCursor(window->get_display(), cursor);
+		#endif
 		#endif
 		}
 	} else {   // revert back to original mouse cursor
@@ -497,10 +499,12 @@ void Edit::on_hover()
 		    //SetCursor(HCURSOR hCursor);//SetClassLong(window->get_handle(), GCL_HCURSOR, (DWORD)arrow);
 		#endif
 		#ifdef __gnu_linux__	
+		#ifdef DOKUN_X11
 		    Cursor cursor = XCreateFontCursor(window->get_display(), XC_left_ptr); 
             XDefineCursor(window->get_display(), window->get_handle(), cursor);
 			XFreeCursor(window->get_display(), cursor);
 		#endif	
+		#endif
 		}
 	}
 }

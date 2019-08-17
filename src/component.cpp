@@ -64,7 +64,7 @@ Component::Component(const std::string& name, const Vector4& value) : number(-1)
 	set_value(value);
 }
 ////////////
-Component::Component(const std::string& name, void * value) : number(-1), boolean_(-1), pointer(nullptr), vector(-1, -1, -1, -1)
+Component::Component(const std::string& name, const void * value) : number(-1), boolean_(-1), pointer(nullptr), vector(-1, -1, -1, -1)
 {
 	Factory::get_component_factory()->store(this);
 	set_name(name);
@@ -135,7 +135,7 @@ Component * Component::create(const std::string& name, const Vector4& value)
 	return new Component(name, value);
 }
 ////////////
-Component * Component::create(const std::string& name, void * value)
+Component * Component::create(const std::string& name, const void * value)
 {
 	return new Component(name, value);
 }
@@ -195,13 +195,14 @@ void Component::set_value(int value, bool boolean_) // integer or bool
 {
 	if(!boolean_) // default
 	{
-		(this)->number = static_cast<double>(value);
+		this->number = static_cast<double>(value);
 	    set_type(DOKUN_COMPONENT_INTEGER);
+	    return;
 	}
 	if(boolean_)
 	{
-	    if(value == 0) (this)->boolean_ = false;
-	    if(value != 0) (this)->boolean_ = true;		
+	    if(value == 0) this->boolean_ = false;
+	    if(value != 0) this->boolean_ = true;		
 		set_type(DOKUN_COMPONENT_BOOLEAN);
 	}
 }
@@ -242,9 +243,9 @@ void Component::set_value(const Vector4& value)
 	set_type(DOKUN_COMPONENT_VECTOR);
 }
 ////////////
-void Component::set_value(void * value) // pointer
+void Component::set_value(const void * value) // pointer
 {
-	pointer = value;
+	pointer = const_cast<void *>(value);
 	set_type(DOKUN_COMPONENT_POINTER);
 }
 ////////////
@@ -359,7 +360,7 @@ std::string Component::to_string() const
 	return string.get_value();
 }
 ////////////
-int Component::to_boolean() const
+bool Component::to_boolean() const
 {
 	return boolean_;
 }	

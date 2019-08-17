@@ -1,22 +1,30 @@
 #ifndef _PLATFORM
 #define _PLATFORM
 
-#ifdef  _WIN32
+#ifdef  _WIN32 // for both 32-bit and 64-bit environments
 #define __windows__
+#define DOKUN_WINDOWS
+#define DOKUN_WIN32
+#endif
+#ifdef _WIN64
+#define DOKUN_WIN64
 #endif
 
 #ifdef __gnu_linux__
 #define __ubuntu__ 
+#define DOKUN_LINUX
 #endif
 
 #ifdef __APPLE__
 #ifdef __MACH__
 #define __macosx__
+#define DOKUN_MACOSX
 #endif
 #endif
 
 #ifdef __ANDROID__
 #define __android__
+#define DOKUN_ANDROID
 #endif
 
 #ifdef __gnu_linux__
@@ -99,12 +107,17 @@
 ////////////
 #ifdef __gnu_linux__              // GNU/Linux
     #define __desktop__           // on a desktop
-	#ifdef DOKUN_OPENGL           // opengl (OPTIONAL), glew (REQUIRED IF USING OPENGL)
+	#ifdef DOKUN_OPENGL           // opengl (OPTIONAL), glew (REQUIRED If using OpenGL and must be included before gl.h and glu.h)
 		#define GLEW_STATIC
         #include <GL/glew.h>
 	    #ifdef DOKUN_X11
 			#include <GL/glxew.h>
 		#endif	
+		#ifdef DOKUN_WAYLAND
+		    #include <GL/eglew.h>    // glew for EGL, #define GLEW_EGL if not defined
+		    #include <wayland-egl.h> // Wayland EGL MUST be included before EGL headers
+            #include <EGL/egl.h>
+		#endif
 		#include <GL/gl.h>       				
 		#include <GL/glu.h>	
 		#ifdef DOKUN_X11
@@ -149,6 +162,9 @@
 	#endif	
 	#endif
 	#ifdef DOKUN_WAYLAND
+        #include <wayland-client.h>
+        #include <wayland-server.h>
+        #include <wayland-client-protocol.h>
 	#endif
 	#ifdef DOKUN_MIR
 	#endif

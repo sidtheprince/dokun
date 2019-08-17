@@ -53,18 +53,54 @@ LUA_API int luaopen_dokun (lua_State *L)
 #endif
 /////////////////////////////////////////////
 registering table and table_functions:
-	Script::table   (L, "Sprite");                                       // same as: Sprite = {} Sprite_mt = {__index=Sprite}
-	Script::function(L, "Sprite", "new"         , Sprite::sprite_new  ); // Sprite:new() : creates a C++ Sprite obj and attaches it to a table as 'udata'
+	Script::table   (L, "Sprite");                                       // same as: Sprite = {__index=Sprite}
+	Script::function(L, "Sprite", "new"         , Sprite::sprite_new  ); // Sprite:new() : creates a C++ Sprite obj and attaches it to a table as field 'udata'
 	Script::function(L, "Sprite", "destroy"     , Sprite::destroy     ); // Sprite:destroy() : calls on the C++ Sprite destructor
 /////////////////////////////////////////////
+fixing libFlac errors:
+add definition -DFLAC__NO_DLL on WIN32 platforms if building libFlac statically.
+
+flac/src/libFLAC/lpc.c:60 (undefined reference to lround which is included in <math.h>(-lm)):
+either add definition, -DHAVE_LROUND   or   change lround to jlround
+
+flac/src/libFLAC/stream_encoder.c:636 (error: ‘FLAC__HAS_OGG’ undeclared):
+add definition -DFLAC__HAS_OGG to add support for OGG Flac (also since dokun uses ogg by default)
+
+flac/src/libFLAC/format.c:48 (PACKAGE_VERSION is defined in both ./configure:593 and config.h:170. Means flac/config.h is not even being included, unless you add definition -DHAVE_CONFIG_H):
+#ifndef PACKAGE_VERSION
+#define PACKAGE_VERSION "1.3.3"
+#endif
+
+flac/include/share/alloc.h:59-60 (SIZE_T_MAX undeclared):
+// add these two lines
+#  elif defined __GNUC__
+#   define SIZE_T_MAX UINT_MAX
+
+// and should look like this:
+#ifndef SIZE_MAX
+# ifndef SIZE_T_MAX
+#  ifdef _MSC_VER
+#   ifdef _WIN64
+#    define SIZE_T_MAX FLAC__U64L(0xffffffffffffffff)
+#   else
+#    define SIZE_T_MAX 0xffffffff
+#   endif
+#  elif defined __GNUC__
+#   define SIZE_T_MAX UINT_MAX
+#  else
+#   error
+#  endif
+# endif
+# define SIZE_MAX SIZE_T_MAX
+#endif
 /////////////////////////////////////////////
 /////////////////////////////////////////////
 /////////////////////////////////////////////
 /////////////////////////////////////////////
-
-
-
-
+/////////////////////////////////////////////
+/////////////////////////////////////////////
+/////////////////////////////////////////////
+/////////////////////////////////////////////
 int Engine::test(lua_State *L)
 {
 	WINDOW window;

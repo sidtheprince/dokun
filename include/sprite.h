@@ -64,7 +64,7 @@ class Sprite : public Entity
 		Vector4 get_color() const;                              static int get_color(lua_State *L); // in RBG			
 		Vector2 get_origin() const;                             static int get_origin(lua_State *L); // gets the origin in relation to the sprite's position for scaling and rotation.
 		Vector2 get_center() const;                             static int get_center(lua_State *L);
-		std::vector<float> get_vertex_array();// new ! june 9 2017
+		std::vector<float> get_vertex_array() const;// new ! june 9 2017 // std::vector must be const so it cannot be modified
 		// boolean												 
 		bool is_sprite();                                 static int is_sprite(lua_State *L);
 		static bool is_generated();                       static int is_generated(lua_State *L);

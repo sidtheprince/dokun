@@ -294,11 +294,9 @@ void Sprite::draw(int frame)
 		// Renderer: "Sure wait one moment while I take a look at your data"
 		if(texture->get_rect().empty())
 		{
-		// Draw sprite
-		Renderer::draw_sprite(*texture, x, y, angle, scale_factor.x, scale_factor.y, 
-		    color.x, color.y, color.z, color.w, get_vertex_array(), *shader, map);
-            //Renderer::draw_sprite_test(x, y, angle, scale_factor.x, scale_factor.y, color.x, color.y, color.z, color.w,
-            //    get_vertex_array(), *shader, *texture);
+		    // Draw sprite
+		    Renderer::draw_sprite(*texture, x, y, angle, scale_factor.x, scale_factor.y, color.x, color.y, color.z, color.w, get_vertex_array(), *shader, map);
+            //this->update();Renderer::draw_sprite_test(x, y, angle, scale_factor.x, scale_factor.y, color.x, color.y, color.z, color.w, get_vertex_array(), *shader, *texture);
 		}			
 		if(!texture->get_rect().empty())
 		{
@@ -945,7 +943,7 @@ int Sprite::get_center(lua_State *L)
 }
 ////////////
 ////////////
-std::vector<float> Sprite::get_vertex_array()
+std::vector<float> Sprite::get_vertex_array() const
 {
 	return vertex_array;
 }

@@ -237,7 +237,9 @@ void Mouse::restore() // restore cursor
 		//SetCursor(HCURSOR hCursor);//SetClassLong(window->get_handle(), GCL_HCURSOR, (DWORD)arrow);
     #endif	
     #ifdef __gnu_linux__
+    #ifdef DOKUN_X11
         XUndefineCursor(window->get_display(), window->get_handle());
+    #endif
     #endif
 	    show(); // show cursor
 	}
@@ -324,10 +326,12 @@ void Mouse::set_cursor(unsigned long cursor)
 		HCURSOR cursor0 = LoadCursor(nullptr, reinterpret_cast<LPCSTR>(cursor));
 		//SetCursor(HCURSOR hCursor);//SetClassLong(window->get_handle(), GCL_HCURSOR, (DWORD)cursor0); // DWORD = unsigned long
     #endif		
-	#ifdef __gnu_linux__		
+	#ifdef __gnu_linux__
+	#ifdef DOKUN_X11		
 		Cursor cursor0 = XCreateFontCursor(window->get_display(), static_cast<unsigned int>(cursor)); 
         XDefineCursor(window->get_display(), window->get_handle(), cursor0);
 		XFreeCursor(window->get_display(), cursor0);
+	#endif
 	#endif
 	}	
 }
@@ -337,6 +341,7 @@ void Mouse::set_cursor(const Image& cursor) // doesnt work
 	if(window)
 	{
 #ifdef __gnu_linux__
+#ifdef DOKUN_X11
     XColor color;
     //color.red = color.green = color.blue = 255;
 
@@ -347,6 +352,7 @@ void Mouse::set_cursor(const Image& cursor) // doesnt work
     XDefineCursor(window->get_display(), window->get_handle(), cursor0);
     XFreeCursor(window->get_display(), cursor0);
     XFreePixmap(window->get_display(), data);
+#endif
 #endif	
     }
 }
@@ -444,6 +450,7 @@ Vector2 Mouse::get_position(const WINDOW& window) // get local position (inside 
 	y = position.y;
 #endif
 #ifdef __gnu_linux__
+#ifdef DOKUN_X11
     Window window_returned;
     int root_x, root_y;
     int win_x, win_y;
@@ -457,6 +464,7 @@ Vector2 Mouse::get_position(const WINDOW& window) // get local position (inside 
 	}
     x = win_x;
     y = win_y;
+#endif
 #endif
     return Vector2(x, y);
 }
@@ -497,10 +505,12 @@ Vector3 Mouse::get_normalized_position(const WINDOW& window)
 	}
 #endif
 #ifdef __gnu_linux__
+#ifdef DOKUN_X11
     XWindowAttributes       gwa;
     XGetWindowAttributes(window.get_display(), window.get_handle(), &gwa); // get attributes while app is running; only gets width and height no x and y
 	width  = gwa.width ;
 	height = gwa.height;
+#endif
 #endif
     double norm_x = (2.0f * mouse_x) / width - 1.0f;
 	double norm_y = 1.0f - (2.0f * mouse_y) / height;
@@ -557,6 +567,8 @@ Vector2 Mouse::get_size() //const
     return Vector2(SM_CXCURSOR, SM_CYCURSOR);
 #endif
 #ifdef __gnu_linux__
+#ifdef DOKUN_X11
+#endif
 #endif
     return Vector2(0, 0);
 }

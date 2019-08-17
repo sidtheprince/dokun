@@ -2,7 +2,7 @@
 #define _GRID
 
 #include "ui.h"
-#include "widget.h"
+#include "box.h"
 class Grid : public GUI
 {
 public:
@@ -20,12 +20,12 @@ public:
 	void set_color(const Vector3& color);
 	void set_color(const Vector4& color);	   static int set_color(lua_State *L);
 	
-	Widget * get_block(int row, int column);           static int get_block(lua_State *L);
+	Box * get_block(int row, int column);           static int get_block(lua_State *L);
 	int get_row_count()const;                     static int get_row_count(lua_State *L);
 	int get_column_count()const;                  static int get_column_count(lua_State *L);	
 	Vector4 get_color()const;                     static int get_color(lua_State *L); //static int _(lua_State *L);
 private:
-	std::vector< std::vector< Widget > > block;
+	std::vector< std::vector< Box > > block;
     int rows, columns;	
 	Vector4 color;
 	// outline

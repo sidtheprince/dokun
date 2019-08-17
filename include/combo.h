@@ -11,7 +11,7 @@ public:
 	~Combobox();
 	
 	void draw();                               static int draw(lua_State * L);
-    void add(const Widget& widget);            static int add(lua_State * L);
+    void add(const Box& widget);            static int add(lua_State * L);
 	
 	void set_list(const List& list);           static int set_list(lua_State * L);
 	void set_scrollbar(const Scrollbar& scrollbar); static int set_scrollbar(lua_State * L);
@@ -37,7 +37,7 @@ private:
     // callback
 	void on_button();
 	void on_select(); // selection
-	Widget * selection;
+	Box * selection;
     Vector4 selection_color;
     Vector4 color;
 	Label * label;

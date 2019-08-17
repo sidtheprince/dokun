@@ -73,13 +73,27 @@ bool Sound::is_sound()
 	return ((this != 0) && (dokun::instanceof<Sound>(this) != 0));
 }
 ////////// 
-bool Sound::is_sound(Audio * sound)
+bool Sound::is_sound(Audible * audible)
 {
-	return ((sound != 0) && (dokun::instanceof<Sound>(sound) != 0));
+	return ((audible != 0) && (dokun::instanceof<Sound>(audible) != 0));
+}
+//////////
+int Sound::is_sound(lua_State *L)
+{
+    luaL_checktype(L, 1, LUA_TTABLE);
+	lua_getfield(L, 1, "udata");
+	if(lua_isuserdata(L, -1))
+	{
+		Audible * audible = *static_cast<Audible **>(lua_touserdata(L, -1));
+		lua_pushboolean(L, dynamic_cast<Sound *>(audible)->is_sound());
+		return 1;
+	}
+    lua_pushboolean(L, false);
+    return 1;
 }
 //////////
 //////////
-int Sound::new_(lua_State *L)
+int Sound::sound_new(lua_State *L)
 {
 	std::string file_name ;
 	if(lua_type(L, -1) == LUA_TSTRING) 

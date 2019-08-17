@@ -6,6 +6,7 @@
 #ifdef __cplusplus // if c++
 #include <iostream>
 #include <cmath>
+#include <ctime>
 #include <random>
 #include <lua.hpp>
 
@@ -110,6 +111,14 @@ struct Math  { // helps with your math homework :)
 	{
 		return ((rand() % 2) == 1); // 0 to 1
 	}	
+	static double random_generator(double minimum_range, double maximum_range) {
+	    std::random_device rd; // Generating random numbers with C++11's random requires an engine and a distribution.
+        std::mt19937 mt(rd()); // This is an engine based on the Mersenne Twister 19937 (64 bits):
+        std::uniform_real_distribution<double> dist(minimum_range, maximum_range);
+	    return dist(mt);
+	    // or just use: std::default_random_engine generator(<some seed number>);
+	}
+	/////////////
 	// pathfinding - A star (de facto), Dijkstra, Depth and Breadth-First 
 	void a_star(){}
     /////////////

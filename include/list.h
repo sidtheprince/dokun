@@ -2,7 +2,7 @@
 #define _LIST
 
 #include "ui.h"
-#include "widget.h"
+#include "box.h"
 
 #ifdef __cplusplus
 class List : public GUI // can be applied to combo_box and widget
@@ -14,7 +14,7 @@ public:
 	~List();
 		
 	void draw();                        static int draw(lua_State *L);
-	void add(const Widget& item);       static int add(lua_State *L);// adds a new list obj
+	void add(const Box& item);       static int add(lua_State *L);// adds a new list obj
 	
 	void set_color(int red, int green, int blue, int alpha=255);
 	void set_color(const Vector3& color);
@@ -27,9 +27,9 @@ public:
 	Label * get_label() const;
 	Image * get_image() const;
 	Vector4 get_color() const;
-	Widget * get_item(int index) const;
+	Box * get_item(int index) const;
 	int get_item_count()const; // returns number of items added to list
-	Widget * get_selection() const;            static int get_selection(lua_State * L);
+	Box * get_selection() const;            static int get_selection(lua_State * L);
 	// outline
 	void set_outline(bool outline);                                                static int set_outline(lua_State * L);
 	void set_outline_width(double width);                                                      static int set_outline_width(lua_State * L);
@@ -38,17 +38,17 @@ public:
 	void set_outline_color(const Vector4& color);
 	void set_outline_antialiased(bool antialiased);		
 private:
-    void set_selection(const Widget& selection); static int set_selection(lua_State * L);
+    void set_selection(const Box& selection); static int set_selection(lua_State * L);
     // callback
-	void on_item(Widget * item, int index);
+	void on_item(Box * item, int index);
 	// friend
 	friend class Combo;
     friend class Combobox;
-    std::vector<Widget *> item_list; // function add() this->next = list; list.set_position(this->get_x(), this->y + this->get_height())
+    std::vector<Box *> item_list; // function add() this->next = list; list.set_position(this->get_x(), this->y + this->get_height())
 	Image * image;
 	Label * label;
 	Vector4 color;
-	Widget * selection;
+	Box * selection;
 	// outline
 	bool outline;
 	double outline_width;

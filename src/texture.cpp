@@ -35,7 +35,7 @@ Texture::Texture(const std::string& file_name) : rect(0, 0, 0, 0), type("diffuse
 {
     if(!load(file_name)) 
 	{
-		Logger("Could not open file " + file_name, DOKUN_FILE, DOKUN_LINE);
+		Logger("Could not open texture from file " + file_name, DOKUN_FILE, DOKUN_LINE);
 		return;
 	}
 #ifdef DOKUN_OPENGL	
@@ -60,7 +60,7 @@ Texture::Texture(const std::string& file_name, const std::string& type) : rect(0
 {
     if(!load(file_name)) 
 	{
-		Logger("Could not open file " + file_name, DOKUN_FILE, DOKUN_LINE);
+		Logger("Could not open texture from file " + file_name, DOKUN_FILE, DOKUN_LINE);
 		return;
 	}
 #ifdef DOKUN_OPENGL	
@@ -86,7 +86,7 @@ Texture::Texture(const std::string& file_name, int x, int y, int width, int heig
 {
 	if(!load(file_name)) 
 	{
-        Logger("Could not open file " + file_name, DOKUN_FILE, DOKUN_LINE);
+        Logger("Could not open texture from file " + file_name, DOKUN_FILE, DOKUN_LINE);
         return;
     }
 #ifdef DOKUN_OPENGL	
@@ -112,7 +112,7 @@ Texture::Texture(const void * data, int width, int height, int depth, int channe
 {
     if(!load(data, width, height, depth, channel)) 
 	{
-		Logger("Could not read data", DOKUN_FILE, DOKUN_LINE);
+		Logger("Could not open texture from data", DOKUN_FILE, DOKUN_LINE);
 		return;
 	}
 #ifdef DOKUN_OPENGL	
@@ -256,8 +256,10 @@ void Texture::generate()
 		return;
 #endif		
 #ifdef __gnu_linux__
+#ifdef DOKUN_X11
     if(!glXGetCurrentContext())
 		return;
+#endif
 #endif
 	if(!glIsTexture(static_cast<GLuint>(buffer))) // no buffer yet (generate a single buffer and no more than 1)
 	{
@@ -297,8 +299,10 @@ void Texture::generate_array(int layer_count)
 		return;
 #endif		
 #ifdef __gnu_linux__
+#ifdef DOKUN_X11
     if(!glXGetCurrentContext())
 		return;
+#endif		
 #endif
 	if(!glIsTexture(static_cast<GLuint>(buffer))) // no buffer yet (generate a single buffer and no more than 1)
 	{	
@@ -334,8 +338,10 @@ void Texture::bind()
 		return;
 #endif		
 #ifdef __gnu_linux__
+#ifdef DOKUN_X11
     if(!glXGetCurrentContext())
 		return;
+#endif
 #endif
     if(glIsTexture(buffer))
 	{
@@ -363,8 +369,10 @@ void Texture::unbind()
 		return;
 #endif		
 #ifdef __gnu_linux__
+#ifdef DOKUN_X11
     if(!glXGetCurrentContext())
 		return;
+#endif
 #endif
     glBindTexture(GL_TEXTURE_2D, 0);
 #endif	
@@ -389,8 +397,10 @@ void Texture::destroy()
 		return;
 #endif		
 #ifdef __gnu_linux__
+#ifdef DOKUN_X11
     if(!glXGetCurrentContext())
 	    return;
+#endif	    
 #endif
     GLuint texture = buffer;
     if(glIsTexture(texture)) // if buffer is valid, then delete, zero means its not valid
@@ -470,8 +480,10 @@ void Texture::set_buffer(unsigned int buffer)
         return;
 #endif
 #ifdef __gnu_linux__
+#ifdef DOKUN_X11
     if(!glXGetCurrentContext())
 		return;
+#endif
 #endif
     if(!glIsTexture(buffer)) Logger(String("warning! Buffer \"" + std::to_string(buffer) + "\" has not been generated."));// if the buffer is not a valid GL_texture
 #endif    
@@ -1071,8 +1083,10 @@ bool Texture::is_generated()const // returns true if texture buffer is generated
 		return false;
 #endif		
 #ifdef __gnu_linux__
+#ifdef DOKUN_X11
     if(!glXGetCurrentContext())
 		return false;
+#endif
 #endif
     return (glIsTexture(static_cast<GLuint>(buffer)) == true);
 #endif	

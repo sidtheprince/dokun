@@ -2,7 +2,7 @@
 #define _TAB
 
 #include "ui.h"
-#include "widget.h"
+#include "box.h"
 #ifdef __cplusplus
 class Tab : public GUI
 {
@@ -25,7 +25,7 @@ public:
 	Image * get_image()const;                  static int get_image(lua_State *L);
 	Vector4 get_color()const;                  static int get_color(lua_State *L);	
 private:
-    Widget * selection;
+    Box * selection;
     Label * label;
 	Image * image;
     Vector4 color;	

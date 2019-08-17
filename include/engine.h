@@ -47,7 +47,7 @@
 #include "font.h"
 // ui
 #include "ui.h"
-#include "widget.h" 
+#include "box.h" 
 #include "button.h" 
 #include "label.h"
 #include "edit.h"
@@ -82,7 +82,6 @@
 #include "plugin.h"
 #include "file.h"
 #include "event.h"
-#include "loader.h"
 #include "renderer.h"
 #include "process.h"
 #include "http.h"

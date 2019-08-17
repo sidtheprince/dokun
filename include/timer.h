@@ -29,6 +29,7 @@ class Timer
 		void start();                 static int start(lua_State *L);// increment by second
 		void stop();                  static int stop(lua_State *L);// stop incrementing
 		void reset();                 static int reset(lua_State *L); // resets timer to default values
+		double increment();           static int increment(lua_State *L); // returns increment between start and stop
 		static void reset_s();        static int reset_s(lua_State *L);
 		static void reset_e();        static int reset_e(lua_State *L);
 		// delay

@@ -343,8 +343,10 @@ void Image::generate()
 		return;
 #endif		
 #ifdef __gnu_linux__
+#ifdef DOKUN_X11
     if(!glXGetCurrentContext())
 		return;
+#endif
 #endif
 	if(!glIsTexture(buffer)) // no buffer yet (generate a single buffer and no more than 1)
 	{
@@ -383,8 +385,10 @@ void Image::destroy()
         return;
 #endif		
 #ifdef __gnu_linux__
+#ifdef DOKUN_X11
     if(!glXGetCurrentContext())
 		return;
+#endif
 #endif
     if(buffer != 0)
 	{
@@ -1165,7 +1169,7 @@ int Image::is_image(lua_State *L)
 	*/
 	luaL_checktype(L, 1, LUA_TTABLE); // 1
 	lua_getmetatable(L, 1); // 2
-	lua_getglobal(L, "Image_mt"); // 3
+	lua_getglobal(L, "Image"); // 3
 #ifdef DOKUN_LUA51
 	lua_pushboolean(L, lua_equal (L, 2, 3));
 #endif
@@ -1192,8 +1196,10 @@ bool Image::is_generated()const
 		return false;
 #endif		
 #ifdef __gnu_linux__
+#ifdef DOKUN_X11
     if(!glXGetCurrentContext())
 		return false;
+#endif
 #endif
     return (glIsTexture(buffer) == true);
 #endif	

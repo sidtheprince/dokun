@@ -31,7 +31,9 @@ class Voice { // for voice recording and playback; will use the .opus for intera
 		bool decode_opus(const std::string& file_name); // read opus
 		void vorbis_to_opus(const std::string& in, std::string out);
 	    void * get_device();  static int get_device(lua_State *L); // returns device handle
-        ALCdevice * device;	
+	#ifdef DOKUN_OPENAL
+        ALCdevice * device;
+    #endif
 		unsigned int source;
 		unsigned int buffer;
  		std::vector<unsigned char> data;

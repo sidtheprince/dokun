@@ -82,17 +82,17 @@ public:
     // level
 	Level * level;
     // titlebar
-	Widget * titlebar;
-	Widget * titlebar_close_button;
-	Widget * titlebar_maximize_button;
-	Widget * titlebar_iconify_button;
+	Box * titlebar;
+	Box * titlebar_close_button;
+	Box * titlebar_maximize_button;
+	Box * titlebar_iconify_button;
 	Label * titlebar_text;
     // menubar
     Menubar * menubar;
 	// toolbox
-	Widget * sidebar;
-	Widget * mainbar;
-	Widget * toolbar;
+	Box * sidebar;
+	Box * mainbar;
+	Box * toolbar;
 	// tool buttons
     Image * play_button;
 	Image * pause_button;
@@ -100,10 +100,10 @@ public:
 	Image * run_button;
 	Image * build_button;	
 	// property_box
-	Widget * property_box;
+	Box * property_box;
 	Entity * selected_entity;
 	Image * selected_image;
-	Widget * selection_box;
+	Box * selection_box;
 	// geometry
 	Edit * position_edit;
 	Edit * position_edit1;
@@ -116,16 +116,16 @@ public:
 	Edit * color_blue_edit;
 	// collection
 	Grid * collection_box;
-	Widget * mouse_box;
+	Box * mouse_box;
 	// messagebox
-	Widget * dialog;
+	Box * dialog;
 	// button
 	Button * ok_button;
 	//Button * cancel_button;
 	Edit * project_edit;
 	bool dragged;
 	// messagebox
-	Widget * quit_dialog;
+	Box * quit_dialog;
 	// close button
 	Image * cross;
 	
@@ -134,7 +134,7 @@ public:
 	int frame;
 	Combobox * combo;
 	// file dialog
-	Widget * file_dialog;
+	Box * file_dialog;
 	List * file_list;
 	Button * open_button;
 	Button * save_button;
@@ -240,12 +240,12 @@ Console - // shows console log
 
 Random code:
 // from dragging an object from collection
-	Widget * mouse_box = new Widget();
+	Box * mouse_box = new Box();
 	mouse_box->set_size(32, 32);
 	mouse_box->set_outline(true);
 	mouse_box->set_outline_width(2.0);
 	mouse_box->set_outline_color(255, 255, 255);
-	std::vector<Widget *> block_stored;
+	std::vector<Box *> block_stored;
 	
 // in loop	
 		// draw mouse box
@@ -257,7 +257,7 @@ Random code:
 if(Mouse::is_pressed(1))
 			{
 				// create object on mouse press
-				Widget * widget = new Widget(*mouse_box);
+				Box * widget = new Box(*mouse_box);
 				//if(widget->get_position() != Mouse::get_position(window))
 				widget->set_position(Mouse::get_position(window));
 			    // store object

@@ -111,6 +111,11 @@ public:
 		// ball
 		int ball_width, const Vector4& ball_color
 	);
+    static void draw_slider_vertical(int x, int y, int width, int height, double angle, double scale_x, double scale_y, double red, double green, double blue, double alpha,
+    // beam
+	double min_value, double max_value, double value, const Vector4& background_color,
+	// ball
+	int ball_height, const Vector4& ball_color);
 	//--------------------------
 	static void draw_switch(int x, int y, int width, int height, double angle, double scale_x, double scale_y, double red, double green, double blue, double alpha, // good!
 		int value,

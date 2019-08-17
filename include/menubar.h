@@ -4,7 +4,7 @@
 #include "ui.h"
 #include "label.h"
 #include "image.h"
-#include "widget.h"
+#include "box.h"
 #ifdef __cplusplus
 class Menubar : public GUI
 {
@@ -15,9 +15,9 @@ public:
 	~Menubar();
 		
 	void draw();                           static int draw(lua_State *L);
-	void add(const Widget& menu);          static int add(lua_State * L);
+	void add(const Box& menu);          static int add(lua_State * L);
 	void add(const std::string& menu);
-	void sub(const Widget& sub_menu, int index);
+	void sub(const Box& sub_menu, int index);
 	void sub(const std::string& menu, const std::string& sub_menu);
     // setters
 	void set_color(int red, int green, int blue, int alpha = 225);
@@ -31,8 +31,8 @@ public:
 	void set_outline_color(const Vector4& color);// static int set_(lua_State *L);
 	void set_outline_antialiased(bool antialised); static int set_outline_antialiased(lua_State *L);	
 	// getters
-	Widget * get_menu(int index);     static int get_menu(lua_State * L);
-	Widget * get_submenu(int menu_index, int sub_index);     static int get_submenu(lua_State * L);
+	Box * get_menu(int index);     static int get_menu(lua_State * L);
+	Box * get_submenu(int menu_index, int sub_index);     static int get_submenu(lua_State * L);
 	int get_menu_count(); static int get_menu_count(lua_State * L);
 	int get_submenu_count(int index); static int get_submenu_count(lua_State * L);
 	Vector4 get_color();              static int get_color(lua_State *L);
@@ -42,10 +42,10 @@ public:
 private:
     // callback
 	void on_hover(void);
-	void on_menu_press(Widget * menu, int index);
-    Widget * previous;
-	std::vector<Widget *> menu_list; 
-	std::vector< std::vector<Widget *> > sub_list;//std::vector<Widget *> sub_menu;
+	void on_menu_press(Box * menu, int index);
+    Box * previous;
+	std::vector<Box *> menu_list; 
+	std::vector< std::vector<Box *> > sub_list;//std::vector<Box *> sub_menu;
 	Vector4 color; // applies to all menus
 	Vector4 submenu_color; // color for all submenus	
 	// outline
@@ -63,12 +63,12 @@ private:
 USAGE:
 	Menubar * menubar = new Menubar();
 	menubar->set_position(600, 20);
-	menubar->add(*new Widget());
-	menubar->add(*new Widget());
-	menubar->add(*new Widget());
-	menubar->sub(*new Widget(), 0); // add submenu to menu 1
-	menubar->sub(*new Widget(), 0); // add submenu to menu 1
-	menubar->sub(*new Widget(), 1); // add submenu to menu 2
-	menubar->sub(*new Widget(), 2); // add submenu to menu 3
+	menubar->add(*new Box());
+	menubar->add(*new Box());
+	menubar->add(*new Box());
+	menubar->sub(*new Box(), 0); // add submenu to menu 1
+	menubar->sub(*new Box(), 0); // add submenu to menu 1
+	menubar->sub(*new Box(), 1); // add submenu to menu 2
+	menubar->sub(*new Box(), 2); // add submenu to menu 3
 
 */

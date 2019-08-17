@@ -170,9 +170,23 @@ int Music::get_volume(lua_State * L)
 }
 */
 /////////////////// 
-bool Music::is_music(Audio * audio)
+bool Music::is_music(Audible * audible)
 {
-	return ((audio != 0) && (dokun::instanceof<Music>(audio) != 0));
+	return ((audible != 0) && (dokun::instanceof<Music>(audible) != 0));
+}
+///////////////////
+int Music::is_music(lua_State * L)
+{
+    luaL_checktype(L, 1, LUA_TTABLE);
+	lua_getfield(L, 1, "udata");
+	if(lua_isuserdata(L, -1))
+	{
+		Audible * audible = *static_cast<Audible **>(lua_touserdata(L, -1));
+		lua_pushboolean(L, Music::is_music(audible));//dynamic_cast<Music *>(audible)->is_music());
+		return 1;
+	}
+    lua_pushboolean(L, false);
+    return 1;
 }
 /////////////////// 
 ///////////////////
@@ -240,7 +254,7 @@ bool Music::load_ogg(const std::string& file_name)
     return(true);	
 }*/
 ///////////////////
-int Music::new_(lua_State *L)
+int Music::music_new(lua_State *L)
 {
 	std::string file_name;
 	if(lua_type(L, -1) == LUA_TSTRING)
