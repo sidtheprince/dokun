@@ -76,13 +76,13 @@ int main()
 | libtiff                | BSD                                  | image                                                 |
 | `libogg`               | BSD                                  | container                                             |
 | `libvorbis`            | BSD                                  | audio (codec)                                         |
-| `libtheora`            | BSD                                  | video (codec)                                         |
-| opus                   | BSD                                  | audio (codec)                                         |
+| `libtheora`            | BSD                                  | video (codec)                                         | <!--| opus                   | BSD                                  | audio (codec)                                         |-->
 | flac                   | BSD                                  | audio (codec)                                         |
 | openal (soft)          | LGPL                                 | audio (playback)                                      |
 | `freetype`             | FT license (BSD)                     | font                                                  | <!--| utf8                   | BSD                                  | unicode                                               |-->
 | sqlite3                | public domain                        | data_serialization                                    | <!--| libxml2                | MIT                                  | data_serialization, model (COLLADA), image (SVG)      |-->
 | box2d                  | zlib/libpng                          | physics                                               | <!--| bullet3                | zlib/libpng                          | physics                                               |-->
+| glm                    | MIT                                  | mathematics                                           |
 | `opengl`               | MIT                                  | graphics                                              |
 | glew                   | BSD, MIT                             | extension                                             |
 | vulkan                 | MIT                                  | graphics                                              |
@@ -95,7 +95,7 @@ int main()
 
 `operating systems`
 
-<a href="https://www.microsoft.com/en-us/windows" target="_blank"><img src="res/icon/windows-orig.png" title="Windows" width="32"></img></a>         <a href="http://www.ubuntu.com/" target="_blank"><img src="res/icon/ubuntu.png" width="32" title="Ubuntu 16.04+"></img></a>  
+<a href="https://www.microsoft.com/en-us/windows" target="_blank"><img src="res/icon/windows-orig.png" title="Windows 10" width="32"></img></a>         <a href="http://www.ubuntu.com/" target="_blank"><img src="res/icon/ubuntu.png" width="32" title="Ubuntu 16.04+"></img></a>  
 <!-- <a href="https://www.apple.com/osx/"><img src="res/icon/mac.png" width="32"></img></a>   <a href="https://www.android.com/"><img src="res/icon/android.png" width="32"></img></a>  <a href="https://www.apple.com/ios/"><img src="res/icon/apple.png" width="32"></img></a>
 -->
 
