@@ -22,6 +22,10 @@ extern "C" {       // make c code compatible with c++
 	#include <signal.h>
 	#include <dirent.h> // opendir
 	#include <strings.h>
+	// for all input event codes
+	#include <linux/input-event-codes.h>
+	// for device
+	#include <sys/ioctl.h>
 #ifdef __cplusplus // if c++
 }
 #endif	

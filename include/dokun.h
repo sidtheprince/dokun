@@ -1,7 +1,7 @@
 /*
     Copyright (c) 2015-2019 Sid Lartey Doku
 
-    This file is part of the Dokun Library.
+    This file is part of libdokun.
 
     Licensed under the MIT Open Source License, 
     for details please see LICENSE file or the website
@@ -49,16 +49,16 @@
 #include "font.h"
 // ui
 #include "ui.h"
-#include "box.h" 
+#include "box.h" // good // can also be used as a tooltip
 #include "button.h" 
-#include "label.h"
-#include "edit.h"
-#include "progressbar.h"
-#include "slider.h"
-#include "toggle.h"
+#include "label.h" // good
+#include "edit.h" // ok - needs work on keyboard characters combinations
+#include "progressbar.h" // good
+#include "slider.h" // good
+#include "toggle.h" // good
 #include "scrollbar.h"
 #include "list.h"
-#include "spinner.h"
+#include "spinner.h" // good
 #include "menubar.h"
 #include "grid.h"
 // network.
@@ -104,6 +104,6 @@
 // process
 #include "process.h"
 // browser
-#include "http.h"
+#include "browser.h"
 #endif 
 // about 60-70 headers; 50-80 sources                     missing (or not included here): dokun.h, build.h,  (dokun.h cannot include itself and build.h already includes dokun.h)

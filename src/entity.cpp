@@ -3,8 +3,7 @@
 Entity::Entity() : visible(true), mode(0)
 {
 	Factory::get_entity_factory()->store(this);
-#ifdef DOKUN_DEBUG    
-    Logger::push(DOKUN_LOGTAG + "Entity " + String(this).str() + " allocated (index=" + String(Factory::get_entity_factory()->get_location(this)).str() + ")" + " (total_entity_instances=" + String(Factory::get_entity_factory()->get_size()).str() + ")");
+#ifdef DOKUN_DEBUG
 #endif	
 }
 ///////////
@@ -12,8 +11,7 @@ Entity::Entity(const std::string& name) : visible(true), mode(0)
 {
 	add_component(new Component("name", String(name)));
 	Factory::get_entity_factory()->store(this);
-#ifdef DOKUN_DEBUG    
-    Logger::push(DOKUN_LOGTAG + "Entity " + String(this).str() + " allocated (index=" + String(Factory::get_entity_factory()->get_location(this)).str() + ")" + " (total_entity_instances=" + String(Factory::get_entity_factory()->get_size()).str() + ")");
+#ifdef DOKUN_DEBUG
 #endif		
 }
 ///////////
@@ -30,8 +28,7 @@ Entity::~Entity()
     if(script) delete script;
     
 	Factory::get_entity_factory()->release(this);
-#ifdef DOKUN_DEBUG 	
-	Logger::push(DOKUN_LOGTAG + "Entity " + String(this).str() + " deallocated (total_entity_instances=" + String(Factory::get_entity_factory()->get_size()).str() + ")");
+#ifdef DOKUN_DEBUG
 #endif		
 }
 ///////////
@@ -271,9 +268,9 @@ int Entity::set_component(lua_State *L)
 	return 0;
 }
 ///////////
-void Entity::set_shader(Shader* shader)
+void Entity::set_shader(const Shader& shader)
 {	
-	shader_list.push_back(shader);
+	shader_list.push_back(&const_cast<Shader&>(shader));
 }
 ///////////
 int Entity::set_shader(lua_State *L)
@@ -288,8 +285,8 @@ int Entity::set_shader(lua_State *L)
 	    if(lua_isuserdata(L, -1)) 
 	    {
 		    Entity * entity = *static_cast<Entity **>(lua_touserdata(L, -1));	
-            entity->set_shader(shader);			
-	    }		
+            entity->set_shader(*shader);
+	    }
 	}
 	return 0;
 }

@@ -9,8 +9,9 @@ Model::Model(void) : x (0), y (0), z (-1), rotation (0, 0, 0), scale_factor (1, 
 	material.emission  = Vector4(0.0, 0.0, 0.0, 1.0);
 	material.shininess = 0.0;
 	Factory::get_model_factory()->store(this);
-#ifdef DOKUN_DEBUG    
-    Logger::push(DOKUN_LOGTAG "Model " + String(this).str() + " allocated (index=" + String(Factory::get_model_factory()->get_location(this)).str() + ")" + " (total_model_instances=" + String(Factory::get_model_factory()->get_size()).str() + ")");
+#ifdef DOKUN_DEBUG 	
+	Logger::push("dokun: " + String(this).str() + " has been allocated with Model::new ()");
+	Logger::push("       (index=" + std::to_string(Factory::get_model_factory()->get_location(this)) + ", total_model_count=" + std::to_string(Factory::get_model_factory()->get_size()) + ")");
 #endif
 }
 ////////////
@@ -38,9 +39,10 @@ Model::Model(const Model& model) // not complete !
 	elements.normal = model.get_element_array(2);
 	texture_list    = model.get_texture_array();
 	Factory::get_model_factory()->store(this);
-#ifdef DOKUN_DEBUG    
-    Logger::push(DOKUN_LOGTAG "Model " + String(this).str() + " allocated (index=" + String(Factory::get_model_factory()->get_location(this)).str() + ")" + " (total_model_instances=" + String(Factory::get_model_factory()->get_size()).str() + ")");
-#endif	
+#ifdef DOKUN_DEBUG 	
+	Logger::push("dokun: " + String(this).str() + " has been allocated with Model::new ()");
+	Logger::push("       (index=" + std::to_string(Factory::get_model_factory()->get_location(this)) + ", total_model_count=" + std::to_string(Factory::get_model_factory()->get_size()) + ")");
+#endif
 }
 ////////////
 Model::Model(const std::string& file_name) : x (0), y (0), z (-1), rotation (0, 0, 0), scale_factor (1, 1, 1), origin(0, 0, 0)
@@ -54,8 +56,9 @@ Model::Model(const std::string& file_name) : x (0), y (0), z (-1), rotation (0, 
 	if(!load(file_name))
 		Logger("Could not open " + file_name); 
 	Factory::get_model_factory()->store(this);
-#ifdef DOKUN_DEBUG    
-    Logger::push(DOKUN_LOGTAG "Model " + String(this).str() + " allocated (index=" + String(Factory::get_model_factory()->get_location(this)).str() + ")" + " (total_model_instances=" + String(Factory::get_model_factory()->get_size()).str() + ")");
+#ifdef DOKUN_DEBUG 	
+	Logger::push("dokun: " + String(this).str() + " has been allocated with Model::new ()");
+	Logger::push("       (index=" + std::to_string(Factory::get_model_factory()->get_location(this)) + ", total_model_count=" + std::to_string(Factory::get_model_factory()->get_size()) + ")");
 #endif	
 } 
 ////////////
@@ -72,8 +75,9 @@ Model::Model(const std::string& file_name, const Texture& texture) : x (0), y (0
 	// set texture
     set_texture(texture);	
 	Factory::get_model_factory()->store(this);
-#ifdef DOKUN_DEBUG    
-    Logger::push(DOKUN_LOGTAG "Model " + String(this).str() + " allocated (index=" + String(Factory::get_model_factory()->get_location(this)).str() + ")" + " (total_model_instances=" + String(Factory::get_model_factory()->get_size()).str() + ")");
+#ifdef DOKUN_DEBUG 	
+	Logger::push("dokun: " + String(this).str() + " has been allocated with Model::new ()");
+	Logger::push("       (index=" + std::to_string(Factory::get_model_factory()->get_location(this)) + ", total_model_count=" + std::to_string(Factory::get_model_factory()->get_size()) + ")");
 #endif	
 }
 ////////////
@@ -90,16 +94,17 @@ Model::Model(const std::vector<Vector3>& vertex_array,
 	if(!load(vertex_array, element_array))
 		Logger("Could not load array");
 	Factory::get_model_factory()->store(this);
-#ifdef DOKUN_DEBUG    
-    Logger::push(DOKUN_LOGTAG "Model " + String(this).str() + " allocated (index=" + String(Factory::get_model_factory()->get_location(this)).str() + ")" + " (total_model_instances=" + String(Factory::get_model_factory()->get_size()).str() + ")");
+#ifdef DOKUN_DEBUG 	
+	Logger::push("dokun: " + String(this).str() + " has been allocated with Model::new ()");
+	Logger::push("       (index=" + std::to_string(Factory::get_model_factory()->get_location(this)) + ", total_model_count=" + std::to_string(Factory::get_model_factory()->get_size()) + ")");
 #endif	
 }			
 ////////////
 Model::~Model(void)
 {
 	Factory::get_model_factory()->release(this);
-#ifdef DOKUN_DEBUG 	
-	Logger::push(DOKUN_LOGTAG + "Model " + String(this).str() + " deallocated (total_model_instances=" + String(Factory::get_model_factory()->get_size()).str() + ")");
+#ifdef DOKUN_DEBUG
+	Logger::push("dokun: " + String(this).str() + " deallocated with Model::~Model()\n       (total_model_count=" + String(Factory::get_model_factory()->get_size()).str() + ")");
 #endif	  
 }
 ////////////

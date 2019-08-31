@@ -1,0 +1,2 @@
+player - a music player that can play a single or multiple sounds; displays information such as the song title, artist, duration (in minutes and seconds)
+chat   - a chatbox with a text editor; displays any text entered in the text edit

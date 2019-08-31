@@ -4,8 +4,9 @@
 GUI::GUI (void) : x (0), y (0), angle(0), scale_x(1), scale_y(1), width (0), height (0), orientation(0), relative(0, 0), parent(nullptr),    visible(true), active(true),    draggable(false), droppable(false), resizeable(false), sortable(false)
 {
 	Factory::get_gui_factory()->store(this);
-#ifdef DOKUN_DEBUG    
-    Logger::push(DOKUN_LOGTAG + "GUI " + String(this).str() + " allocated (index=" + String(Factory::get_gui_factory()->get_location(this)).str() + ")" + " (total_gui_instances=" + String(Factory::get_gui_factory()->get_size()).str() + ")");
+#ifdef DOKUN_DEBUG 	
+	Logger::push("dokun: " + String(this).str() + " has been allocated with GUI::new ()");
+	Logger::push("       (index=" + std::to_string(Factory::get_gui_factory()->get_location(this)) + ", total_gui_count=" + std::to_string(Factory::get_gui_factory()->get_size()) + ")");
 #endif		
 }
 /////////////
@@ -13,7 +14,7 @@ GUI::~GUI(void)
 {
 	Factory::get_gui_factory()->release(this); 
 #ifdef DOKUN_DEBUG 	
-	Logger::push(DOKUN_LOGTAG + "GUI " + String(this).str() + " deallocated (total_gui_instances=" + String(Factory::get_gui_factory()->get_size()).str() + ")");
+	Logger::push("dokun: " + String(this).str() + " deallocated with GUI::~GUI()\n       (total_gui_count=" + String(Factory::get_gui_factory()->get_size()).str() + ")");
 #endif	
 }
 /////////////
@@ -191,6 +192,9 @@ int GUI::set_width(lua_State *L)
 	{
 		GUI * gui = *static_cast<GUI **>(lua_touserdata(L, -1));
 		gui->set_width(static_cast<int>(lua_tonumber(L, 2)));
+		// set in lua as well ...
+		lua_pushvalue(L, 2);
+		lua_setfield(L, 1, "width");	
 	}	
 	return 0;
 }
@@ -209,6 +213,9 @@ int GUI::set_height(lua_State *L)
 	{
 		GUI * gui = *static_cast<GUI **>(lua_touserdata(L, -1));
 		gui->set_height(static_cast<int>(lua_tonumber(L, 2)));
+		// set in lua as well ...
+		lua_pushvalue(L, 2);
+		lua_setfield(L, 1, "height");		
 	}		
 	return 0;
 }
@@ -259,6 +266,11 @@ int GUI::set_position(lua_State *L)
 	{
 		GUI * gui = *static_cast<GUI **>(lua_touserdata(L, -1));
 		gui->set_position(static_cast<double>(lua_tonumber(L, 2)), static_cast<double>(lua_tonumber(L, 3)));
+		// set in lua as well ...
+		lua_pushvalue(L, 2);
+		lua_setfield(L, 1, "x");
+		lua_pushvalue(L, 3);
+		lua_setfield(L, 1, "y");		
 	}	
 	return 0;
 } 
@@ -283,6 +295,11 @@ int GUI::set_relative_position(lua_State *L)
 	{
 		GUI * gui = *static_cast<GUI **>(lua_touserdata(L, -1));
 		gui->set_relative_position(lua_tonumber(L, 2), lua_tonumber(L, 3));
+		// set in lua as well ...
+		lua_pushvalue(L, 2);
+		lua_setfield(L, 1, "relative_x");
+		lua_pushvalue(L, 3);
+		lua_setfield(L, 1, "relative_y");		
 	}
 	return 0;
 }
@@ -303,6 +320,11 @@ int GUI::set_scale(lua_State *L)
 	{
 		GUI * gui = *static_cast<GUI **>(lua_touserdata(L, -1));
 		gui->set_scale (static_cast<int>(lua_tonumber(L, 2)), static_cast<int>(lua_tonumber(L, 3))) ;
+		// set in lua as well ...
+		lua_pushvalue(L, 2);
+		lua_setfield(L, 1, "scale_x");
+		lua_pushvalue(L, 3);
+		lua_setfield(L, 1, "scale_y");		
 	}
 	return 0;
 }
@@ -321,6 +343,9 @@ int GUI::set_angle(lua_State *L)
 	{
 		GUI * gui = *static_cast<GUI **>(lua_touserdata(L, -1));
 		gui->set_angle (static_cast<double>(lua_tonumber(L, 2)));
+		// set in lua as well ...
+		lua_pushvalue(L, 2);
+		lua_setfield(L, 1, "angle");	
 	}
 	return 0;
 }
@@ -348,6 +373,9 @@ int GUI::set_orientation(lua_State *L)
 	{
 		GUI * gui = *static_cast<GUI **>(lua_touserdata(L, -1));
 		gui->set_orientation (static_cast<int>(lua_tonumber(L, 2))) ;
+		// set in lua as well ...
+		lua_pushvalue(L, 2);
+		lua_setfield(L, 1, "orientation");	
 	}
 	return 0;
 }
@@ -409,6 +437,9 @@ int GUI:: set_active(lua_State *L)
 	{
 		GUI * gui = *static_cast<GUI **>(lua_touserdata(L, -1));
 		gui->set_active((lua_toboolean(L, 2) != 0));
+		// set in lua as well ...
+		lua_pushvalue(L, 2);
+		lua_setfield(L, 1, "active");	
 	}
 	return 0;
 }
@@ -432,6 +463,9 @@ int GUI::set_visible(lua_State *L)
 	{
 		GUI * gui = *static_cast<GUI **>(lua_touserdata(L, -1));
 		gui->set_visible((lua_toboolean(L, 2) != 0));
+		// set in lua as well ...
+		lua_pushvalue(L, 2);
+		lua_setfield(L, 1, "visible");		
 	}	
 	return 0;
 }
@@ -450,6 +484,9 @@ int GUI::set_focused(lua_State *L)
 	{
 		GUI * gui = *static_cast<GUI **>(lua_touserdata(L, -1));
 		gui->set_focused((lua_toboolean(L, 2) != 0));
+		// set in lua as well ...
+		lua_pushvalue(L, 2);
+		lua_setfield(L, 1, "focused");	
 	}	
 	return 0;	
 }
@@ -469,6 +506,9 @@ int GUI::set_draggable(lua_State *L)
 	{
 		GUI * gui = *static_cast<GUI **>(lua_touserdata(L, -1));
 	    gui->set_draggable((lua_toboolean(L, 2) != 0));
+		// set in lua as well ...
+		lua_pushvalue(L, 2);
+		lua_setfield(L, 1, "draggable");    
 	}
 
 	return 0;
@@ -488,6 +528,9 @@ int GUI:: set_droppable(lua_State *L)
 	{
 		GUI * gui = *static_cast<GUI **>(lua_touserdata(L, -1));
 	    gui->set_droppable((lua_toboolean(L, 2) != 0));
+		// set in lua as well ...
+		lua_pushvalue(L, 2);
+		lua_setfield(L, 1, "droppable");   
 	}	
 	return 0;
 }
@@ -506,6 +549,9 @@ int GUI:: set_resizeable(lua_State *L)
 	{
 		GUI * gui = *static_cast<GUI **>(lua_touserdata(L, -1));
 	    gui->set_resizeable((lua_toboolean(L, 2) != 0));
+		// set in lua as well ...
+		lua_pushvalue(L, 2);
+		lua_setfield(L, 1, "resizeable");    
 	}	
 	return 0;
 }
@@ -524,6 +570,9 @@ int GUI::set_sortable(lua_State *L)
 	{
 		GUI * gui = *static_cast<GUI **>(lua_touserdata(L, -1));
 	    gui->set_sortable((lua_toboolean(L, 2) != 0));
+		// set in lua as well ...
+		lua_pushvalue(L, 2);
+		lua_setfield(L, 1, "sortable");    
 	}	
 	return 0;	
 }
@@ -651,9 +700,8 @@ double GUI::get_relative_x() const
 {
     if(!parent) { 
  #ifdef DOKUN_DEBUG1   
-		Logger("warning! Calling GUI::get_relative_x without a parent");
- #endif		
-		return get_x();
+		Logger("warning! Calling GUI::get_relative_x without a parent.", "warning"); // this is not that serious
+ #endif
 	}
 	return relative.x;	
 } 
@@ -676,9 +724,8 @@ double GUI::get_relative_y() const
 {
     if(!parent) { 
  #ifdef DOKUN_DEBUG1   
-		Logger("warning! Calling GUI::get_relative_y without a parent");
+		Logger("warning! Calling GUI::get_relative_y without a parent.", "warning"); // this is not that serious
  #endif
-		return get_y();
 	}
 	return relative.y;  
 }
@@ -1060,7 +1107,7 @@ void GUI::on_create()
 /////////////
 void GUI::on_draw()
 {
-	if(parent) // if GUI has a parent
+	if(parent) // if self has a parent
 	{/*
 		// keep object within parent bounds (keep from moving outside parent)
         if(get_x() <= parent->get_x()) {set_position(parent->get_x(), get_y());}
@@ -1068,25 +1115,26 @@ void GUI::on_draw()
 	    if(get_x() >= parent->get_x() + (parent->get_width() - get_width()))   {set_position(parent->get_x() + (parent->get_width() - get_width()), get_y());}
 	    if(get_y() >= parent->get_y() + (parent->get_height() - get_height())) {set_position(get_x(), parent->get_y() + (parent->get_height() - get_height()));}
 	    */
-	    // set position to parent_position + relative_position
+	    // set self_position to parent_position + self_relative_position
 	    set_position(parent->get_x() + get_relative_x(), parent->get_y() + get_relative_y());
-	    // THIS LINE IS BAD FOR LABELS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	    // keep object from exceeding parent size (width and height) UPDATED: 9-7-2018 
-	    //if(get_width () > parent->get_width ()) set_size(parent->get_width(), get_height()); // if object is wider than parent, make width equal to parent's width
-		//if(get_height() > parent->get_height()) set_size(get_width(), parent->get_height()); // if object is taller than parent, make height equal to parent's height
 	}	
-	if(is_visible()) 
+	//////////////////////////////////////////////////////////////////////////////////////////
+	if(is_visible()) // ONLY if self is visible (child GUI can also have their own visibility)
 	{
 		for(int i = 0; i < Factory::get_gui_factory()->get_size(); i++)
 		{
 			GUI * gui = static_cast<GUI*>(Factory::get_gui_factory()->get_object(i));
-			// draw all children if visible (child ui can also have their own visibility)
-			if(is_parent_of(*gui)) { gui->draw(); }
-			// set focus to the gui that is pressed
-			/*if(gui->is_pressed()) {gui->set_focused(true);}*/
+			// draw all children of self
+			if(gui->parent == this) gui->draw();
 		}
-	}
-	// if mouse is over ui and mouse is pressed, set as current focus
+		// if self is pressed, set it as the current "focused" GUI
+		if(is_pressed()) set_focused  (true);
+		// if mouse is pressed elsewhere
+		else if(!Mouse::is_over(get_rect()) && Mouse::is_pressed(1)) set_focused(false);   
+		#ifdef DOKUN_DEBUG0  
+		   if(GUI::focused) std::cout << String(typeid(*this).name()).str() << ":" << String(GUI::focused) << " has focus" << std::endl; // #include <typeinfo>
+		#endif		
+	} // end of is_visible()
 }
 /////////////
 /////////////

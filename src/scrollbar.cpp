@@ -1,9 +1,10 @@
 #include "../include/scrollbar.h"
 
-Scrollbar::Scrollbar() : value(0), range(0, 100), color(64, 64, 64, 225), 
+Scrollbar::Scrollbar() : value(0), range(0, 5), color(64, 64, 64, 225), 
 // handle
-handle_color(32, 32, 32, 225),
-handle_height(40),
+handle_offset(0), // y_position
+handle_color(0, 51, 102, 255)/*(32, 32, 32, 225)*/,
+handle_size(40),  // height
 handle_radius(50),
 // button
 button(false),
@@ -66,9 +67,9 @@ void Scrollbar::draw()
         int blue   = get_color().z;		
 		int alpha  = get_color().w;		
 		Renderer::draw_scrollbar(x, y, width, height, angle, scale_x, scale_y, red, green, blue, alpha,
-            value,
+            value, range.x, range.y,
 			// handle
-			handle_height, handle_color,
+			handle_offset, handle_size, handle_color,
             // button
 			button, button_height, button_color,
             // arrow
@@ -133,7 +134,9 @@ int Scrollbar::set_value(lua_State *L)
 }
 //////////////
 void Scrollbar::set_step(double step)
-{} // number of items to scroll
+{
+    range.y = step;
+} // number of items to scroll
 //////////////
 // handle properties
 void Scrollbar::set_handle_color(int layer, int red, int green, int blue)
@@ -146,8 +149,10 @@ int Scrollbar::set_handle_color(lua_State *L)
 //////////////
 //void set_handle_inner_color(int red, int green, int blue, int alpha); static int set_handle_inner_color(lua_State *L);// handle and beam parts of slider
 //void set_handle_outer_color(int red, int green, int blue, int alpha); static int set_handle_outer_color(lua_State *L);// handle and beam parts of slider
-void Scrollbar::set_handle_height(int handle_height)
-{}
+void Scrollbar::set_handle_size(int handle_size)
+{
+    this->handle_size = handle_size; // height
+}
 //////////////
 // scrollbar properties
 void Scrollbar::set_radius(double radius)
@@ -336,7 +341,7 @@ int Scrollbar::get_handle_y(lua_State *L)
 //////////////
 int Scrollbar::get_handle_width() const
 {
-    return 0;
+    return get_width();
 }
 //////////////
 int Scrollbar::get_handle_width(lua_State *L)
@@ -346,7 +351,7 @@ int Scrollbar::get_handle_width(lua_State *L)
 //////////////
 int Scrollbar::get_handle_height() const
 {
-    return 0;
+    return handle_size;
 }
 //////////////
 int Scrollbar::get_handle_height(lua_State *L)

@@ -5,15 +5,21 @@
 #include "types.h"
 #include "vector.h"
 #include "string.h" // for unicode support (window title)
-#include "shader.h"
+//#include "shader.h"
 #include "factory.h" // to store multiple windows
 #include "renderer.h"
 #include "keyboard.h"
 #include "logger.h"
+#ifdef __cplusplus
+  #include <lua.hpp>
+#else
+  #include <lua.h>
+  #include <lualib.h>
+  #include <lauxlib.h>
+#endif
 
 #ifdef __cplusplus
 #include <iostream>
-#include <lua.hpp>
 // To avoid naming conflictions with X11's "Window" class
 #ifndef __gnu_linux__
 class Window;

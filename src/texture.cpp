@@ -17,8 +17,9 @@ Texture::Texture() : width(32), height(32), depth(1), data (nullptr),
 	level  = 0;
 #endif
     Factory::get_texture_factory()->store(this);
-#ifdef DOKUN_DEBUG    
-    Logger::push(DOKUN_LOGTAG + "Texture " + String(this).str() + " allocated (index=" + String(Factory::get_texture_factory()->get_location(this)).str() + ")" + " (total_texture_instances=" + String(Factory::get_texture_factory()->get_size()).str() + ")");
+#ifdef DOKUN_DEBUG 	
+	Logger::push("dokun: " + String(this).str() + " has been allocated with Texture::new ()");
+	Logger::push("       (index=" + std::to_string(Factory::get_texture_factory()->get_location(this)) + ", total_texture_count=" + std::to_string(Factory::get_texture_factory()->get_size()) + ")");
 #endif    
 }
 /////////////
@@ -26,9 +27,10 @@ Texture::Texture(const Texture& texture)
 {
     copy(texture);
 	Factory::get_texture_factory()->store(this);
-#ifdef DOKUN_DEBUG    
-    Logger::push(DOKUN_LOGTAG + "Texture " + String(this).str() + " allocated (index=" + String(Factory::get_texture_factory()->get_location(this)).str() + ")" + " (total_texture_instances=" + String(Factory::get_texture_factory()->get_size()).str() + ")");
-#endif 	
+#ifdef DOKUN_DEBUG 	
+	Logger::push("dokun: " + String(this).str() + " has been allocated with Texture::new ()");
+	Logger::push("       (index=" + std::to_string(Factory::get_texture_factory()->get_location(this)) + ", total_texture_count=" + std::to_string(Factory::get_texture_factory()->get_size()) + ")");
+#endif  	
 }
 /////////////
 Texture::Texture(const std::string& file_name) : rect(0, 0, 0, 0), type("diffuse")
@@ -51,9 +53,10 @@ Texture::Texture(const std::string& file_name) : rect(0, 0, 0, 0), type("diffuse
 	level  = 0;	
 #endif		
     Factory::get_texture_factory()->store(this);
-#ifdef DOKUN_DEBUG    
-    Logger::push(DOKUN_LOGTAG + "Texture " + String(this).str() + " allocated (index=" + String(Factory::get_texture_factory()->get_location(this)).str() + ")" + " (total_texture_instances=" + String(Factory::get_texture_factory()->get_size()).str() + ")");
-#endif      
+#ifdef DOKUN_DEBUG 	
+	Logger::push("dokun: " + String(this).str() + " has been allocated with Texture::new ()");
+	Logger::push("       (index=" + std::to_string(Factory::get_texture_factory()->get_location(this)) + ", total_texture_count=" + std::to_string(Factory::get_texture_factory()->get_size()) + ")");
+#endif       
 }
 /////////////
 Texture::Texture(const std::string& file_name, const std::string& type) : rect(0, 0, 0, 0)
@@ -77,8 +80,9 @@ Texture::Texture(const std::string& file_name, const std::string& type) : rect(0
 #endif		
 	set_type(type);
 	Factory::get_texture_factory()->store(this);
-#ifdef DOKUN_DEBUG    
-    Logger::push(DOKUN_LOGTAG + "Texture " + String(this).str() + " allocated (index=" + String(Factory::get_texture_factory()->get_location(this)).str() + ")" + " (total_texture_instances=" + String(Factory::get_texture_factory()->get_size()).str() + ")");
+#ifdef DOKUN_DEBUG 	
+	Logger::push("dokun: " + String(this).str() + " has been allocated with Texture::new ()");
+	Logger::push("       (index=" + std::to_string(Factory::get_texture_factory()->get_location(this)) + ", total_texture_count=" + std::to_string(Factory::get_texture_factory()->get_size()) + ")");
 #endif  	
 }
 /////////////
@@ -103,8 +107,9 @@ Texture::Texture(const std::string& file_name, int x, int y, int width, int heig
 #endif		
     set_rect(x, y, width, height);
 	Factory::get_texture_factory()->store(this);
-#ifdef DOKUN_DEBUG    
-    Logger::push(DOKUN_LOGTAG + "Texture " + String(this).str() + " allocated (index=" + String(Factory::get_texture_factory()->get_location(this)).str() + ")" + " (total_texture_instances=" + String(Factory::get_texture_factory()->get_size()).str() + ")");
+#ifdef DOKUN_DEBUG 	
+	Logger::push("dokun: " + String(this).str() + " has been allocated with Texture::new     ()");
+	Logger::push("       (index=" + std::to_string(Factory::get_texture_factory()->get_location(this)) + ", total_texture_count=" + std::to_string(Factory::get_texture_factory()->get_size()) + ")");
 #endif 	
 }
 /////////////
@@ -128,9 +133,10 @@ Texture::Texture(const void * data, int width, int height, int depth, int channe
 	level  = 0;	
 #endif
     Factory::get_texture_factory()->store(this);
-#ifdef DOKUN_DEBUG    
-    Logger::push(DOKUN_LOGTAG + "Texture " + String(this).str() + " allocated (index=" + String(Factory::get_texture_factory()->get_location(this)).str() + ")" + " (total_texture_instances=" + String(Factory::get_texture_factory()->get_size()).str() + ")");
-#endif      		
+#ifdef DOKUN_DEBUG 	
+	Logger::push("dokun: " + String(this).str() + " has been allocated with Texture::new ()");
+	Logger::push("       (index=" + std::to_string(Factory::get_texture_factory()->get_location(this)) + ", total_texture_count=" + std::to_string(Factory::get_texture_factory()->get_size()) + ")");
+#endif     		
 }
 /////////////
 /////////////
@@ -139,7 +145,8 @@ Texture::~Texture(void)
     destroy();
 	Factory::get_texture_factory()->release(this);
 #ifdef DOKUN_DEBUG 	
-	Logger::push(DOKUN_LOGTAG + "Texture " + String(this).str() + " deallocated (total_texture_instances=" + String(Factory::get_texture_factory()->get_size()).str() + ")");
+	Logger::push("dokun: " + String(this).str() + " has been deallocated with Texture::~Texture ()");
+	Logger::push("       (index=" + std::to_string(Factory::get_texture_factory()->get_location(this)) + ", total_texture_count=" + std::to_string(Factory::get_texture_factory()->get_size()) + ")");
 #endif	
 }
 /////////////
@@ -273,7 +280,7 @@ void Texture::generate()
         glGenerateMipmap(target); // generate mipmaps              glGenerateTextureMipmap(static_cast<GLuint>(buffer)); // <- this is only in OpenGL 4.5
 		glBindTexture(target, 0); // unbind buffer
 	#ifdef DOKUN_DEBUG
-	    Logger::push(DOKUN_LOGTAG + "Texture " + String(this).str() + " buffer generated (value=" + String((int)buffer).str() + ")");
+	    Logger::push("dokun: Texture_" + std::to_string(Factory::get_texture_factory()->get_location(this)) + " generated (value=" + String((int)buffer).str() + ")");
     #endif	
 	}
 #endif	

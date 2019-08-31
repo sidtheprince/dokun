@@ -64,7 +64,7 @@ class Entity // or GameObject; base abtract class that acts as parent for Sprite
 		void set_component(const std::string& name, const void * value);
 		void set_component(const std::string& name, lua_CFunction value);
 		void set_component(const std::string& name, std::function<void (void)> value);
-		void set_shader(Shader * shader);                                     static int set_shader(lua_State *L);
+		void set_shader(const Shader& shader);                                static int set_shader(lua_State *L);
 		void set_script(lua_State *L, const std::string& file_name);          static int set_script(lua_State *L);
 		void set_script(const Script& script); 
         virtual void set_visible(bool visible);		   static int set_visible(lua_State *L);

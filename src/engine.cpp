@@ -54,7 +54,10 @@ bool Engine::on_open()
 #ifdef __gnu_linux__
     std::atexit(Engine::close);
     std::at_quick_exit(Engine::close);
-#endif // start session
+#endif 
+    // set "user-defined" global locale (utf-8, etc.) - std::setlocale(LC_ALL, ""); // for C and C++ where synced with stdio // (#include <clocale>) //std::locale::global(std::locale("")); // for C++ (#include <locale>)  // wstring + wcout works, string + cout does not  (use L"str")//std::wcout << "User-preferred locale setting is " << std::locale("").name().c_str() << '\n';
+    //std::locale::global(std::locale(""));
+    // start session
     Logger::open();
 	/////////////////////////////////////////
 #ifdef DOKUN_VULKAN
@@ -155,6 +158,8 @@ void Engine::on_close()
     Audio::close(); // close openal
 	/////////////////////////////////////////
     /////////////////////////////////////////
+    // save cache (scripts)
+    Script::save_cache();
     // save session
     Logger::close();
 	// reset status to its default (turns engine off)
@@ -163,7 +168,50 @@ void Engine::on_close()
 }
 ////////////
 ////////////
-#include "../include/player.h"
+void pause_thread(int n) 
+{
+  std::this_thread::sleep_for (std::chrono::seconds(n));
+  std::cout << "pause of " << n << " seconds ended\n";
+}
+////////////
+static int num_clients = 0;
+static std::mutex m;
+////////////
+void client()
+{
+m.lock();
+	// client
+    Client * client = new Client();
+	client->connect(1234, "localhost");
+	std::cout << client->read() << std::flush << std::endl; // read from server once
+	while (1)  // write to server (while program is running)
+	{
+		std::string text;
+		std::cin >> text;
+		client->write("client: " + text);
+	}
+m.unlock();	
+}
+void server()
+{
+    // server
+	Server * server = new Server();
+	server->bind(1234);
+	server->listen(); // listens for any incoming connection
+	if(server->accept() != -1) // accepts any incoming connection
+	{
+	    num_clients = num_clients + 1;
+	    std::cout << "Server: client " << num_clients << " added to server" << std::endl;
+	    std::thread new_client(client); // create a new client thread each time it accepts
+	    new_client.join();
+	}
+	server->write("Welcome to Server0"); // write to client once
+	while(1) // read from client (while program is running)
+	{
+		std::cout << server->read() << std::endl; 
+	}
+}
+//////////// 
 ////////////
 int Engine::test(lua_State *L)
 {
@@ -175,22 +223,30 @@ int Engine::test(lua_State *L)
     //=================== misc
     //=================== sprite
 	Sprite * sprite = new Sprite();
-	Texture * texture = new Texture();//(Resource::get_image("box")->get_data(), 102, 102);//("res/SVG_logo.svg");//("res/image.png");
+	Texture * texture = new Texture(Resource::get_image("box")->get_data(), 102, 102);//("res/SVG_logo.svg");//("res/image.png");
 	sprite->set_texture(*texture); // set empty texture to sprite
 	if(texture->get_data ()) sprite->set_size(32, 32); 
 	if(!texture->get_data()) sprite->set_color(0, 51, 102);
 	sprite->set_position(0, 0);//(200, 200);
+	//Logger("Sprite size is: " + String(sprite->get_size()).str() );
     //=================== 
     Model * model = new Model();
     model->load("res/monkey.obj");
     model->set_position(0, 0, -6);
     //=================== music
     Timer * music_timer = new Timer();
-    Music * music = new Music("res/angel.flac");//("res/Oniku.ogg");
+    Music * music = new Music("res/Oniku.ogg");
     music->set_loop(true);
     music->set_volume(1);
-    //music->play();
+    music->play();
     //std::cout << "duration of res/Oniku.ogg" << " is: " << music->get_duration() << " secs" << std::endl;
+	std::cout << "The duration is: " << music->get_duration() << "s" << std::endl;
+    std::cout <<"The title is: " << music->get_title() << std::endl;
+    std::cout <<"The artist is: " << music->get_artist() << std::endl;
+    std::cout <<"The genre is: " << music->get_genre() << std::endl;
+    std::cout <<"The album is: " << music->get_album() << std::endl;
+    std::cout <<"The track_number is: " << music->get_track_number() << std::endl;
+    std::cout <<"The date is: " << music->get_date() << std::endl;    
     music_timer->start();
     //=================== variable time step (recommended)
     double old_time = 0; 
@@ -212,13 +268,22 @@ int Engine::test(lua_State *L)
     //===================
     Box * widget = new Box();
 	widget->set_title_bar(true);
-	widget->set_title_bar_size(20); // update titlebar_size before doing any operations with it
+	widget->set_title_bar_size(30); // update titlebar_size before doing any operations with it
     widget->set_title_bar_button_close(true);
     widget->set_outline(true);
     widget->set_size(200, 50);
     widget->set_position(500, 500);//(0, 0 + widget->get_title_bar_size().y); // box_position should also include titlebar_position if "has_title_bar()" (or else the box's titlebar will be overlaped by the window's titlebar) // So basically the titlebar is a seperate entity with its own size and position though a part/extension of box
     // ---
-
+    Label * title_label = new Label();
+    title_label->set_string("dokun");
+    title_label->set_alignment("center");
+    widget->set_title_bar_label(*title_label);
+    Image * image = new Image();
+	if(!image->load("res/Dokun-logo.png")) std::cout << "Could not load \"res/Dokun-logo.png\"\n";
+	image->set_alignment("left");
+	widget->set_title_bar_image(* image);
+    //->set_position(88, 234);
+    
     Label * label = new Label();
     label->set_string("Sid\nis\ncool");
     label->set_position(10, window.get_client_height() - 50);
@@ -232,9 +297,6 @@ int Engine::test(lua_State *L)
 	//grid->get_block(0, 0)->set_color(255, 51, 51);
 	//std::cout << "Grid: " << grid->get_row_count() << " x " << grid->get_column_count() << std::endl;
 	std::cout << "Size of label   = " << label->get_size  () << std::endl;
-	Image * image = new Image();
-	if(!image->load("res/Dokun-logo.png")) std::cout << "Could not load \"res/Dokun-logo.png\"\n";
-	widget->set_title_bar_image(* image);
 	//===================
 	// GUI_test
 	// edit
@@ -253,47 +315,132 @@ int Engine::test(lua_State *L)
 	// button
 	Button * button = new Button();
 	button->set_position(300, 200);
+	Label * button_label = new Label("Button");
+	button_label->set_alignment("center");
+	button->set_label(*button_label);
 	// slider
 	Slider * slider = new Slider();
 	slider->set_position(429, 324);
 	slider->set_maximum_value(music->get_duration());
-	//slider->set_ball_size(5); 
-	//slider->set_size(slider->get_width(), 5);// if the beam's height is smaller than ball_height * 1.5
-	// for vertical
+	// for vertical slider
 	/*slider->set_size(20, 200);
 	slider->set_orientation(1);*/
+	// spinner
+	Spinner * spinner = new Spinner();
+	spinner->set_position(79, 105);
+	Label * spinner_label = new Label();
+	spinner_label->set_alignment("center");
+	spinner_label->set_color(49, 39, 19, 255);
+	spinner->set_label(* spinner_label);
+	spinner->set_value(sprite->get_width());
+	// list and combobox 
+	List * list = new List();
+	list->add(* new Box());
+	// lists with different sizes
+	list->add(* new Box());
+	list->add(* new Box());
+	list->add(* new Box());
+	list->add(* new Box());
+	list->get_item(0)->set_size(104, 67);
+	list->get_item(1)->set_size(48, 27);
+	list->get_item(2)->set_size(64, 37);
+	list->get_item(3)->set_size(14, 97);
+	// .. and different colors
+	list->get_item(0)->set_color(220, 20, 60);
+	list->get_item(1)->set_color(218, 112, 214);
+	list->get_item(2)->set_color(65, 105, 225);
+	list->get_item(3)->set_color(110, 123, 139);
+	list->get_item(4)->set_color(0,	139, 69);
+	// and text
+	list->get_item(0)->set_label(*new Label("A"));
+	list->get_item(1)->set_label(*new Label("B"));
+	list->get_item(2)->set_label(*new Label("C"));
+	list->get_item(3)->set_label(*new Label("D"));
+	list->get_item(4)->set_label(*new Label("E"));
+	list->get_item(0)->get_label()->set_alignment("center");
+	list->get_item(1)->get_label()->set_alignment("center");
+	list->get_item(2)->get_label()->set_alignment("center");
+	list->get_item(3)->get_label()->set_alignment("center");
+	list->get_item(4)->get_label()->set_alignment("center");	
+	// and image
+	list->get_item(0)->set_image(*new Image(Resource::get_image("box")->get_data(), 102, 102));
+    // combobox
+    Combobox * combo = new Combobox();
+    combo->set_position(98, 300);
+    combo->set_list(*list);
 	// unicode
 	//std::cout << "Hello, ф or \u0444!\n";
-    //std::wcout << u8"Hello, \u00C5!\n";
-    //std::wcout << L"Hello, \u00A9! 平仮名, ひらがな\n";
+    //std::wcout << u8"Hello, \u00C5!\n";'
+    std::wstring w = L"Hello, 漢字\n";
+    std::wcout << w << std::endl;
+    std::wcout << L"Hello, \u00A9! 平仮名, ひらがな\n"; // enable printing of utf-8 with std::wcout (does not work!)
     //std::cout << Console::execute("ls") << std::endl; // start script
     std::string colored_text = Console::color("Hello there Sid", "Yellow", "Blue");
     std::cout << colored_text << std::endl;
     
-    //Logger::set_type("special");
     Logger("Hello from Logger", "info");
-    //Logger::set_type("default");
-    
     Logger(1, "error");
     Logger::push(Logger("This is a warning", "warning"));
 	//===================
-	Player * player = new Player();
-	player->get_box()->set_position(window.get_client_width()/2, 186);
-	player->add(* new Music("res/momentum.wav")); // 68s //("res/guardia.ogg"));
-	player->add(* new Music("res/Oniku.ogg")); // 17s
-	player->add(* new Music("res/cup_of_lartey.ogg")); // 51s
-	player->set_repeat_type(0); // 0=repeat_none, 1=repeat_one, 2=repeat_all
-	player->play();
+	Tab * tab = new Tab();
+	tab->set_position(150, 400);
+	Label * tab_label = new Label("Tab_0");
+	tab_label->set_alignment("center");
+	tab->set_label(*tab_label);
+	tab->add(* new Box());
+    //===================
+    // time-date display
+    Label * date_display = new Label();
+    date_display->set_string(Logger::format("%Y-%m-%d  %H:%M:%S %p"));
+    date_display->set_position(window.get_client_width() - date_display->get_width(), window.get_client_height() - date_display->get_height());
+    //===================
+    //===================
+    //===================
+    /*std::cout << "Spawning 3 threads...\n";
+    std::thread t1 (pause_thread,1);
+    std::thread t2 (pause_thread,2);
+    std::thread t3 (pause_thread,3);
+    std::cout << "Done spawning threads. Now waiting for them to join:\n";
+    t1.join();
+    t2.join();
+    t3.join();
+    std::cout << "All threads joined!\n";
+    std::cout << "Joinable after joining:\n" << std::boolalpha;
+    std::cout << "t1: " << t1.joinable() << '\n';
+    std::cout << "t2: " << t2.joinable() << '\n';
+    std::cout << "t3: " << t3.joinable() << '\n';*/
+    /*std::cout << "Detaching threads ...\n";
+    t1.detach();
+    t2.detach();
+    t3.detach();
+    std::cout << "Joinable after detaching:\n" << std::boolalpha;
+    std::cout << "t1: " << t1.joinable() << '\n';
+    std::cout << "t2: " << t2.joinable() << '\n';
+    std::cout << "t3: " << t3.joinable() << '\n';*/    
+	//===================
+	//std::thread tserver (server); tserver.join();// main thread - can either join or detach from
+	//std::thread tclient1 (client); // somehow we forgot to join this to main thread - will cause a crash.
+	//tclient1.join();
+	//std::thread tclient2 (client);
+	//std::thread tclient3 (client);
+	//tclient2.join();
+	//tclient3.join();
+	//tclient.detach()
+    //if(tclient.joinable()) tclient.join(); // somehow we forgot to join this to main thread - will cause a crash.
+	//===================
+	//std::setlocale(LC_ALL, ""); // for C and C++ where synced with stdio // (#include <clocale>)
+	//std::locale::global(std::locale("")); // for C++ (#include <locale>)
+	//std::cout.imbue(std::locale()); // cerr, clog, wcout, wcerr, wclog as needed // example: std::locale mylocale(""); std::cout.imbue(mylocale);
+	// enable utf-8 english
 	
+	std::cout << "Ђ Ͽ ϵ" << std::endl;
+	Console::write("Console online!");
 	
-	std::cout << "Total duration of all songs in Player: " << player->get_total_duration() << "s" << std::endl;
-    std::cout <<"The title is: " << player->get_current_song()->get_title() << std::endl;
-    std::cout <<"The artist is: " << player->get_current_song()->get_artist() << std::endl;
-    std::cout <<"The genre is: " << player->get_current_song()->get_genre() << std::endl;
-    std::cout <<"The album is: " << player->get_current_song()->get_album() << std::endl;
-    std::cout <<"The track_number is: " << player->get_current_song()->get_track_number() << std::endl;
-    std::cout <<"The date is: " << player->get_current_song()->get_date() << std::endl;
-    std::cout <<"The cover_art is: " << String((unsigned char *)player->get_current_song()->get_cover()) << std::endl;
+	Box * tool = new Box();
+	tool->set_as_tooltip(true);
+	tool->set_position(750, 500);
+	tool->set_label(*new Label("This a Tooltip."));
+	tool->get_label()->set_alignment("center");
 	//===================
     while(window.is_open()) // main loop
     {
@@ -303,43 +450,21 @@ int Engine::test(lua_State *L)
         old_time = new_time;
         new_time = (clock() / (double)CLOCKS_PER_SEC) * 1000;// get time in milliseconds or something; increments by the 100s
         delta_time = new_time - old_time;
-        //std::cout << "delta_time: " << delta_time << "\n"; 
-        //std::cout << "Sprite_position: " << sprite->get_position() << std::endl;
-		//////////////////////////////////////////////////////
-		//voice->start();
+        //std::cout << "delta_time: " << delta_time << "\n";
+		////////////////////////////////////////////////////// Camera
         Camera * camera = Renderer::get_camera();            //std::cout<<"Rendering area: " << Renderer::get_display_size() << std::endl;//Renderer::set_display_size(window.get_client_width(), window.get_client_height());//on linux the rendering area is the usual full window size, on windows, the rendering area is the client area and not the full window_size
-		// get_sprite_position_after_rotated
-        Vector3 cam_pos    = camera->get_position();
-        Vector3 model_pos  = model->get_position();
-        Vector3 sprite_pos = Vector3(sprite->get_position(), -1);
-        ////////////////////////////////////////////////////// Camera
         // camera follow sprite test (will affect Mouse_position)
         int camera_height = -(window.get_client_height() / 2);// keep camera at center height of screen;  negative = up   positive = down
         //camera->set_position(Vector3(sprite->get_position(), 0.0) + Vector3(-(window.get_client_width() - window.get_client_height() / 2), camera_height, 0) );//Vector3(0, camera_height, 0)//Vector3(cam_x_position_away_from_sprite, camera_height, 0)
         ////////////////////////////////////////////////////// Controls
-        //using namespace std::chrono_literals;
-    //std::cout << "Hello waiter\n" << std::flush;
-    //auto start = std::chrono::high_resolution_clock::now();
-    //std::this_thread::sleep_for(2);
-    //auto end = std::chrono::high_resolution_clock::now();
-    //std::chrono::duration<double, std::milli> elapsed = end-start;
-    //std::cout << "Waited " << elapsed.count() << " ms\n";
-        /*
-        std::cout << "Milliseconds passed: " << Timer::milliseconds() << std::endl;
-        std::cout << "Seconds passed     : " << Timer::seconds     () << std::endl;
-        std::cout << "Minutes passed     : " << Timer::minutes     () << std::endl;
-        std::cout << "Hours   passed     : " << Timer::hours       () << std::endl;
-        std::cout << "Days   passed     : " << Timer::days       () << std::endl;
-        */
-        //////////////////////////////////////////////////////
-        //std::cout << "Slider ball_width: " << slider->get_ball_width() << std::endl;	std::cout << "Slider ball_x: " << slider->get_ball_x() << std::endl;
-        //std::cout << "Slider ball_height: " << slider->get_ball_height() << std::endl;	std::cout << "Slider ball_y: " << slider->get_ball_y() << std::endl;//std::cout << "Slider value: " << slider->get_value() << std::endl;
-        /*if(!music->is_done())*/
-        //if(slider->get_value() >= music->get_duration()) { music_timer->stop(); music_timer->reset(); slider->reset(); music_timer->start();}// if end has been reached, reset timer, reset slider and start timer all over again (will not work for looped audibles as music never stops) // start all over again
-        //if(slider->get_value() < music->get_duration() && music->is_playing()) {slider->set_value( music_timer->increment    ());} // if music has not reached its end
-        
-        //std::cout << "Slider: " << slider->get_value() << std::endl;
-        //std::cout << "Seconds passed     : " << music_timer->increment    ()<< std::endl;
+        sprite->set_size(spinner->get_value(), spinner->get_value());
+        // IIRC, Unicode escapes are \uXXXX where the XXXX is for hex digits.
+        //std::cout << "number_to_char: " << static_cast<unsigned char>(65) << std::endl; // prints A
+        //if(Mouse::is_pressed(4)) std::cout << "Mouse button 4 activated\n";
+        // update time and date
+        date_display->set_string(Logger::format("%Y-%m-%d  %H:%M:%S %p"));
+        // update console box
+        //Console::write(std::to_string(Timer::seconds() ));
         //////////////////////////////////////////////////////
 	    if(window.is_focused()) // if window is focused
 	    {
@@ -347,8 +472,8 @@ int Engine::test(lua_State *L)
 
 			if(Keyboard::is_pressed(DOKUN_KEY_UP   )){ label->set_position(label->get_position().x, label->get_position().y-1);model->translate(0, 0, -1);sprite->translate(0                  ,-2 /* * Timer::delta()*/);}
 			if(Keyboard::is_pressed(DOKUN_KEY_DOWN )){ label->set_position(label->get_position().x, label->get_position().y+1);model->translate(0, 0, 1); sprite->translate(0                  , 2 /* * Timer::delta()*/);}
-			if(Keyboard::is_pressed(DOKUN_KEY_LEFT )){ slider->set_value(slider->get_value() - 1);         label->set_position(label->get_position().x-1, label->get_position().y);model->translate(1, 0, 0); sprite->translate(-2 /* * Timer::delta()*/, 0 );}
-			if(Keyboard::is_pressed(DOKUN_KEY_RIGHT)){ slider->set_value(slider->get_value() + 1);         label->set_position(label->get_position().x+1, label->get_position().y);model->translate(-1, 0, 0);sprite->translate(2  /* * Timer::delta()*/, 0 );}
+			if(Keyboard::is_pressed(DOKUN_KEY_LEFT )){ slider->set_value(slider->get_value() - 1);  label->set_position(label->get_position().x-1, label->get_position().y);model->translate(1, 0, 0); sprite->translate(-2 /* * Timer::delta()*/, 0 );}
+			if(Keyboard::is_pressed(DOKUN_KEY_RIGHT)){ slider->set_value(slider->get_value() + 1);  label->set_position(label->get_position().x+1, label->get_position().y);model->translate(-1, 0, 0);sprite->translate(2  /* * Timer::delta()*/, 0 );}
 			
 			if(Keyboard::is_pressed(DOKUN_KEY_1)) camera->set_zoom(camera->get_zoom() + 1); // zoom_out
 			if(Keyboard::is_pressed(DOKUN_KEY_2)) camera->set_zoom(camera->get_zoom() - 1); // zoom_in
@@ -382,25 +507,29 @@ int Engine::test(lua_State *L)
             if(Mouse::is_over(label->get_position(), label->get_size())){label->set_color(160, 160, 160, 255);}else label->set_color(255, 255, 255, 255);
 		} else music->pause();
 		//  draw here
-        sprite->draw();
-        //std::cout<<"Sprite position: " << sprite->get_position() << std::endl;std::cout<<"Camera position: " << Renderer::get_camera()->get_position() << std::endl;
+        sprite->draw(); //std::cout<<"Sprite position: " << sprite->get_position() << std::endl;std::cout<<"Camera position: " << Renderer::get_camera()->get_position() << std::endl;
         // draw multiple sprites
         for(int i = 0; i < sprite_array.size(); i++) {
             sprite_array[i]->draw();
             if(Mouse::is_over(sprite_array[i]->get_position(), sprite_array[i]->get_size())) {std::cout << "Sprite " << String(sprite_array[i]) << " with color (" << sprite_array[i]->get_color() << ")" << std::endl;} 
-            //if(Sprite::collide(*sprite, *sprite_array[i])) label->set_string("Sprite " + String(sprite).str() + " has collided with another Sprite " + String(sprite_array[i]).str()); //std::cout << "Sprite " << String(sprite) << " has collided with another Sprite " << String(sprite_array[i]) << "!\n";
+            //if(Sprite::collide(*sprite, *sprite_array[i])) label->set_string ("Sprite " + String(sprite).str() + " has collided with another Sprite " + String(sprite_array[i]).str()); //std::cout << "Sprite " << String(sprite) << " has collided with another Sprite " << String(sprite_array[i]) << "!\n";
         }
         model->draw();
         widget->draw();
         //label->set_string(String(sprite->get_position()).str());
         label->draw();
-        edit->draw();
+        //edit->draw();
         toggle->draw();
         button->draw();
         slider->draw();
-        player->draw();
+        spinner->draw();
+        combo->draw();
         //label2->draw();
         //grid->draw();
+        Console::draw();
+        date_display->draw();
+        //Renderer::draw_triangle(700, 500, 5, 5, 0.0, 1, 1, 255, 255, 255, 255);
+        tool->draw();//Renderer::draw_tooltip("Hello", 750, 500, 100, 50, 0.0, 1, 1, 106, 106, 106, 255);
 		// update window
 		window.update();
 	}
@@ -827,6 +956,8 @@ int Engine::reg(lua_State *L)
 	Script::function(L, "Box", "set_title_bar_button_maximize", Box::set_title_bar_button_maximize);
 	Script::function(L, "Box", "set_title_bar_button_close", Box::set_title_bar_button_close);
 	//Script::function(L, "Box", "set_as_icon", Box::set_as_icon);
+	Script::function(L, "Box", "set_as_tooltip", Box::set_as_tooltip);
+	//Script::function(L, "Box", "set_as_", Box::set_as_);
 	Script::function(L, "Box", "set_image", Box::set_image);
 	Script::function(L, "Box", "set_label", Box::set_label);
 	Script::function(L, "Box", "set_text", Box::set_text);
@@ -954,8 +1085,8 @@ int Engine::reg(lua_State *L)
 	Script::table   (L, "Menubar");
 	//Script::inherit (L, "GUI", "");
 	//Script::function(L, "", ""        , ::);
-	// tooltip -----------------------------------------------------------
-	Script::table   (L, "Tooltip");
+	// tooltip ----------------------------------------------------------- // deprecated
+	//Script::table   (L, "Tooltip");
 	//Script::inherit (L, "GUI", "");
 	//Script::function(L, "", ""        , ::);
 	// grid -----------------------------------------------------------

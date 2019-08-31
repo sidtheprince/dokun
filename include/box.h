@@ -86,6 +86,8 @@ class Box : public GUI { // A box ui - ui element that can act as a container fo
         void set_text_list(const std::string& text, int index);                        static int set_text_list(lua_State * L);
 		void set_label(const Label& label);                                            static int set_label(lua_State * L);
         void set_label_list(const Label& label);                                       static int set_label_list(lua_State * L);
+        // tooltip
+        void set_as_tooltip(bool tooltip);                                             static int set_as_tooltip(lua_State *L);
 		// getters
 		Vector4 get_color() const;                                                     static int get_color(lua_State * L);
 		Image * get_image () const;                                                    static int get_image(lua_State * L);	
@@ -99,6 +101,7 @@ class Box : public GUI { // A box ui - ui element that can act as a container fo
 		Vector2 get_title_bar_position()const;
 		Vector2 get_title_bar_size()const;
 		Vector4 get_title_bar_color() const;
+		Label * get_title_bar_label() const;
 		std::string get_title_bar_text() const;
 		Vector4 get_title_bar_text_color() const;
 		Image * get_title_bar_icon() const;
@@ -116,6 +119,7 @@ class Box : public GUI { // A box ui - ui element that can act as a container fo
 		// boolean
 		bool is_box  ()const;                                                               static int is_box(lua_State * L);
 		bool is_icon ()const;                                                               static int is_icon(lua_State * L);
+		bool is_tooltip()const;                                                             static int is_tooltip(lua_State * L);
 		bool has_title_bar()const;                                                          static int has_title_bar(lua_State * L);
 		bool has_outline()const;                                                            static int has_outline(lua_State * L);
 		bool has_border()const;                                                             static int has_border(lua_State * L);
@@ -141,7 +145,7 @@ class Box : public GUI { // A box ui - ui element that can act as a container fo
 	    double radius; // for entire widget
 		Vector4 color;
 		bool fill;
-		std::string type; // label(1), image(2), box(0)
+		std::string type; //  box(0), label(1), image(2), tooltip(3)
 		int old_width, old_height;
 		int max_width, max_height;
 		bool iconified;
@@ -150,6 +154,12 @@ class Box : public GUI { // A box ui - ui element that can act as a container fo
 		bool dragged;
 		std::string alignment;
 		Vector4 forbidden_area;
+		// Box : tooltip
+		std::string tooltip_arrow_direction;
+		int tooltip_arrow_width;
+		int tooltip_arrow_height;
+		double tooltip_arrow_position; // can be either x or y
+		Vector4 tooltip_arrow_color;
 		// Box : contents
 		Label * label; // default label
 		Image * image; // default image
@@ -163,12 +173,12 @@ class Box : public GUI { // A box ui - ui element that can act as a container fo
 		Vector4 title_bar_color;// = Vector4(47, 79, 79, 255);
 		Label * title_bar_label;//std::string title_bar_text;
 		Vector4 title_bar_text_color;
-		Image * title_bar_image;// = nullptr;
-		//double title_bar_radius;
+		Image * title_bar_image;// = nullptr; //double title_bar_radius;
 		bool title_bar_button_iconify;
 		bool title_bar_button_maximize;
 		bool title_bar_button_close; Vector4 title_bar_button_close_color; Image * close_button_image;
-		int title_bar_button_width;
+		int title_bar_button_size;
+		int title_bar_horizontal_padding;
 		// Box : outline
 		bool outline;
 		double outline_width;

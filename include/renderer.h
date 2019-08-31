@@ -139,12 +139,14 @@ public:
 	//--------------------------
 	static void draw_checkbox(int x, int y, int width, int height, double angle, double scale_x, double scale_y, double red, double green, double blue, double alpha);
 	//--------------------------
-	static void draw_tooltip(const std::string& text, int x, int y, int width, int height, double angle, double scale_x, double scale_y, double red, double green, double blue, double alpha);
+	static void draw_tooltip(const std::string& text, int x, int y, int width, int height, double angle, double scale_x, double scale_y, double red, double green, double blue, double alpha,
+	    // arrow - placement("up", "down"=default, "left", "right")
+	    std::string placement = "down", int arrow_width = 10, int arrow_height = 5, double arrow_offset = -1.0);
 	//--------------------------
 	static void draw_scrollbar(int x, int y, int width, int height, double angle, double scale_x, double scale_y, double red, double green, double blue, double alpha,
-	    double value,
+	    double value, double min_value, double max_value,
 		// handle
-		int handle_height, const Vector4& handle_color,
+		double handle_y, int handle_height, const Vector4& handle_color,
 		// button
 		bool button, int button_height, const Vector4& button_color,
 		// arrow
@@ -170,7 +172,14 @@ public:
 	);
 	//--------------------------
 	static void draw_combobox(int x, int y, int width, int height, double angle, double scale_x, double scale_y, double red, double green, double blue, double alpha,
-	    const Vector4& button_color, int button_width);
+	    const Vector4& button_color, int button_width, bool button_on);
+	//--------------------------
+	static void draw_tab(int x, int y, int width, int height, double angle, double scale_x, double scale_y, double red, double green, double blue, double alpha,
+	    // tab
+	    int tab_count = 1, 
+	    // tab body
+	    bool visible = true
+	);
 	//--------------------------
 	//use quad_ui for this - static void draw_menubar(int x, int y, int width, int height, double angle, double scale_x, double scale_y, double red, double green, double blue, double alpha);
 	//use quad_ui for this - static void draw_grid(int x, int y, int width, int height, double angle, double scale_x, double scale_y, double red, double green, double blue, double alpha);

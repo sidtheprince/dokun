@@ -40,6 +40,7 @@ private:
     double value;
 	Vector2 range;
 	Vector4 color;
+	double step; // how much the value can go up or down
 	// button
 	int button_width;
 	Vector4 button_color;
@@ -50,6 +51,17 @@ private:
 	double outline_width;
 	Vector4 outline_color;
 	bool outline_antialiased;
+    // callbacks
+    void on_button_press();	
 };
 #endif
 #endif
+/*
+Usage:
+	Spinner * spinner = new Spinner();
+	spinner->set_position(79, 105);
+	Label * spinner_label = new Label();
+	spinner_label->set_alignment("center");
+	spinner_label->set_color(49, 39, 19, 255);
+	spinner->set_label(* spinner_label);
+*/

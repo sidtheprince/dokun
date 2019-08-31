@@ -1379,16 +1379,17 @@ void Renderer::draw_box(int x, int y, int width, int height, double angle, doubl
         GLuint close_button_vertex_buffer_obj;
         glGenBuffers(1, &close_button_vertex_buffer_obj);
         glBindBuffer(GL_ARRAY_BUFFER, close_button_vertex_buffer_obj); 
-		float close_button_x = (title_bar_width - 10) - 1; // 1 is the right_padding
-		float close_button_y = 2; // top_padding
+		float close_button_x = (title_bar_width  - 10) - 1; // 1 is the right_padding
+		float close_button_y = 2;//(title_bar_height - 10) / 2;//2; // 2 is top_padding // (title_bar_height - close_height) / 2
 		int close_button_width =  10;//title_bar_button_width;
-		int close_button_height = title_bar_height - 5; // 5 is bottom_padding
+		int close_button_height = title_bar_height - 5;//10;//5; // 5 is bottom_padding
 		GLfloat vertices2[] = { // when x and y are 0 then from wwidth-wheight
-		    static_cast<GLfloat>(x + title_bar_x + close_button_x)                                             , static_cast<GLfloat>(y + title_bar_y + close_button_y),
+		    static_cast<GLfloat>(x + title_bar_x + close_button_x)                                           , static_cast<GLfloat>(y + title_bar_y + close_button_y),
             static_cast<GLfloat>(x + title_bar_x + close_button_x) + static_cast<GLfloat>(close_button_width), static_cast<GLfloat>(y + title_bar_y + close_button_y),
             static_cast<GLfloat>(x + title_bar_x + close_button_x) + static_cast<GLfloat>(close_button_width), static_cast<GLfloat>(y + title_bar_y + close_button_y) + static_cast<GLfloat>(close_button_height),
-            static_cast<GLfloat>(x + title_bar_x + close_button_x)                                             , static_cast<GLfloat>(y + title_bar_y + close_button_y) + static_cast<GLfloat>(close_button_height),   
+            static_cast<GLfloat>(x + title_bar_x + close_button_x)                                           , static_cast<GLfloat>(y + title_bar_y + close_button_y) + static_cast<GLfloat>(close_button_height),   
         };      		
+        //std::cout << "close button position (renderer): " << Vector2(x, y) + Vector2(title_bar_x, title_bar_y) + Vector2(close_button_x, close_button_y) << std::endl;
         glBufferData(GL_ARRAY_BUFFER, sizeof(vertices2)* sizeof(GLfloat), vertices2, GL_STATIC_DRAW);
         glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (GLvoid*)0);
         glEnableVertexAttribArray(0);
@@ -3450,9 +3451,10 @@ void Renderer::draw_switch(int x, int y, int width, int height, double angle, do
 	shader.destroy();
 #endif
 }
-////////////
-void Renderer::draw_tooltip(const std::string& text, int x, int y, int width, int height, double angle, double scale_x, double scale_y, double red, double green, double blue, double alpha)
-{/*
+//////////// // Usage: Renderer::draw_tooltip("Hello", 750, 500, 100, 50, 0.0, 1, 1, 106, 106, 106, 255);
+void Renderer::draw_tooltip(const std::string& text, int x, int y, int width, int height, double angle, double scale_x, double scale_y, double red, double green, double blue, double alpha,
+    std::string direction, int arrow_width, int arrow_height, double arrow_offset)
+{
 #ifdef DOKUN_OPENGL	// OpenGL is defined
 	context_check();
     // Disable 3d for User interdata
@@ -3550,10 +3552,10 @@ void Renderer::draw_tooltip(const std::string& text, int x, int y, int width, in
         glGenBuffers(1, &vertex_buffer_obj);
         glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_obj);
 		GLfloat vertices[] = { // when x and y are 0 then from wwidth-wheight
-		    static_cast<GLfloat>(x + x_rad)                                , static_cast<GLfloat>(y + y_rad),
-            static_cast<GLfloat>(x + x_rad) + static_cast<GLfloat>(width), static_cast<GLfloat>(y + y_rad),
-            static_cast<GLfloat>(x + x_rad) + static_cast<GLfloat>(width), static_cast<GLfloat>(y + y_rad) + static_cast<GLfloat>(height),
-            static_cast<GLfloat>(x + x_rad)                                , static_cast<GLfloat>(y + y_rad) + static_cast<GLfloat>(height),   
+		    static_cast<GLfloat>(x/* + x_rad*/)                              , static_cast<GLfloat>(y/* + y_rad*/),
+            static_cast<GLfloat>(x/* + x_rad*/) + static_cast<GLfloat>(width), static_cast<GLfloat>(y/* + y_rad*/),
+            static_cast<GLfloat>(x/* + x_rad*/) + static_cast<GLfloat>(width), static_cast<GLfloat>(y/* + y_rad*/) + static_cast<GLfloat>(height),
+            static_cast<GLfloat>(x/* + x_rad*/)                              , static_cast<GLfloat>(y/* + y_rad*/) + static_cast<GLfloat>(height),   
         };      
         glBufferData(GL_ARRAY_BUFFER, sizeof(vertices)* sizeof(GLfloat), vertices, GL_STATIC_DRAW);
         glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (GLvoid*)0);
@@ -3567,13 +3569,13 @@ void Renderer::draw_tooltip(const std::string& text, int x, int y, int width, in
 		GLuint indices[] = {0, 1, 3,  1, 2, 3,};  
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices)* sizeof(GLuint), indices, GL_STATIC_DRAW); 
 	glBindVertexArray(0);                // (vao end 1  )
-	/
-	shader.set_float("color", (outline_color.x / 255), (outline_color.y / 255), (outline_color.z / 255), (outline_color.w / 255));
+	// Draw outline
+	/*shader.set_float("color", (outline_color.x / 255), (outline_color.y / 255), (outline_color.z / 255), (outline_color.w / 255));
 	//glEnable(GL_LINE_SMOOTH); // may slow down performance
 	glLineWidth(outline_width); // outline_width
 	glBindVertexArray(vertex_array_obj); // use same vao data as _ but this time in a line loop
         glDrawElements(GL_LINE_LOOP, 6, GL_UNSIGNED_INT, 0);
-	glBindVertexArray(0);	/
+	glBindVertexArray(0);	*/
 	// Draw
 	//glBindTexture(GL_TEXTURE_2D, base);  // bind texture
     glBindVertexArray(vertex_array_obj); // (vao start 2)
@@ -3581,36 +3583,74 @@ void Renderer::draw_tooltip(const std::string& text, int x, int y, int width, in
 	glBindVertexArray(0);                // (vao end 2  )
     //glBindTexture(GL_TEXTURE_2D, base);  // bind texture
 //---------------------------------------------
-//--------- TRIANGLE POINTER --------------------------
-/
-shader.disable();
-program.use();
-shader.set_float("color", (red / 255), (green / 255), (blue / 255), (alpha / 255));
+	//////////////////////
+    // TRIANGLE	
     // vertex array obj  - stores vertices
-    GLuint vertex_array_obj1;
-    glGenVertexArrays(1, &vertex_array_obj1);
+    GLuint arrow_vertex_array_obj;
+    glGenVertexArrays(1, &arrow_vertex_array_obj);
 	// vertex buffer obj
-    glBindVertexArray(vertex_array_obj1); // bind vertex array obj
-        GLuint vertex_buffer_obj1;
-        glGenBuffers(1, &vertex_buffer_obj1);
-        glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_obj1);
-		GLfloat vertices1[] = { // when x and y are 0 then from wwidth-wheight
-            static_cast<GLfloat>(x)                                , static_cast<GLfloat>(y),
-            static_cast<GLfloat>(x) + static_cast<GLfloat>(width), static_cast<GLfloat>(y),
-            static_cast<GLfloat>(x) + static_cast<GLfloat>(width), static_cast<GLfloat>(y) + static_cast<GLfloat>(height),
-		};      
-        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices1)* sizeof(GLfloat), vertices1, GL_STATIC_DRAW);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+    glBindVertexArray(arrow_vertex_array_obj); // bind vertex array obj
+        GLuint arrow_vertex_buffer_obj;
+        glGenBuffers(1, &arrow_vertex_buffer_obj);
+        glBindBuffer(GL_ARRAY_BUFFER, arrow_vertex_buffer_obj);
+        std::vector<GLfloat> verticestri;
+        if(String::lower(direction) == "down") {
+            // set arrow geometry       //int arrow_width  = 10; // should be custom (always bigger than arrow_height) //width / 2 - would look like a house //int arrow_height = 5;  // should be custom (always smaller than arrow_width)
+            double arrow_x = (arrow_offset < 0.0) ? width / 2 : arrow_offset + arrow_width; // arrow_x at center of box_x
+            double arrow_y = height + arrow_height; // at bottom of box_height + self_height
+            // but what if user wants to change the position of arrow_x        
+            verticestri.push_back(static_cast<GLfloat>(x + arrow_x));
+            verticestri.push_back(static_cast<GLfloat>(y + arrow_y) + static_cast<GLfloat>(arrow_height ));
+            verticestri.push_back(static_cast<GLfloat>(x + arrow_x) + static_cast<GLfloat>(arrow_width ));
+            verticestri.push_back(static_cast<GLfloat>(y + arrow_y) + static_cast<GLfloat>(-arrow_height));
+            verticestri.push_back(static_cast<GLfloat>(x + arrow_x) + static_cast<GLfloat>(-arrow_width));
+            verticestri.push_back(static_cast<GLfloat>(y + arrow_y) + static_cast<GLfloat>(-arrow_height));
+        }
+        if(String::lower(direction) == "up") {
+            // set arrow geometry
+            double arrow_x = (arrow_offset < 0.0) ? width / 2 : arrow_offset + arrow_width; // arrow_x at center of box_x
+            double arrow_y = -arrow_height; // subtract arrow_y by its own height
+            // pass arrow vertices
+            verticestri.push_back(static_cast<GLfloat>(x + arrow_x));
+            verticestri.push_back(static_cast<GLfloat>(y + arrow_y) + static_cast<GLfloat>(-arrow_height));
+            verticestri.push_back(static_cast<GLfloat>(x + arrow_x) + static_cast<GLfloat>(-arrow_width));
+            verticestri.push_back(static_cast<GLfloat>(y + arrow_y) + static_cast<GLfloat>(arrow_height ));
+            verticestri.push_back(static_cast<GLfloat>(x + arrow_x) + static_cast<GLfloat>(arrow_width ));
+            verticestri.push_back(static_cast<GLfloat>(y + arrow_y) + static_cast<GLfloat>(arrow_height ));
+        }
+        if(String::lower(direction) == "right") 
+        {}
+        if(String::lower(direction) == "left") 
+        {}
+        glBufferData(GL_ARRAY_BUFFER, verticestri.size() * sizeof(GLfloat), verticestri.data(), GL_STATIC_DRAW);//glBufferData(GL_ARRAY_BUFFER, sizeof(verticestri)* sizeof(GLfloat), verticestri, GL_STATIC_DRAW);
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (GLvoid*)0);
         glEnableVertexAttribArray(0);
-    glBindVertexArray(0); // vertex array obj (end 0)
-	// Draw
-	//glBindTexture(GL_TEXTURE_2D, base);  // bind texture
-    glBindVertexArray(vertex_array_obj1); // (vao start 2)
-        glDrawArrays(GL_TRIANGLES, 0, 3);//glDrawElements(GL_TRIANGLE_FAN, 3, GL_UNSIGNED_INT, 0);
-	glBindVertexArray(0);                // (vao end 2  )
-    //glBindTexture(GL_TEXTURE_2D, base);  // bind texture
-	/
-//---------------------------------------------	
+    glBindVertexArray(0); // vertex array obj (end 0)   
+	// element buffer obj
+	glBindVertexArray(arrow_vertex_array_obj); // (vao start 1)
+	    GLuint arrow_element_buffer_obj;
+        glGenBuffers(1, &arrow_element_buffer_obj);
+	    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, arrow_element_buffer_obj);
+		GLuint indicestri[] = {1, 2, 3,  0};  
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indicestri)* sizeof(GLuint), indicestri, GL_STATIC_DRAW); 
+	glBindVertexArray(0);                // (vao end 1  )
+    // Draw outline
+	/*shader.set_float("color", (0.0 / 255), (0.0 / 255), (0.0 / 255), (255.0 / 255));
+	//glEnable(GL_LINE_SMOOTH); // may slow down performance
+	glLineWidth(2.0); // outline_width
+	glBindVertexArray(arrow_vertex_array_obj); // use same vao data as _ but this time in a line loop
+        glDrawArrays(GL_LINE_LOOP, 0, 3);//glDrawElements(GL_LINE_LOOP, 6, GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);*/	
+	// Draw triangle
+	double arrow_red   = red; // arrow will copy the color of tooltip. Make sure color is a double!
+	double arrow_green = green;
+	double arrow_blue  = blue;
+	double arrow_alpha = alpha;
+	shader.set_float("color", (arrow_red / 255), (arrow_green / 255), (arrow_blue / 255), (arrow_alpha / 255)); //glBindTexture(GL_TEXTURE_2D, base);  // bind texture
+    glBindVertexArray(arrow_vertex_array_obj); // (vao start 2)
+        glDrawArrays(GL_TRIANGLES, 0, 3); // draw 3 points to form a triangle
+	glBindVertexArray(0);                // (vao end 2  ) //glBindTexture(GL_TEXTURE_2D, base);  // bind texture
+	//////////////////////
 	// Clean textures
 	//glDeleteTextures(1, &base);
 	// Clean buffers
@@ -3618,21 +3658,21 @@ shader.set_float("color", (red / 255), (green / 255), (blue / 255), (alpha / 255
 	glDeleteBuffers(1, &element_buffer_obj);
 	glDeleteBuffers(1, &vertex_buffer_obj );
 	// triangle
-	//glDeleteBuffers(1, &tex_coord_buffer_obj1);
-	//glDeleteBuffers(1, &element_buffer_obj1);
-	//glDeleteBuffers(1, &vertex_buffer_obj1 );
+	//glDeleteBuffers(1, &arrow_tex_coord_buffer_obj);
+	glDeleteBuffers(1, &arrow_element_buffer_obj);
+	glDeleteBuffers(1, &arrow_vertex_buffer_obj );
 	// Clean arrays
-	glDeleteVertexArrays(1, &vertex_array_obj);
-	//glDeleteVertexArrays(1, &vertex_array_obj1);
+	glDeleteVertexArrays(1, &vertex_array_obj      );
+	glDeleteVertexArrays(1, &arrow_vertex_array_obj);
 	// Restore defaults
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	// Disable program
 	shader.disable();
 	shader.destroy();
-	if(!text.empty()) {
+	//if(!text.empty()) {
 		//draw_label(text, x, y);
-	}
-#endif		*/	
+	//}
+#endif	
 }
 ////////////
 void Renderer::draw_radio(int x, int y, int width, int height, double angle, double scale_x, double scale_y, double red, double green, double blue, double alpha,
@@ -3852,9 +3892,9 @@ void Renderer::draw_radio(int x, int y, int width, int height, double angle, dou
 ////////////
 ////////////
 void Renderer::draw_scrollbar(int x, int y, int width, int height, double angle, double scale_x, double scale_y, double red, double green, double blue, double alpha,
-	double value,
+	double value, double min_value, double max_value, 
 	// handle
-	int handle_height, const Vector4& handle_color,
+	double handle_y, int handle_height, const Vector4& handle_color,
 	// button
 	bool button, int button_height, const Vector4& button_color,
 	// arrow
@@ -4143,18 +4183,18 @@ void Renderer::draw_scrollbar(int x, int y, int width, int height, double angle,
 		// to get y position of pivot = y
 		// position relative to the scrollbar
 		//numScrollPositions = (numItemsInList - numItemsVisible) + 1
-		float num_of_list_item = 10; // TEMPORARY
-		float handle_y    = 0;//(value / step) * static_cast<GLfloat>(width); // value starts at 0
-		float handle_x    = 0;//top_x - top_height ;
-		int handle_width  = width; // same width as bar
-		// calculate here - INCOMPLETE 
-		float max_value = 100;
-		float step = value / max_value; // value changes when pivotx is moved  		
+		double step = (value / max_value) * static_cast<GLfloat>(height - handle_height); // if(button)  (value / max_value) * static_cast<GLfloat>(height - handle_height - button_height);  // move handle until it reaches end of scrollbar_height 
+		// position and size
+		double handle_x  = 0;//(button == true) ? top_x - top_height : 0; // always 0 for now
+		handle_y         = handle_y + step; // step // value starts at 0 // 5 is the max value
+		int handle_width = width; // same width as bar
+		//std::cout << "handle_y: " << handle_y << std::endl;
+		//float step = value / max_value; // value changes when pivotx is moved  		
 		GLfloat vertices2[] = {
-		    static_cast<GLfloat>(x + handle_x)                                       , static_cast<GLfloat>(y + handle_y),
+		    static_cast<GLfloat>(x + handle_x)                                     , static_cast<GLfloat>(y + handle_y),
             static_cast<GLfloat>(x + handle_x) + static_cast<GLfloat>(handle_width), static_cast<GLfloat>(y + handle_y),
             static_cast<GLfloat>(x + handle_x) + static_cast<GLfloat>(handle_width), static_cast<GLfloat>(y + handle_y) + static_cast<GLfloat>(handle_height),
-            static_cast<GLfloat>(x + handle_x)                                       , static_cast<GLfloat>(y + handle_y) + static_cast<GLfloat>(handle_height),   
+            static_cast<GLfloat>(x + handle_x)                                     , static_cast<GLfloat>(y + handle_y) + static_cast<GLfloat>(handle_height),   
         };      //std::cout << x + ball_x << " pivot_x\n";
         glBufferData(GL_ARRAY_BUFFER, sizeof(vertices2)* sizeof(GLfloat), vertices2, GL_STATIC_DRAW);
         glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (GLvoid*)0);
@@ -4491,12 +4531,12 @@ void Renderer::draw_spinner(int x, int y, int width, int height, double angle, d
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices)* sizeof(GLuint), indices, GL_STATIC_DRAW); 
 	glBindVertexArray(0);                // (vao end 1  )
     // Draw outline
-	shader.set_float("color", (outline_color.x / 255), (outline_color.y / 255), (outline_color.z / 255), (outline_color.w / 255));
+	/*shader.set_float("color", (outline_color.x / 255), (outline_color.y / 255), (outline_color.z / 255), (outline_color.w / 255));
 	//glEnable(GL_LINE_SMOOTH); // may slow down performance
 	glLineWidth(outline_width); // outline_width
 	glBindVertexArray(spinner_vertex_array_obj); // use same vao data as _ but this time in a line loop
         glDrawElements(GL_LINE_LOOP, 6, GL_UNSIGNED_INT, 0);
-	glBindVertexArray(0);
+	glBindVertexArray(0);*/
 	// Draw _
 	shader.set_float("color", (red / 255), (green / 255), (blue / 255), (alpha / 255));
 	//glBindTexture(GL_TEXTURE_2D, base);  // bind texture
@@ -4544,12 +4584,12 @@ void Renderer::draw_spinner(int x, int y, int width, int height, double angle, d
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices)* sizeof(GLuint), indices, GL_STATIC_DRAW); 
 	glBindVertexArray(0);                // (vao end 1  )
     // Draw outline
- 	shader.set_float("color", (outline_color.x / 255), (outline_color.y / 255), (outline_color.z / 255), (outline_color.w / 255));
+ 	/*shader.set_float("color", (outline_color.x / 255), (outline_color.y / 255), (outline_color.z / 255), (outline_color.w / 255));
 	//glEnable(GL_LINE_SMOOTH); // may slow down performance
 	glLineWidth(outline_width); // outline_width
 	glBindVertexArray(top_button_vertex_array_obj); // use same vao data as _ but this time in a line loop
         glDrawElements(GL_LINE_LOOP, 6, GL_UNSIGNED_INT, 0);
-	glBindVertexArray(0); 		
+	glBindVertexArray(0);*/ 		
 	// Draw _
 	shader.set_float("color", (button_color.x / 255), (button_color.y / 255), (button_color.z / 255), (button_color.w / 255));
 	//glBindTexture(GL_TEXTURE_2D, base);  // bind texture
@@ -4598,21 +4638,142 @@ void Renderer::draw_spinner(int x, int y, int width, int height, double angle, d
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices)* sizeof(GLuint), indices, GL_STATIC_DRAW); 
 	glBindVertexArray(0);                // (vao end 1  )
     // Draw outline
- 	shader.set_float("color", (outline_color.x / 255), (outline_color.y / 255), (outline_color.z / 255), (outline_color.w / 255));
+ 	/*shader.set_float("color", (outline_color.x / 255), (outline_color.y / 255), (outline_color.z / 255), (outline_color.w / 255));
 	//glEnable(GL_LINE_SMOOTH); // may slow down performance
 	glLineWidth(outline_width); // outline_width
 	glBindVertexArray(bottom_button_vertex_array_obj); // use same vao data as _ but this time in a line loop
         glDrawElements(GL_LINE_LOOP, 6, GL_UNSIGNED_INT, 0);
-	glBindVertexArray(0);	
+	glBindVertexArray(0);*/	
 	// Draw _
 	shader.set_float("color", (button_color.x / 255), (button_color.y / 255), (button_color.z / 255), (button_color.w / 255));
 	//glBindTexture(GL_TEXTURE_2D, base);  // bind texture
     glBindVertexArray(bottom_button_vertex_array_obj); // (vao start 2)
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);                // (vao end 2  )
+	//////////////////
     // TOP_TRIANGLE
+    // vertex array obj  - stores vertices
+    GLuint top_arrow_vertex_array_obj;
+    glGenVertexArrays(1, &top_arrow_vertex_array_obj);
+	// vertex buffer obj
+    glBindVertexArray(top_arrow_vertex_array_obj); // bind vertex array obj
+        GLuint top_arrow_vertex_buffer_obj;
+        glGenBuffers(1, &top_arrow_vertex_buffer_obj);
+        glBindBuffer(GL_ARRAY_BUFFER, top_arrow_vertex_buffer_obj);
+        // set properties
+        double arrow_x = width + (top_button_width / 2);//width;
+        double arrow_y = top_button_height / 2;
+        int arrow_width  = 5; // 
+        int arrow_height = 5; // 
+		GLfloat verticestri[] = { // when x and y are 0 then from wwidth-wheight
+            // normal triangle // if down
+            static_cast<GLfloat>(x + arrow_x)                                     , static_cast<GLfloat>(y + arrow_y) + static_cast<GLfloat>(-arrow_height),
+            static_cast<GLfloat>(x + arrow_x) + static_cast<GLfloat>(-arrow_width), static_cast<GLfloat>(y + arrow_y) + static_cast<GLfloat>(arrow_height ),
+            static_cast<GLfloat>(x + arrow_x) + static_cast<GLfloat>(arrow_width ), static_cast<GLfloat>(y + arrow_y) + static_cast<GLfloat>(arrow_height ),            
+        };      
+        glBufferData(GL_ARRAY_BUFFER, sizeof(verticestri)* sizeof(GLfloat), verticestri, GL_STATIC_DRAW);
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (GLvoid*)0);
+        glEnableVertexAttribArray(0);
+    glBindVertexArray(0); // vertex array obj (end 0)   
+	// element buffer obj
+	glBindVertexArray(top_arrow_vertex_array_obj); // (vao start 1)
+	    GLuint top_arrow_element_buffer_obj;
+        glGenBuffers(1, &top_arrow_element_buffer_obj);
+	    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, top_arrow_element_buffer_obj);
+		GLuint indicestri[] = {1, 2, 3,  0};  
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indicestri)* sizeof(GLuint), indicestri, GL_STATIC_DRAW); 
+	glBindVertexArray(0);                // (vao end 1  )
+    // Draw outline
+	/*shader.set_float("color", (0.0 / 255), (0.0 / 255), (0.0 / 255), (255.0 / 255));
+	//glEnable(GL_LINE_SMOOTH); // may slow down performance
+	glLineWidth(2.0); // outline_width
+	glBindVertexArray(top_arrow_vertex_array_obj); // use same vao data as _ but this time in a line loop
+        glDrawArrays(GL_LINE_LOOP, 0, 3);//glDrawElements(GL_LINE_LOOP, 6, GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);*/	
+	// Draw triangle
+	shader.set_float("color", (255.0 / 255), (255.0 / 255), (255.0 / 255), (255.0 / 255));
+	//glBindTexture(GL_TEXTURE_2D, base);  // bind texture
+    glBindVertexArray(top_arrow_vertex_array_obj); // (vao start 2)
+        glDrawArrays(GL_TRIANGLES, 0, 3); // draw 3 points to form a triangle
+	glBindVertexArray(0);                // (vao end 2  )
+    //glBindTexture(GL_TEXTURE_2D, base);  // bind texture
+	//////////////////////    
 	// BUTTOM_TRIANGLE
-	
+    // vertex array obj  - stores vertices
+    GLuint bottom_arrow_vertex_array_obj;
+    glGenVertexArrays(1, &bottom_arrow_vertex_array_obj);
+	// vertex buffer obj
+    glBindVertexArray(bottom_arrow_vertex_array_obj); // bind vertex array obj
+        GLuint bottom_arrow_vertex_buffer_obj;
+        glGenBuffers(1, &bottom_arrow_vertex_buffer_obj);
+        glBindBuffer(GL_ARRAY_BUFFER, bottom_arrow_vertex_buffer_obj);
+        // set properties
+        double arrow_xx = width + (bottom_button_width / 2);//width;
+        double arrow_yy = (height + bottom_button_height) / 2;
+		GLfloat verticestrii[] = { // when x and y are 0 then from wwidth-wheight
+            // upside-down triangle // if up
+            static_cast<GLfloat>(x + arrow_xx)                                     , static_cast<GLfloat>(y + arrow_yy) + static_cast<GLfloat>(arrow_height ),
+            static_cast<GLfloat>(x + arrow_xx) + static_cast<GLfloat>(arrow_width ), static_cast<GLfloat>(y + arrow_yy) + static_cast<GLfloat>(-arrow_height),
+            static_cast<GLfloat>(x + arrow_xx) + static_cast<GLfloat>(-arrow_width), static_cast<GLfloat>(y + arrow_yy) + static_cast<GLfloat>(-arrow_height),           
+        };      
+        glBufferData(GL_ARRAY_BUFFER, sizeof(verticestrii)* sizeof(GLfloat), verticestrii, GL_STATIC_DRAW);
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (GLvoid*)0);
+        glEnableVertexAttribArray(0);
+    glBindVertexArray(0); // vertex array obj (end 0)   
+	// element buffer obj
+	glBindVertexArray(bottom_arrow_vertex_array_obj); // (vao start 1)
+	    GLuint bottom_arrow_element_buffer_obj;
+        glGenBuffers(1, &bottom_arrow_element_buffer_obj);
+	    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bottom_arrow_element_buffer_obj);
+		GLuint indicestrii[] = {1, 2, 3,  0};  
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indicestrii)* sizeof(GLuint), indicestrii, GL_STATIC_DRAW); 
+	glBindVertexArray(0);                // (vao end 1  )
+    // Draw outline
+	/*shader.set_float("color", (0.0 / 255), (0.0 / 255), (0.0 / 255), (255.0 / 255));
+	//glEnable(GL_LINE_SMOOTH); // may slow down performance
+	glLineWidth(2.0); // outline_width
+	glBindVertexArray(bottom_arrow_vertex_array_obj); // use same vao data as _ but this time in a line loop
+        glDrawArrays(GL_LINE_LOOP, 0, 3);//glDrawElements(GL_LINE_LOOP, 6, GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);*/	
+	// Draw triangle
+	shader.set_float("color", (255.0 / 255), (255.0 / 255), (255.0 / 255), (255.0 / 255));
+	//glBindTexture(GL_TEXTURE_2D, base);  // bind texture
+    glBindVertexArray(bottom_arrow_vertex_array_obj); // (vao start 2)
+        glDrawArrays(GL_TRIANGLES, 0, 3); // draw 3 points to form a triangle
+	glBindVertexArray(0);                // (vao end 2  )
+    //glBindTexture(GL_TEXTURE_2D, base);  // bind texture
+	//////////////////////	
+	//////////////////
+	// SEPERATOR (LINE)
+    // vertex array obj  - stores vertices
+    /*GLuint seperator_vertex_array_obj;
+    glGenVertexArrays(1, &seperator_vertex_array_obj);	
+    // vertex buffer obj
+    glBindVertexArray(seperator_vertex_array_obj); // bind vertex array obj
+        GLuint seperator_vertex_buffer_obj;
+        glGenBuffers(1, &seperator_vertex_buffer_obj);
+        glBindBuffer(GL_ARRAY_BUFFER, seperator_vertex_buffer_obj);
+        double seperator_x = top_button_x;
+		double seperator_y = top_button_height;//seperator_y + top_padding;
+		int seperator_width  = top_button_width;
+		int seperator_height = 0;//10; // bottom_padding // edit height
+		GLfloat vertices11[] = { // when x and y are 0 then from wwidth-wheight
+		    static_cast<GLfloat>(x + seperator_x) + static_cast<float>(seperator_width), static_cast<GLfloat>(y + seperator_y) + static_cast<float>(seperator_height),
+            static_cast<GLfloat>(x + seperator_x)                                      , static_cast<GLfloat>(y + seperator_y) + static_cast<float>(seperator_height),
+        };      
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices11)* sizeof(GLfloat), vertices11, GL_STATIC_DRAW);
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (GLvoid*)0);
+        glEnableVertexAttribArray(0);
+    glBindVertexArray(0); // vertex array obj (end 0)	
+	// Draw seperator
+	shader.set_float("color", (0 / 255), (0 / 255), (0 / 255), (255 / 255));
+    //glEnable(GL_LINE_SMOOTH);
+	glLineWidth(1.0); // width of the seperator
+	glBindVertexArray(seperator_vertex_array_obj);
+        glDrawArrays(GL_LINES, 0,  2); // 2 points make up a line
+	glBindVertexArray(0);*/         
+	//-----------------------------------
+	//////////////////
 	// Clean buffers
 	glDeleteBuffers(1, &spinner_tex_coord_buffer_obj);
 	glDeleteBuffers(1, &spinner_element_buffer_obj);
@@ -4625,10 +4786,21 @@ void Renderer::draw_spinner(int x, int y, int width, int height, double angle, d
 	glDeleteBuffers(1, &bottom_button_tex_coord_buffer_obj);
 	glDeleteBuffers(1, &bottom_button_element_buffer_obj);
 	glDeleteBuffers(1, &bottom_button_vertex_buffer_obj );	
+	// : line_seperator
+	//glDeleteBuffers(1, &seperator_vertex_buffer_obj);
+	// : top_triangle
+	glDeleteBuffers(1, &top_arrow_vertex_buffer_obj);
+	glDeleteBuffers(1, &top_arrow_element_buffer_obj);
+	// : bottom triangle
+	glDeleteBuffers(1, &bottom_arrow_vertex_buffer_obj);
+	glDeleteBuffers(1, &bottom_arrow_element_buffer_obj);
 	// Clean arrays
 	glDeleteVertexArrays(1, &spinner_vertex_array_obj);
 	glDeleteVertexArrays(1, &top_button_vertex_array_obj);
 	glDeleteVertexArrays(1, &bottom_button_vertex_array_obj);
+	//glDeleteVertexArrays(1, &seperator_vertex_array_obj);
+	glDeleteVertexArrays(1, &top_arrow_vertex_array_obj);
+	glDeleteVertexArrays(1, &bottom_arrow_vertex_array_obj);
 	// Restore defaults
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glLineWidth(1.0);
@@ -4644,7 +4816,7 @@ void Renderer::draw_spinner(int x, int y, int width, int height, double angle, d
 ////////////
 ////////////
 void Renderer::draw_combobox(int x, int y, int width, int height, double angle, double scale_x, double scale_y, double red, double green, double blue, double alpha,
-    const Vector4& button_color, int button_width)
+    const Vector4& button_color, int button_width, bool button_on)
 {
 #ifdef DOKUN_OPENGL	// OpenGL is defined
 	context_check();
@@ -4820,37 +4992,38 @@ void Renderer::draw_combobox(int x, int y, int width, int height, double angle, 
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);                // (vao end 2  )
 	//////////////////////
-    // TRIANGLE
-	/*
+    // TRIANGLE	
     // vertex array obj  - stores vertices
     GLuint arrow_vertex_array_obj;
     glGenVertexArrays(1, &arrow_vertex_array_obj);
-	// tex_coord buffer obj
-    glBindVertexArray(arrow_vertex_array_obj); // bind again  
-	    GLuint arrow_tex_coord_buffer_obj;
-        glGenBuffers( 1, &arrow_tex_coord_buffer_obj);
-        glBindBuffer( GL_ARRAY_BUFFER, arrow_tex_coord_buffer_obj);
-        glBufferData( GL_ARRAY_BUFFER, sizeof(tex_coords)* sizeof(GLfloat), tex_coords, GL_STATIC_DRAW);    
-		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), static_cast<void *>(0));			
-	    glEnableVertexAttribArray(1); 	
-	glBindVertexArray(0); // unbind
 	// vertex buffer obj
     glBindVertexArray(arrow_vertex_array_obj); // bind vertex array obj
         GLuint arrow_vertex_buffer_obj;
         glGenBuffers(1, &arrow_vertex_buffer_obj);
         glBindBuffer(GL_ARRAY_BUFFER, arrow_vertex_buffer_obj);
-		// set position relative to combobox
-		float arrow_x = -width + 100;
-		float arrow_y = 0;
-		int arrow_width  = 16;
-		int arrow_height = 16;
-		GLfloat vertices2[] = { // when x and y are 0 then from wwidth-wheight
-		    static_cast<GLfloat>(x + arrow_x)                                       , static_cast<GLfloat>(y + arrow_y),
-            static_cast<GLfloat>(x + arrow_x) + static_cast<GLfloat>(arrow_width), static_cast<GLfloat>(y + arrow_y),
-            static_cast<GLfloat>(x + arrow_x) + static_cast<GLfloat>(arrow_width), static_cast<GLfloat>(y + arrow_y) + static_cast<GLfloat>(arrow_height),
-            static_cast<GLfloat>(x + arrow_x)                                       , static_cast<GLfloat>(y + arrow_y) + static_cast<GLfloat>(arrow_height),   
-        };      
-        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices2)* sizeof(GLfloat), vertices2, GL_STATIC_DRAW);
+        // set properties
+        double arrow_x = width + (button_width / 2);//width;
+        double arrow_y = height / 2;
+        int arrow_width  = 5; // wide - looks more smooth when width is bigger than height
+        int arrow_height = 2;//2.5; // thin
+        std::vector<GLfloat> verticestri;
+        if(!button_on) {
+            verticestri.push_back(static_cast<GLfloat>(x + arrow_x));
+            verticestri.push_back(static_cast<GLfloat>(y + arrow_y) + static_cast<GLfloat>(arrow_height ));
+            verticestri.push_back(static_cast<GLfloat>(x + arrow_x) + static_cast<GLfloat>(arrow_width ));
+            verticestri.push_back(static_cast<GLfloat>(y + arrow_y) + static_cast<GLfloat>(-arrow_height));
+            verticestri.push_back(static_cast<GLfloat>(x + arrow_x) + static_cast<GLfloat>(-arrow_width));
+            verticestri.push_back(static_cast<GLfloat>(y + arrow_y) + static_cast<GLfloat>(-arrow_height));
+        }
+        if(button_on) {
+            verticestri.push_back(static_cast<GLfloat>(x + arrow_x));
+            verticestri.push_back(static_cast<GLfloat>(y + arrow_y) + static_cast<GLfloat>(-arrow_height));
+            verticestri.push_back(static_cast<GLfloat>(x + arrow_x) + static_cast<GLfloat>(-arrow_width));
+            verticestri.push_back(static_cast<GLfloat>(y + arrow_y) + static_cast<GLfloat>(arrow_height ));
+            verticestri.push_back(static_cast<GLfloat>(x + arrow_x) + static_cast<GLfloat>(arrow_width ));
+            verticestri.push_back(static_cast<GLfloat>(y + arrow_y) + static_cast<GLfloat>(arrow_height ));
+        }     
+        glBufferData(GL_ARRAY_BUFFER, verticestri.size() * sizeof(GLfloat), verticestri.data(), GL_STATIC_DRAW);//glBufferData(GL_ARRAY_BUFFER, sizeof(verticestri)* sizeof(GLfloat), verticestri, GL_STATIC_DRAW);
         glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (GLvoid*)0);
         glEnableVertexAttribArray(0);
     glBindVertexArray(0); // vertex array obj (end 0)   
@@ -4859,30 +5032,23 @@ void Renderer::draw_combobox(int x, int y, int width, int height, double angle, 
 	    GLuint arrow_element_buffer_obj;
         glGenBuffers(1, &arrow_element_buffer_obj);
 	    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, arrow_element_buffer_obj);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices)* sizeof(GLuint), indices, GL_STATIC_DRAW); 
-	glBindVertexArray(0); */               // (vao end 1  )
+		GLuint indicestri[] = {1, 2, 3,  0};  
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indicestri)* sizeof(GLuint), indicestri, GL_STATIC_DRAW); 
+	glBindVertexArray(0);                // (vao end 1  )
     // Draw outline
-	/*shader.set_float("color", (outline_color.x / 255), (outline_color.y / 255), (outline_color.z / 255), (outline_color.w / 255));
+	/*shader.set_float("color", (0.0 / 255), (0.0 / 255), (0.0 / 255), (255.0 / 255));
 	//glEnable(GL_LINE_SMOOTH); // may slow down performance
-	glLineWidth(outline_width); // outline_width
-	glBindVertexArray(vertex_array_obj); // use same vao data as _ but this time in a line loop
-        glDrawElements(GL_LINE_LOOP, 6, GL_UNSIGNED_INT, 0);
-	glBindVertexArray(0);
-shader.disable();
-program.use();	
-	glm::mat4 arrow_model = glm::mat4(1.0);;
-	arrow_model = glm::translate(arrow_model, glm::vec3(x + width/2, y + height/2, 0));//model = glm::translate(model, glm::vec3(x, y, 0));
-	arrow_model = glm::rotate(arrow_model, static_cast<float>(45.0f * 0.0174533), glm::vec3(0, 0, 1));
-	arrow_model = glm::scale(arrow_model, glm::vec3(1, 1, 1));
-	arrow_model = glm::translate(arrow_model, glm::vec3(-x - width/2, -y - height/2, 0));
-	glUniformMatrix4fv(glGetUniformLocation(shader.get_program(), "model"), 1, GL_FALSE, glm::value_ptr(arrow_model));	
-	// Draw arrow
+	glLineWidth(2.0); // outline_width
+	glBindVertexArray(arrow_vertex_array_obj); // use same vao data as _ but this time in a line loop
+        glDrawArrays(GL_LINE_LOOP, 0, 3);//glDrawElements(GL_LINE_LOOP, 6, GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);*/	
+	// Draw triangle
 	shader.set_float("color", (255.0 / 255), (255.0 / 255), (255.0 / 255), (255.0 / 255));
-	//shader.set_float("color", (button_color.x / 255), (button_color.y / 255), (button_color.z / 255), (button_color.w / 255));//shader.set_float("color", (red / 255), (green / 255), (blue / 255), (alpha / 255));
+	//glBindTexture(GL_TEXTURE_2D, base);  // bind texture
     glBindVertexArray(arrow_vertex_array_obj); // (vao start 2)
-        glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
-	glBindVertexArray(0);                // (vao end 2  )	
-	*/
+        glDrawArrays(GL_TRIANGLES, 0, 3); // draw 3 points to form a triangle
+	glBindVertexArray(0);                // (vao end 2  )
+    //glBindTexture(GL_TEXTURE_2D, base);  // bind texture
 	//////////////////////
 	// Clean buffers
 	glDeleteBuffers(1, &combo_tex_coord_buffer_obj);
@@ -4893,13 +5059,13 @@ program.use();
 	glDeleteBuffers(1, &button_element_buffer_obj  );
 	glDeleteBuffers(1, &button_vertex_buffer_obj   );	
 	// : triangle
-	//glDeleteBuffers(1, &arrow_tex_coord_buffer_obj);
-	//glDeleteBuffers(1, &arrow_element_buffer_obj  );
-	//glDeleteBuffers(1, &arrow_vertex_buffer_obj   );
+	//glDeleteBuffers(1, &arrow_tex_coord_buffer_obj); // texture not used on triangle
+	glDeleteBuffers(1, &arrow_element_buffer_obj  );
+	glDeleteBuffers(1, &arrow_vertex_buffer_obj   );
 	// Clean arrays
 	glDeleteVertexArrays(1, &combo_vertex_array_obj );
 	glDeleteVertexArrays(1, &button_vertex_array_obj);
-	//glDeleteVertexArrays(1, &arrow_vertex_array_obj);
+	glDeleteVertexArrays(1, &arrow_vertex_array_obj );
 	// Restore defaults
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glLineWidth(1.0);
@@ -4912,6 +5078,251 @@ program.use();
 #endif
 }
 ////////////
+void Renderer::draw_tab(int x, int y, int width, int height, double angle, double scale_x, double scale_y, double red, double green, double blue, double alpha,
+    int tab_count, bool visible)
+{
+#ifdef DOKUN_OPENGL	// OpenGL is defined
+	context_check();
+    // Disable 3d for User interdata
+	glDisable(GL_DEPTH_TEST);
+	// Enable transparent background
+    glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA); 
+	glEnable(GL_BLEND);
+	// vertex shader
+	const char * vertex_source[] =
+	{
+        "#version 330\n"
+        "\n"
+        "layout (location = 0) in vec2 position ;\n"
+        "layout (location = 1) in vec2 tex_coord;\n"
+		"out vec2 Texcoord;\n"
+		"\n"
+		"\n"
+		"uniform mat4 model;\n"
+		"uniform mat4 proj ;\n"
+		"\n"
+        "void main()\n"
+        "{\n"
+		    "Texcoord    = tex_coord;\n"
+            "gl_Position = proj * model * vec4(position, 0.0, 1.0);\n"
+        "}\n"
+	};
+	const char * fragment_source[] =
+	{
+	    "#version 330\n"
+        "\n"
+		"out vec4 out_color;\n"
+        "uniform vec4 color;\n"
+        "uniform sampler2D arrow;\n"
+		"in vec2 Texcoord;\n"
+		"\n"
+		"\n"
+        "void main()\n"
+        "{\n"
+		"\n"
+		"\n"
+		"\n"
+            "out_color = color;\n"
+        "}\n"
+	};
+	// Shader
+	Shader shader;
+	shader.create();
+	shader.set_source(vertex_source  , 0);
+	shader.set_source(fragment_source, 1);
+	shader.prepare();
+	shader.use ();
+#ifdef use_glm	
+	// uniform
+	glm::mat4 model = glm::mat4(1.0);;
+	model = glm::translate(model, glm::vec3(x + width/2, y + height/2, 0));//model = glm::translate(model, glm::vec3(x, y, 0));
+	model = glm::rotate(model, static_cast<float>(angle * 0.0174533), glm::vec3(0, 0, 1));
+	model = glm::scale(model, glm::vec3(1, 1, 1));
+	model = glm::translate(model, glm::vec3(-x - width/2, -y - height/2, 0));
+	float window_width  = Renderer::get_display_width ();
+	float window_height = Renderer::get_display_height();
+	glm::mat4 proj  = glm::ortho(0.0f, window_width, window_height, 0.0f, -1.0f, 1.0f);
+		
+	glUniformMatrix4fv(glGetUniformLocation(shader.get_program(), "model"), 1, GL_FALSE, glm::value_ptr(model));
+	glUniformMatrix4fv(glGetUniformLocation(shader.get_program(), "proj") , 1, GL_FALSE, glm::value_ptr(proj) );
+#endif		
+	///////////////////////
+	///////////////////////
+	// TAB_HEAD
+    // vertex array obj  - stores vertices
+    GLuint tab_vertex_array_obj;
+    glGenVertexArrays(1, &tab_vertex_array_obj);
+	// tex_coord buffer obj
+    glBindVertexArray(tab_vertex_array_obj); // bind again  
+	    GLuint tab_tex_coord_buffer_obj;
+        glGenBuffers( 1, &tab_tex_coord_buffer_obj);
+        glBindBuffer( GL_ARRAY_BUFFER, tab_tex_coord_buffer_obj);
+		GLfloat tex_coords[] = { // texture coordinates range from (0,0) to (1, 1)
+		    0.0, 0.0,
+            1.0, 0.0,
+            1.0, 1.0,
+            0.0, 1.0, 
+        };
+        glBufferData( GL_ARRAY_BUFFER, sizeof(tex_coords)* sizeof(GLfloat), tex_coords, GL_STATIC_DRAW);    
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), static_cast<void *>(0));			
+	    glEnableVertexAttribArray(1); //int instAttrib1 = 1;
+	    //glVertexAttribDivisor(instAttrib1, 1); // works with glDrawElementsInstanced 	
+	glBindVertexArray(0); // unbind
+	// vertex buffer obj
+    glBindVertexArray(tab_vertex_array_obj); // bind vertex array obj
+        GLuint tab_vertex_buffer_obj;
+        glGenBuffers(1, &tab_vertex_buffer_obj);
+        glBindBuffer(GL_ARRAY_BUFFER, tab_vertex_buffer_obj);
+		GLfloat vertices[] = { // when x and y are 0 then from wwidth-wheight
+		    static_cast<GLfloat>(x)                              , static_cast<GLfloat>(y),
+            static_cast<GLfloat>(x) + static_cast<GLfloat>(width), static_cast<GLfloat>(y),
+            static_cast<GLfloat>(x) + static_cast<GLfloat>(width), static_cast<GLfloat>(y) + static_cast<GLfloat>(height),
+            static_cast<GLfloat>(x)                              , static_cast<GLfloat>(y) + static_cast<GLfloat>(height),   
+        };      
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices)* sizeof(GLfloat), vertices, GL_STATIC_DRAW);
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (GLvoid*)0);
+        glEnableVertexAttribArray(0); //int instAttrib0 = 0;
+	    //glVertexAttribDivisor(instAttrib0, 1); // works with glDrawElementsInstanced
+    glBindVertexArray(0); // vertex array obj (end 0)   
+	// element buffer obj
+	glBindVertexArray(tab_vertex_array_obj); // (vao start 1)
+	    GLuint tab_element_buffer_obj;
+        glGenBuffers(1, &tab_element_buffer_obj);
+	    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, tab_element_buffer_obj);
+		GLuint indices[] = {0, 1, 3,  1, 2, 3,};  
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices)* sizeof(GLuint), indices, GL_STATIC_DRAW); 
+	glBindVertexArray(0);                // (vao end 1  )
+    // Draw outline
+	shader.set_float("color", (32.0 / 255), (32.0 / 255), (32.0 / 255), (255.0 / 255));
+	//glEnable(GL_LINE_SMOOTH); // may slow down performance
+	glLineWidth(1.0); // outline_width
+	glBindVertexArray(tab_vertex_array_obj); // use same vao data as _ but this time in a line loop
+        glDrawElements(GL_LINE_LOOP, 6, GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);
+	// Draw tab (head)	
+	shader.set_float("color", (red / 255), (green / 255), (blue / 255), (alpha / 255));
+    glBindVertexArray(tab_vertex_array_obj); // (vao start 2)  
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);//glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0, 4); // (as we have 4 instances specified in array)
+	glBindVertexArray(0);                // (vao end 2  )
+	//----------------------------------
+	//////////////////////
+	//////////////////////
+	// TAB BODY
+    // vertex array obj  - stores vertices
+    GLuint tab_body_vertex_array_obj;
+    glGenVertexArrays(1, &tab_body_vertex_array_obj);
+	// tex_coord buffer obj
+    glBindVertexArray(tab_body_vertex_array_obj); // bind again  
+	    GLuint tab_body_tex_coord_buffer_obj;
+        glGenBuffers( 1, &tab_body_tex_coord_buffer_obj);
+        glBindBuffer( GL_ARRAY_BUFFER, tab_body_tex_coord_buffer_obj);
+		GLfloat tab_body_tex_coords[] = { // texture coordinates range from (0,0) to (1, 1)
+		    0.0, 0.0,
+            1.0, 0.0,
+            1.0, 1.0,
+            0.0, 1.0, 
+        };
+        glBufferData( GL_ARRAY_BUFFER, sizeof(tab_body_tex_coords)* sizeof(GLfloat), tab_body_tex_coords, GL_STATIC_DRAW);    
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), static_cast<void *>(0));			
+	    glEnableVertexAttribArray(1); 	
+	glBindVertexArray(0); // unbind
+	// set size then set position relative to tab
+	int tab_body_width  = width  * 5;
+	int tab_body_height = height * 5;
+	double tab_body_x = 0;
+	double tab_body_y = 0 + height; // 0 + tab_head_height // bring down the tab_body
+	// vertex buffer obj
+    glBindVertexArray(tab_body_vertex_array_obj); // bind vertex array obj
+        GLuint tab_body_vertex_buffer_obj;
+        glGenBuffers(1, &tab_body_vertex_buffer_obj);
+        glBindBuffer(GL_ARRAY_BUFFER, tab_body_vertex_buffer_obj);
+		GLfloat tab_body_vertices[] = { // when x and y are 0 then from wwidth-wheight
+		    static_cast<GLfloat>(x + tab_body_x)                                       , static_cast<GLfloat>(y + tab_body_y),
+            static_cast<GLfloat>(x + tab_body_x) + static_cast<GLfloat>(tab_body_width), static_cast<GLfloat>(y + tab_body_y),
+            static_cast<GLfloat>(x + tab_body_x) + static_cast<GLfloat>(tab_body_width), static_cast<GLfloat>(y + tab_body_y) + static_cast<GLfloat>(tab_body_height),
+            static_cast<GLfloat>(x + tab_body_x)                                       , static_cast<GLfloat>(y + tab_body_y) + static_cast<GLfloat>(tab_body_height),   
+        };      
+        glBufferData(GL_ARRAY_BUFFER, sizeof(tab_body_vertices)* sizeof(GLfloat), tab_body_vertices, GL_STATIC_DRAW);
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (GLvoid*)0);
+        glEnableVertexAttribArray(0);
+    glBindVertexArray(0); // vertex array obj (end 0)   
+	// element buffer obj
+	glBindVertexArray(tab_body_vertex_array_obj); // (vao start 1)
+	    GLuint tab_body_element_buffer_obj;
+        glGenBuffers(1, &tab_body_element_buffer_obj);
+	    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, tab_body_element_buffer_obj);
+		GLuint tab_body_indices[] = {0, 1, 3,  1, 2, 3,};  
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(tab_body_indices)* sizeof(GLuint), tab_body_indices, GL_STATIC_DRAW); 
+	glBindVertexArray(0);                // (vao end 1  )
+    // Draw outline
+	shader.set_float("color", (32.0 / 255), (32.0 / 255), (32.0 / 255), (32.0 / 255));
+	//glEnable(GL_LINE_SMOOTH); // may slow down performance
+	glLineWidth(5.0); // outline_width
+	glBindVertexArray(tab_body_vertex_array_obj); // use same vao data as _ but this time in a line loop
+        glDrawElements(GL_LINE_LOOP, 6, GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);
+	// Draw tab (body)
+	shader.set_float("color", (red / 255), (green / 255), (blue / 255), (alpha / 255));
+    glBindVertexArray(tab_body_vertex_array_obj); // (vao start 2)
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);                // (vao end 2  )	
+	//////////////////
+	//////////////////
+	// SEPERATOR (LINE)
+    // vertex array obj  - stores vertices
+/*    
+    GLuint seperator_vertex_array_obj;
+    glGenVertexArrays(1, &seperator_vertex_array_obj);	
+    // vertex buffer obj
+    glBindVertexArray(seperator_vertex_array_obj); // bind vertex array obj
+        GLuint seperator_vertex_buffer_obj;
+        glGenBuffers(1, &seperator_vertex_buffer_obj);
+        glBindBuffer(GL_ARRAY_BUFFER, seperator_vertex_buffer_obj);
+        double seperator_x = 0;
+		double seperator_y = height;//seperator_y + top_padding;
+		int seperator_width  = width;
+		int seperator_height = 0;//10; // bottom_padding // edit height
+		GLfloat vertices11[] = { // when x and y are 0 then from wwidth-wheight
+		    static_cast<GLfloat>(x + seperator_x) + static_cast<float>(seperator_width), static_cast<GLfloat>(y + seperator_y) + static_cast<float>(seperator_height),
+            static_cast<GLfloat>(x + seperator_x)                                      , static_cast<GLfloat>(y + seperator_y) + static_cast<float>(seperator_height),
+        };      
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices11)* sizeof(GLfloat), vertices11, GL_STATIC_DRAW);
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (GLvoid*)0);
+        glEnableVertexAttribArray(0);
+    glBindVertexArray(0); // vertex array obj (end 0)	
+	// Draw seperator
+	shader.set_float("color", (0 / 255), (0 / 255), (0 / 255), (255 / 255));
+    //glEnable(GL_LINE_SMOOTH);
+	glLineWidth(1.0); // width of the seperator
+	glBindVertexArray(seperator_vertex_array_obj);
+        glDrawArrays(GL_LINES, 0,  2); // 2 points make up a line
+	glBindVertexArray(0);     
+*/	    
+	//-----------------------------------	
+	// Clean buffers
+	glDeleteBuffers(1, &tab_tex_coord_buffer_obj);
+	glDeleteBuffers(1, &tab_element_buffer_obj  );
+	glDeleteBuffers(1, &tab_vertex_buffer_obj   );
+	// : tab_body
+	glDeleteBuffers(1, &tab_body_tex_coord_buffer_obj);
+	glDeleteBuffers(1, &tab_body_element_buffer_obj  );
+	glDeleteBuffers(1, &tab_body_vertex_buffer_obj   );
+	// : seperator
+	//glDeleteBuffers(1, &seperator_vertex_buffer_obj);
+	// Clean arrays
+	glDeleteVertexArrays(1, &tab_vertex_array_obj );
+	glDeleteVertexArrays(1, &tab_body_vertex_array_obj);
+	//glDeleteVertexArrays(1, &seperator_vertex_array_obj);
+	// Restore defaults
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	glLineWidth(1.0);
+	glDisable(GL_LINE_SMOOTH);
+	// Disable program
+	shader.disable();
+	shader.destroy();
+	//////////////////	
+#endif
+}
 ////////////
 ////////////
 ////////////
@@ -5228,7 +5639,7 @@ void Renderer::draw_circle()
 }
 ////////////
 void Renderer::draw_triangle(double x, double y, int width, int height, double angle, double scale_x, double scale_y, double red, double green, double blue, double alpha)
-{/*
+{
 #ifdef DOKUN_OPENGL	// OpenGL is defined
 	context_check();
     // Disable 3d for User interdata
@@ -5236,9 +5647,7 @@ void Renderer::draw_triangle(double x, double y, int width, int height, double a
 	// Enable transparent background
     glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA); 
 	glEnable(GL_BLEND);
-	// vertex shader	
-	Shader vertex_shader;
-	vertex_shader.create(DOKUN_SHADER_VERTEX);
+	// vertex shader
 	const char * vertex_source[] =
 	{
         "#version 330\n"
@@ -5257,11 +5666,7 @@ void Renderer::draw_triangle(double x, double y, int width, int height, double a
             "gl_Position = proj * model * vec4(position, 0.0, 1.0);\n"
         "}\n"
 	};
-	vertex_shader.set_source(vertex_source);
-	vertex_shader.compile();
 	// fragment shader
-	Shader fragment_shader;
-	fragment_shader.create(DOKUN_SHADER_FRAGMENT);
 	const char * fragment_source[] =
 	{
 	    "#version 330\n"
@@ -5280,20 +5685,18 @@ void Renderer::draw_triangle(double x, double y, int width, int height, double a
             "out_color = color;\n"
         "}\n"
 	};
-	fragment_shader.set_source(fragment_source);
-	fragment_shader.compile();
 	// program
-	Shader program;
-	program.create();
-    program.attach(vertex_shader  );
-	program.attach(fragment_shader);
-	program.link();
+	Shader shader;
+	shader.create();
+	shader.set_source(vertex_source  , 0);
+	shader.set_source(fragment_source, 1);
+	shader.prepare();
+	shader.use ();
 	// destroy shaders after linking
-	program.detach(vertex_shader  );
-	program.detach(fragment_shader);
-	vertex_shader.destroy  ();
-	fragment_shader.destroy();
-	program.use ();
+	//program.detach(vertex_shader  );
+	//program.detach(fragment_shader);
+	//vertex_shader.destroy  ();
+	//fragment_shader.destroy();
 	// uniform
 	glm::mat4 model = glm::mat4(1.0);;
 	model = glm::translate(model, glm::vec3(x + width/2, y + height/2, 0));//model = glm::translate(model, glm::vec3(x, y, 0));
@@ -5307,58 +5710,63 @@ void Renderer::draw_triangle(double x, double y, int width, int height, double a
 	glUniformMatrix4fv(glGetUniformLocation(shader.get_program(), "proj") , 1, GL_FALSE, glm::value_ptr(proj) );
 	// _
     // vertex array obj  - stores vertices
-    GLuint vertex_array_obj;
-    glGenVertexArrays(1, &vertex_array_obj);
+    GLuint triangle_vertex_array_obj;
+    glGenVertexArrays(1, &triangle_vertex_array_obj);
 	// vertex buffer obj
-    glBindVertexArray(vertex_array_obj); // bind vertex array obj
-        GLuint vertex_buffer_obj;
-        glGenBuffers(1, &vertex_buffer_obj);
-        glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_obj);
-		GLfloat vertices[] = { // when x and y are 0 then from wwidth-wheight
-            static_cast<GLfloat>(x) + static_cast<GLfloat>(width), static_cast<GLfloat>(y),
-            static_cast<GLfloat>(x) + static_cast<GLfloat>(width), static_cast<GLfloat>(y) + static_cast<GLfloat>(height),
-            static_cast<GLfloat>(x)                                , static_cast<GLfloat>(y) + static_cast<GLfloat>(height),   
+    glBindVertexArray(triangle_vertex_array_obj); // bind vertex array obj
+        GLuint triangle_vertex_buffer_obj;
+        glGenBuffers(1, &triangle_vertex_buffer_obj);
+        glBindBuffer(GL_ARRAY_BUFFER, triangle_vertex_buffer_obj);
+		GLfloat verticestri[] = { // when x and y are 0 then from wwidth-wheight
+            /*// upside-down triangle
+            static_cast<GLfloat>(x)                               , static_cast<GLfloat>(y) + static_cast<GLfloat>(height ),
+            static_cast<GLfloat>(x) + static_cast<GLfloat>(width ), static_cast<GLfloat>(y) + static_cast<GLfloat>(-height),
+            static_cast<GLfloat>(x) + static_cast<GLfloat>(-width), static_cast<GLfloat>(y) + static_cast<GLfloat>(-height),   
+            */
+            // normal triangle
+            static_cast<GLfloat>(x)                                , static_cast<GLfloat>(y) + static_cast<GLfloat>(-height),
+            static_cast<GLfloat>(x) + static_cast<GLfloat>(-width ), static_cast<GLfloat>(y) + static_cast<GLfloat>(height ),
+            static_cast<GLfloat>(x) + static_cast<GLfloat>(width)  , static_cast<GLfloat>(y) + static_cast<GLfloat>(height ),            
         };      
-        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices)* sizeof(GLfloat), vertices, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(verticestri)* sizeof(GLfloat), verticestri, GL_STATIC_DRAW);
         glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (GLvoid*)0);
         glEnableVertexAttribArray(0);
     glBindVertexArray(0); // vertex array obj (end 0)   
 	// element buffer obj
-	glBindVertexArray(vertex_array_obj); // (vao start 1)
-	    GLuint element_buffer_obj;
-        glGenBuffers(1, &element_buffer_obj);
-	    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer_obj);
+	glBindVertexArray(triangle_vertex_array_obj); // (vao start 1)
+	    GLuint triangle_element_buffer_obj;
+        glGenBuffers(1, &triangle_element_buffer_obj);
+	    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, triangle_element_buffer_obj);
 		GLuint indices[] = {1, 2, 3,  0};  
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices)* sizeof(GLuint), indices, GL_STATIC_DRAW); 
 	glBindVertexArray(0);                // (vao end 1  )
     // Draw outline
 	//shader.set_float("color", (outline_color.x / 255), (outline_color.y / 255), (outline_color.z / 255), (outline_color.w / 255));
 	//glEnable(GL_LINE_SMOOTH); // may slow down performance
-	/
-	glLineWidth(outline_width); // outline_width
-	glBindVertexArray(vertex_array_obj); // use same vao data as _ but this time in a line loop
+	/*glLineWidth(1); // outline_width
+	glBindVertexArray(triangle_vertex_array_obj); // use same vao data as _ but this time in a line loop
         glDrawElements(GL_LINE_LOOP, 6, GL_UNSIGNED_INT, 0);
-	glBindVertexArray(0);/		
+	glBindVertexArray(0);*/		
 	// Draw _
 	shader.set_float("color", (red / 255), (green / 255), (blue / 255), (alpha / 255));
 	//glBindTexture(GL_TEXTURE_2D, base);  // bind texture
-    glBindVertexArray(vertex_array_obj); // (vao start 2)
-        glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(triangle_vertex_array_obj); // (vao start 2)
+        glDrawArrays(GL_TRIANGLES, 0, 3); // draw 3 points to form a triangle
 	glBindVertexArray(0);                // (vao end 2  )
     //glBindTexture(GL_TEXTURE_2D, base);  // bind texture
 	// Clean textures
 	//glDeleteTextures(1, &base);
 	// Clean buffers
-	glDeleteBuffers(1, &element_buffer_obj);
-	glDeleteBuffers(1, &vertex_buffer_obj );
+	glDeleteBuffers(1, &triangle_element_buffer_obj);
+	glDeleteBuffers(1, &triangle_vertex_buffer_obj );
 	// Clean arrays
-	glDeleteVertexArrays(1, &vertex_array_obj);
+	glDeleteVertexArrays(1, &triangle_vertex_array_obj);
 	// Restore defaults
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	// Disable program
 	shader.disable();
 	shader.destroy();
-#endif	*/
+#endif	
 }
 ////////////
 void Renderer::draw_quad()

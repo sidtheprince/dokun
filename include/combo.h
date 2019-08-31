@@ -52,6 +52,7 @@ private:
     // button
     Vector4 button_color;
     int button_width;
+    bool button_activated;
     // highlight
 	bool highlight;
 	Vector4 highlight_color;	

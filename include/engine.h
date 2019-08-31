@@ -61,6 +61,7 @@
 #include "grid.h"
 #include "combo.h"
 #include "tab.h"
+//#include "chat.h"//#include "player.h" // temp
 // network.
 #include "server.h"
 #include "client.h"
@@ -84,7 +85,7 @@
 #include "event.h"
 #include "renderer.h"
 #include "process.h"
-#include "http.h"
+#include "browser.h"
 /////////////
 #define ENGINE_NAME      "dokun"
 #define ENGINE_AUTHOR    "Sid Lartey Doku"

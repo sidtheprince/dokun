@@ -26,7 +26,7 @@ public:
 	void set_handle_color(int layer, int red, int green, int blue); static int set_handle_color(lua_State *L);// handle color; 0 = inner, 1 = outer
 	void set_handle_inner_color(int red, int green, int blue, int alpha = 255); static int set_handle_inner_color(lua_State *L);// handle and beam parts of slider
 	void set_handle_outer_color(int red, int green, int blue, int alpha = 255); static int set_handle_outer_color(lua_State *L);// handle and beam parts of slider
-	void set_handle_height(int handle_height);
+	void set_handle_size(int handle_size);
 	// scrollbar properties
 	void set_radius(double radius); static int set_radius(lua_State *L);// roundness of beam edges [===========]
 	// button properties
@@ -74,7 +74,8 @@ private:
 	Vector4 handle_color;
 	Vector4 handle_color_inner;
 	Vector4 handle_color_outer;
-	int handle_height;
+	int handle_size; // height
+	double handle_offset; // y
 	double handle_radius;
 	// button
 	bool button;

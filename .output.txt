@@ -1,0 +1,7 @@
+In file included from src/../include/types.h:5,
+                 from src/../include/engine.h:18,
+                 from src/engine.cpp:1:
+src/../include/vector.h:7:10: fatal error: lua.hpp: No such file or directory
+ #include <lua.hpp>
+          ^~~~~~~~~
+compilation terminated.

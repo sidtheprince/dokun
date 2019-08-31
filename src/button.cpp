@@ -68,7 +68,10 @@ Button::Button(const std::string& text, int x, int y, int width, int height) : c
 }
 /////////////
 Button::~Button(void)
-{}
+{
+    //if(image) delete image;
+    //if(label) delete label;
+}
 /////////////
 void Button::draw()
 {
@@ -85,26 +88,28 @@ void Button::draw()
             // outline
             outline, outline_width, outline_color, outline_antialiased			
 		);
-		// Draw text  (over button)
 		// Draw image (over button)
 		if(image != nullptr)
 		{
 			int image_width  = image->get_width ();
 			int image_height = image->get_height();					
-			if(image->get_alignment() == "left") {
-				image->set_relative_position(0, 0);	
-			}
-			if(image->get_alignment() == "center") { // placed at center of button
-				image->set_relative_position((get_width() - image_width) / 2, (get_height() - image_height) / 2);
-			}
-			if(image->get_alignment() == "right") {
-				image->set_relative_position(get_width() - image_width, 0);	
-			}
+			if(image->get_alignment() == "left"  ) { image->set_relative_position(0, 0);	}
+			if(image->get_alignment() == "center") { image->set_relative_position((get_width() - image_width) / 2, (get_height() - image_height) / 2);}
+			if(image->get_alignment() == "right" ) { image->set_relative_position(get_width() - image_width, 0);	}
 			image->set_position(get_x() + image->get_relative_x(), get_y() + image->get_relative_y());
 			// if image is bigger than button, resize to match the exact size of the button
 			if(image_width  > get_width ()) image->resize(get_width(), image_height);
 		    if(image_height > get_height()) image->resize(image_width, get_height());
 			image->draw(); // draw
+		}
+		// Draw text  (over button)
+		if(label != nullptr)
+		{
+		    if(label->get_alignment() == "left"  ) { label->set_relative_position(0                                     , 0); } // default - relative_position will always be (0, 0) unless you change the alignment
+			if(label->get_alignment() == "center") { label->set_relative_position((get_width() - label->get_width()) / 2, (get_height() - label->get_height()) / 2); }						
+			if(label->get_alignment() == "right" ) { label->set_relative_position( get_width() - label->get_width()     , 0); }	
+            if(label->get_alignment() == "none"  ) {} // with this you are free to set the label's relative position to whatever you want
+            label->set_position(get_x() + label->get_relative_x(), get_y() + label->get_relative_y()); // set actual position
 		}
 	}
 	on_draw(); // callback for all gui
@@ -205,6 +210,7 @@ int Button::set_image(lua_State *L)
 void Button::set_label(const Label& label)
 {
 	this->label = &const_cast<Label&>(label);
+	this->label->set_parent(* this);
 }
 /////////////
 int Button::set_label(lua_State *L)
@@ -234,7 +240,7 @@ int Button::set_label(lua_State *L)
 		if(lua_isuserdata(L, -1))
 		{
 		    Button * button = *static_cast<Button **>(lua_touserdata(L, -1));
-			button->label = (nullptr); // set label to nullptr
+			button->label = nullptr; // set label to nullptr
 		}
 		lua_pushvalue(L, 2); // push 2nd arg
 		lua_setfield(L, 1, "label"); // set label to nil

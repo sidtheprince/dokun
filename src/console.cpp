@@ -12,6 +12,8 @@ HANDLE Console::rHnd (GetStdHandle(STD_INPUT_HANDLE));
 HANDLE Console::wHnd (GetStdHandle(STD_OUTPUT_HANDLE));
 #endif
 /////////////
+Console * Console::console_ptr (nullptr);
+/////////////
 void Console::destroy() // destroys console
 {
 	#ifdef __windows__
@@ -41,11 +43,92 @@ int Console::create(lua_State *L)
 	return 0;
 }
 /////////////
-void Console::write()
+void Console::write(const std::string& text) // writes to console window
 {
 	#ifdef __windows__
 	//wHnd = GetStdHandle(STD_OUTPUT_HANDLE);
 	#endif
+	//////////////////////////////////////////
+    Console::init();
+	//////////////////////////////////////////
+    // if text (in edit) is empty, exit function (cannot submit empty text)_
+    if(text.empty()) return;
+    // add / append new label to chat_box (with a copy of edit_label's string)
+    if(console_ptr->label_list.size() < console_ptr->label_list.capacity())  // if capacity has not yet been reached
+    {
+        console_ptr->label_list.push_back(new Label(text));
+    } // label_less
+    else if(console_ptr->label_list.size() >= console_ptr->label_list.capacity()) {// capacity has been reached
+        // store string that will be discarded (or hidden from chatbox) for later use
+        //std::cout << "discarded from chatbox: " << label_list[0]->get_string() << std::endl;
+        console_ptr->discarded_string_list.push_back(console_ptr->label_list[0]->get_string());
+        // try to change the label string without removing anything
+        console_ptr->label_list[0]->set_string( console_ptr->label_list[1]->get_string() ); // first element copies second element's string
+        console_ptr->label_list[1]->set_string( console_ptr->label_list[2]->get_string() ); // second element copies third element's string and so on ...
+        console_ptr->label_list[2]->set_string( console_ptr->label_list[3]->get_string() );
+        console_ptr->label_list[3]->set_string( console_ptr->label_list[4]->get_string() );
+        // last element becomes/copies the edit_label's string
+        console_ptr->label_list[4]->set_string( text );
+        // scrollbar_handle goes the opposite way of the text (text goes up, scrollbar_handle goes down)
+        // TIP: scrollbars always start from the top
+        //if(discarded_string_list.size() > 0)//if(label_list.size() > label_list.capacity()) // if label capacity is surpassed // lets say the chatbox's height increases
+        //{
+            //scrollbar->set_handle_size( box->get_height() - edit->get_label()->get_height() ); // reduce handle size by label_height
+            //scrollbar->set_value( scrollbar->get_value() + 1 ); // bring scrollbar down as text goes up (increase scrollbar_value) // when a new label is appended to chat box, the scrollbar comes down (but you can scroll up to see the label at the top of the chatbox)  
+        //}    
+    } // label_greater_or_equal	
+}
+/////////////
+std::string Console::on_enter()
+{
+    Console::init();
+	//////////////////////////////////////////
+	std::string output = ""; // command output
+    // if text (in edit) is empty, exit function (cannot submit empty text)_
+    if(console_ptr->edit->get_label()->get_string().empty()) return "";
+    // if the "Enter" key is pressed
+    if(Keyboard::is_pressed(DOKUN_KEY_RETURN)) {
+         // add / append new label to chat_box (with a copy of edit_label's string)
+        if(console_ptr->label_list.size() < console_ptr->label_list.capacity())  // if capacity has not yet been reached
+        {
+            console_ptr->label_list.push_back(new Label(console_ptr->edit->get_label()->get_string()));
+            // execute the command
+            output = execute(console_ptr->edit->get_label()->get_string());
+            // save last string in text edit
+            console_ptr->cache = console_ptr->edit->get_label()->get_string();
+            // clear edit_label, and reset cursor_x
+            console_ptr->edit->get_label()->set_string("");
+            console_ptr->edit->set_cursor_x(0); // reset cursor_x
+            // no need to change scrollbar if label has not yet reached its capacity
+        } // label_less
+        else if(console_ptr->label_list.size() >= console_ptr->label_list.capacity()) {// capacity has been reached
+            // store string that will be discarded (or hidden from chatbox) for later use
+            //std::cout << "discarded from chatbox: " << label_list[0]->get_string() << std::endl;
+            console_ptr->discarded_string_list.push_back(console_ptr->label_list[0]->get_string());
+            // try to change the label string without removing anything
+            console_ptr->label_list[0]->set_string( console_ptr->label_list[1]->get_string() ); // first element copies second element's string
+            console_ptr->label_list[1]->set_string( console_ptr->label_list[2]->get_string() ); // second element copies third element's string and so on ...
+            console_ptr->label_list[2]->set_string( console_ptr->label_list[3]->get_string() );
+            console_ptr->label_list[3]->set_string( console_ptr->label_list[4]->get_string() );
+             // last element becomes/copies the edit_label's string
+            console_ptr->label_list[4]->set_string( console_ptr->edit->get_label()->get_string() );
+            // execute the command
+            output = execute(console_ptr->edit->get_label()->get_string());
+            // save last string in text edit
+            console_ptr->cache = console_ptr->edit->get_label()->get_string();                        
+            // clear edit_label, and reset cursor_x
+            console_ptr->edit->get_label()->set_string("");
+            console_ptr->edit->set_cursor_x(0); // reset cursor_x
+            // scrollbar_handle goes the opposite way of the text (text goes up, scrollbar_handle goes down)
+            // TIP: scrollbars always start from the top
+            if(console_ptr->discarded_string_list.size() > 0)//if(label_list.size() > label_list.capacity()) // if label capacity is surpassed // lets say the chatbox's height increases
+            {
+                //scrollbar->set_handle_size( box->get_height() - edit->get_label()->get_height() ); // reduce handle size by label_height
+                //scrollbar->set_value( scrollbar->get_value() + 1 ); // bring scrollbar down as text goes up (increase scrollbar_value) // when a new label is appended to chat box, the scrollbar comes down (but you can scroll up to see the label at the top of the chatbox)  
+            }    
+       } // label_greater_or_equal  
+   } // enter pressed 
+   return output;
 }
 /////////////
 int Console::write(lua_State *L)
@@ -66,13 +149,14 @@ int Console::read(lua_State *L)
 }
 /////////////
 std::string Console::execute(const std::string& cmd) // executes a command on the terminal, and sends the result to a txt file
-{
-    std::string file_name = "output.txt";
-    std::system( ( cmd + " | tee -a " + file_name ).c_str() ) ; // redirect output to file // " > " // https://askubuntu.com/questions/420981/how-do-i-save-terminal-output-to-a-file
+{///*
+    std::string file_name = ".output.txt";  // file is hidden with "."
+    std::system( (cmd + " 2>&1 | tee " + file_name).c_str() ); // redirect output to file // https://askubuntu.com/questions/420981/how-do-i-save-terminal-output-to-a-file : David Foerster
     // open file for input, return string containing characters in the file
-    std::ifstream file(file_name) ;
+    std::ifstream file(file_name);
     return { std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>() } ;
 }
+/////////////
 int Console::execute(lua_State *L)
 {
     std::string cmd = lua_tostring(L, -1);
@@ -143,6 +227,86 @@ std::string Console::color(const std::string& text, const std::string& foregroun
     return "\033[" + std::to_string(format_attribute_number) + ";" + std::to_string(foreground_number) + ";" + std::to_string(background_number) + "m" + text + "\033[" + std::to_string(reset_attribute_number) + "m";
 #endif    
     return text;
+}
+/////////////
+void Console::init()
+{
+    if(console_ptr == nullptr) 
+    {   // console
+        console_ptr = new Console();
+        // box
+        console_ptr->box = new Box();
+        console_ptr->box->set_size(800, 400); // update size in loop (in case of changes to edit size) // 800 is perfect for width
+        console_ptr->box->set_color(64, 64, 64, 255);
+        console_ptr->box->set_gradient(true);
+        // title_bar
+        console_ptr->box->set_title_bar(true);
+        console_ptr->box->set_title_bar_size(30);
+        // title_bar : labels
+        console_ptr->box->set_title_bar_label(*new Label("Console"));
+        console_ptr->box->get_title_bar_label()->set_alignment("center");
+        // title_bar : buttons
+        console_ptr->box->set_title_bar_button_iconify(true);
+        console_ptr->box->set_title_bar_button_maximize(true);
+        // outline and other properties
+        console_ptr->box->set_outline(true);
+        console_ptr->box->set_draggable(true);
+        console_ptr->box->set_position(console_ptr->box->get_x(), 720 - console_ptr->box->get_height() - 50 );//console_ptr->box->get_y() + 30);
+        // edit
+	    console_ptr->edit = new Edit();
+	    console_ptr->edit->set_character_limit(console_ptr->box->get_width() / 10);//(50); // dimensions for label is estimated to be 10 //std::cout << "Character limit for console is: " << console_ptr->box->get_width() / 10 << std::endl;
+ 	    console_ptr->edit->set_size(console_ptr->box->get_width(), 20);
+	    //edit->set_position(700, 600);
+	    Label * edit_label = new Label();
+	    edit_label->set_color(49, 39, 19, 255);
+	    edit_label->set_relative_position(0, 4);
+	    console_ptr->edit->set_label(* edit_label);      
+        // label_list
+        console_ptr->label_list.reserve(console_ptr->box->get_height() / round(console_ptr->edit->get_label()->get_height())); // can only hold (chat_height / height_of_each_label)
+        //std::cout << "Labels reserved for chat_box: " << label_list.capacity() << std::endl;
+        // scrollbar
+        //scrollbar = new Scrollbar();
+        //scrollbar->set_size(10, box->get_height());
+        //scrollbar->set_handle_size(box->get_height()); // scrollbar is same height as chatbox        
+    }
+}
+/////////////
+void Console::draw()
+{   
+    Console::init();
+    // callbacks
+    std::string output = Console::on_enter();
+    std::vector<std::string> output_split = String::split(output, "\n"); // split output line by line
+    if(!output.empty()) // if output is not empty
+    {
+        for(int i = 0; i < output_split.size(); i++) 
+        {
+            Console::write( output_split[i] );
+        }
+    }    
+    // update label_list reserve (in case chatbox's height increases, which means more labels can be appended, or added to it)
+    console_ptr->label_list.reserve(console_ptr->box->get_height() / round(/*edit->get_label()->get_height()*/20)  ); //std::cout << "edit_label->get_height() = " << edit->get_label()->get_height() << std::endl; // 19=each glyphs height    
+    // update geometry
+    console_ptr->edit->set_size(console_ptr->box->get_width(), console_ptr->edit->get_height()); // update size in loop (in case of changes to edit size)
+    console_ptr->edit->set_position(console_ptr->box->get_x(), console_ptr->box->get_y() + console_ptr->box->get_height()); // update position in loop (in case of changes to edit position)    
+    //scrollbar->set_size(scrollbar->get_width(), box->get_height());
+    //scrollbar->set_position(box->get_x() + (box->get_width() - scrollbar->get_width()), box->get_y());//scrollbar->set_relative_position(box->get_width() - scrollbar->get_width(), 0);//scrollbar->set_position(box->get_x() + box->get_width(), 0);
+    //scrollbar->set_step( label_list.capacity() + discarded_string_list.size()); // 5 steps    std::cout << "Scrollbar step increased" << ". Total steps: " << scrollbar->get_maximum_value() << std::endl;std::cout << "scrollbar value " << scrollbar->get_value() << std::endl;
+    // update character limit    (in case chatbox edit size changes)
+    console_ptr->edit->set_character_limit(console_ptr->box->get_width() / 10);
+    // hide or show all children depending on box's visibility
+    console_ptr->edit->set_visible( (console_ptr->box->is_iconified() == false) && (console_ptr->box->is_visible() == true) ); // hide edit (if box is iconified or hidden) //console_ptr->scrollbar->set_visible((console_ptr->box->is_iconified() == false));
+    // draw edit and box and scrollbar
+    console_ptr->edit->draw();
+    console_ptr->box->draw (); //if(discarded_string_list.size() > 0) scrollbar->draw(); // draw scrollbar only when box is full of text
+    // draw labels
+    for(int i = 0; i < console_ptr->label_list.size(); i++) 
+    {
+        if(i == 0) console_ptr->label_list[0]->set_position( console_ptr->box->get_x() + 1, console_ptr->box->get_y() + (console_ptr->box->get_height() - (console_ptr->label_list[0]->get_height() * console_ptr->label_list.size()) ) ); // first label in list will determine the position of the rest
+        if(i != 0) { console_ptr->label_list[i]->set_position( console_ptr->label_list[i - 1]->get_x(), console_ptr->label_list[i - 1]->get_y() + console_ptr->label_list[i - 1]->get_height() ); } // set label position to the position of its previous - height    
+        console_ptr->label_list[i]->set_visible( (console_ptr->box->is_iconified() == false) && (console_ptr->box->is_visible() == true) ); // hide labels (if box is iconified)
+        console_ptr->label_list[i]->draw();
+    }
 }
 /////////////
 /////////////

@@ -2,13 +2,13 @@ on Windows (MINGW) :
 cd dokun
 cmake -G"MinGW Makefiles"
 mingw32-make
-
+======================================
 on Windows (Visual Studio 14) :
 cd dokun
 cmake -G"Visual Studio 14"
 then select 'dokun.vcxproj'
-
-on Linux (GNU/G++) :
+======================================
+on Linux (GNU GCC/G++) :
 Open the terminal, install the required packages using 
 the following commands:
     sudo apt-get install build-essential
@@ -21,4 +21,22 @@ the following commands:
     sudo apt-get install libssl-dev
 cd dokun    
 cmake -G"Unix Makefiles"
+make
+======================================
+on Linux (clang) :
+Open the terminal, install the required packages using 
+the following commands:
+    sudo apt-get install build-essential
+    sudo apt-get install cmake
+    sudo apt-get install libx11-dev
+    sudo apt-get install libgl1-mesa-dev libglu1-mesa-dev
+	sudo apt-get install libvulkan1 mesa-vulkan-drivers vulkan-utils (AMD)    
+	sudo apt-get install nvidia-graphics-drivers-396 nvidia-settings vulkan vulkan-utils (NVIDIA)
+    sudo apt-get install libopenal-dev
+    sudo apt-get install libssl-dev
+Be sure to set clang as the current compiler using the following commands:    
+    sudo update-alternatives --config cc
+    sudo update-alternatives --config c++
+cd dokun
+cmake -DDOKUN_CLANG=ON -G"Unix Makefiles"
 make

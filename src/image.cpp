@@ -128,10 +128,8 @@ int Image:: load(lua_State *L)
 void Image:: draw ()
 {
 	if(visible) {
-	generate();
-	Renderer::draw_image(get_buffer(), get_width(), get_height(), get_depth(),
-	    get_x(), get_y(), get_angle(), get_scale().x, get_scale().y, 
-		get_color().x, get_color().y, get_color().z, get_color().w, get_channel());
+	    generate();
+	    Renderer::draw_image(buffer, width, height, depth, x, y, angle, scale.x, scale.y, color.x, color.y, color.z, color.w, channel); // pass actual width and height, instead of get_width() and get_height as it also includes the scale factor
 	}
 }
 /////////////
@@ -173,6 +171,7 @@ bool Image::save(std::string file_name)
     if (!fp)
 	{
 		std::cout << "Could not create " << file_name << std::endl;
+		return false;
 	}
 	return true;
 }
@@ -281,7 +280,6 @@ void Image::flip(int x, int y)
 {
 	if(x) scale = Vector2(-x, y);
 	if(y) scale = Vector2(x, -y);
-    if(x && y) scale = Vector2(-x, -y);
 }
 /////////////
 int Image::flip(lua_State *L)
@@ -431,6 +429,9 @@ int Image::set_x(lua_State *L)
 	{
 	    Image * image = *static_cast<Image **>(lua_touserdata(L, -1));
 		image->set_x(lua_tonumber(L, 2));
+		// set in lua
+		lua_pushvalue(L, 2);
+		lua_setfield(L, 1, "x");
 	}		
 	return 0;
 }
@@ -449,6 +450,9 @@ int Image::set_y(lua_State *L)
 	{
 	    Image * image = *static_cast<Image **>(lua_touserdata(L, -1));
 		image->set_y(lua_tonumber(L, 2));
+		// set in lua
+		lua_pushvalue(L, 2);
+		lua_setfield(L, 1, "y");		
 	}		
 	return 0;
 }
@@ -474,6 +478,11 @@ int Image::set_position(lua_State *L)
 	{
 	    Image * image = *static_cast<Image **>(lua_touserdata(L, -1));
 		image->set_position(lua_tonumber(L, 2), lua_tonumber(L, 3));
+		// set in lua
+		lua_pushvalue(L, 2);
+		lua_setfield(L, 1, "x");
+		lua_pushvalue(L, 3);
+		lua_setfield(L, 1, "y");				
 	}		
 	return 0;
 }
@@ -492,13 +501,18 @@ void Image::set_relative_position(const Vector2& position)
 int Image::set_relative_position(lua_State *L)
 {
     luaL_checktype(L, 1, LUA_TTABLE);
-	luaL_checktype(L, 2, LUA_TNUMBER); // x
-	luaL_checktype(L, 3, LUA_TNUMBER); // y
+	luaL_checktype(L, 2, LUA_TNUMBER); // relative_x
+	luaL_checktype(L, 3, LUA_TNUMBER); // relative_y
 	lua_getfield(L, 1, "udata");
 	if(lua_isuserdata(L, -1))
 	{
 	    Image * image = *static_cast<Image **>(lua_touserdata(L, -1));
 		image->set_relative_position(lua_tonumber(L, 2), lua_tonumber(L, 3));
+		// set in lua
+		lua_pushvalue(L, 2);
+		lua_setfield(L, 1, "relative_x");
+		lua_pushvalue(L, 3);
+		lua_setfield(L, 1, "relative_y");				
 	}		
 	return 0;	
 }
@@ -517,6 +531,9 @@ int Image::set_angle(lua_State *L)
 	{
 	    Image * image = *static_cast<Image **>(lua_touserdata(L, -1));
 		image->set_angle(lua_tonumber(L, 2));
+		// set in lua
+		lua_pushvalue(L, 2);
+		lua_setfield(L, 1, "angle");		
 	}		
 	return 0;
 }
@@ -524,12 +541,9 @@ int Image::set_angle(lua_State *L)
 void Image::set_scale(double sx, double sy)
 {
 	scale = Vector2(sx, sy);
-	// save new size ? - remove this ASAP!
-	new_width  = scale.x * (double)this->width; // scale * original_size = new_size
-	new_height = scale.y * (double)this->height;
 	resized = true;
 #ifdef  DOKUN_DEBUG0
-	std::cout << "New size after scale: " << get_new_size() << "" << std::endl;
+	std::cout << "New size after scale: " << get_size_scaled() << "" << std::endl;
 #endif		
 }            
 ///////////// 
@@ -548,6 +562,11 @@ int Image::set_scale(lua_State *L)
 	{
 	    Image * image = *static_cast<Image **>(lua_touserdata(L, -1));
 		image->set_scale(lua_tonumber(L, 2), lua_tonumber(L, 3));
+		// set in lua
+		lua_pushvalue(L, 2);
+		lua_setfield(L, 1, "scale_x");
+		lua_pushvalue(L, 3);
+		lua_setfield(L, 1, "scale_y");				
 	}	
 	return 0;
 }
@@ -579,6 +598,15 @@ int Image::set_color(lua_State *L)
 	{
 	    Image * image = *static_cast<Image **>(lua_touserdata(L, -1));
 		image->set_color(lua_tonumber(L, 2), lua_tonumber(L, 3), lua_tonumber(L, 4), lua_tonumber(L, 5));
+		// set in lua as well ...
+		lua_pushvalue(L, 2);
+		lua_setfield(L, 1, "red");
+		lua_pushvalue(L, 3);
+		lua_setfield(L, 1, "green");
+		lua_pushvalue(L, 4);
+		lua_setfield(L, 1, "blue");
+		lua_pushvalue(L, 5);
+		lua_setfield(L, 1, "alpha");								
 	}		
 	return 0;
 }
@@ -597,6 +625,9 @@ int Image::set_alignment(lua_State *L)
 	{
 	    Image * image = *static_cast<Image **>(lua_touserdata(L, -1));
 		image->set_alignment(lua_tostring(L, 2));
+		// set in lua as well ...
+		lua_pushvalue(L, 2);
+		lua_setfield(L, 1, "alignment");		
 	}
     return 0;	
 }
@@ -614,6 +645,9 @@ int Image::set_visible(lua_State *L)
 	{
 	    Image * image = *static_cast<Image **>(lua_touserdata(L, -1));
 		image->set_visible(lua_toboolean(L, 2));
+		// set in lua as well ...
+		lua_pushvalue(L, 2);
+		lua_setfield(L, 1, "visible");		
 	}
     return 0;		
 }
@@ -676,7 +710,7 @@ int Image::set_param(lua_State *L)
 /////////////
 int Image::get_width () const
 {
-    return width * get_scale().x;
+    return width;
 }
 /////////////
 int Image::get_width(lua_State *L)
@@ -695,7 +729,7 @@ int Image::get_width(lua_State *L)
 /////////////
 int Image::get_height () const
 {
-    return height * get_scale().y;
+    return height;
 }
 /////////////
 int Image::get_height(lua_State *L)
@@ -744,6 +778,65 @@ int Image::get_size(lua_State *L)
 	    Image * image = *static_cast<Image **>(lua_touserdata(L, -1));
 		lua_pushnumber(L, image->get_size().x);
 		lua_pushnumber(L, image->get_size().y);
+		return 2;
+	}
+    lua_pushnil(L);
+	lua_pushnil(L);
+    return 2;
+}
+/////////////
+int Image::get_width_scaled() const // width after scaling
+{
+    return width * scale.x;
+}
+/////////////
+int Image::get_width_scaled(lua_State *L)
+{
+    luaL_checktype(L, 1, LUA_TTABLE);
+	lua_getfield(L, 1, "udata");
+	if(lua_isuserdata(L, -1))
+	{
+	    Image * image = *static_cast<Image **>(lua_touserdata(L, -1));
+		lua_pushinteger(L, image->get_width_scaled());
+		return 1;
+	}
+    lua_pushnil(L);
+    return 1;
+}
+/////////////
+int Image::get_height_scaled() const // height after scaling
+{
+    return height * scale.y;
+}
+/////////////
+int Image::get_height_scaled(lua_State *L)
+{
+    luaL_checktype(L, 1, LUA_TTABLE);
+	lua_getfield(L, 1, "udata");
+	if(lua_isuserdata(L, -1))
+	{
+	    Image * image = *static_cast<Image **>(lua_touserdata(L, -1));
+		lua_pushinteger(L, image->get_height_scaled());
+		return 1;
+	}
+    lua_pushnil(L);
+    return 1;
+}
+/////////////
+Vector2 Image::get_size_scaled() const
+{
+    return Vector2(get_width_scaled(), get_height_scaled());
+}
+/////////////
+int Image::get_size_scaled(lua_State *L)
+{
+    luaL_checktype(L, 1, LUA_TTABLE);
+	lua_getfield(L, 1, "udata");
+	if(lua_isuserdata(L, -1))
+	{
+	    Image * image = *static_cast<Image **>(lua_touserdata(L, -1));
+		lua_pushnumber(L, image->get_size_scaled().x);
+		lua_pushnumber(L, image->get_size_scaled().y);
 		return 2;
 	}
     lua_pushnil(L);
@@ -1047,12 +1140,15 @@ int Image::get_scale(lua_State *L)
 /////////////
 double Image::get_aspect_ratio_correction(int rect_width, int rect_height) const // scale to fit inside a rect
 {
-	double image_aspect = get_width() / get_height();
+	double image_aspect = width / height; // use the raw width and height. Do not use (size * scale) to get aspect ratio or it will screw everything up!!
 	double rect_aspect  = rect_width  / rect_height;
     double scale_factor = 0.0;
    	if(rect_aspect > image_aspect) {
-		scale_factor     = rect_height / (double)get_height();
-	} else scale_factor = rect_width  / (double)get_width ();
+		scale_factor = rect_height / (double)height;
+	} 
+	else if(image_aspect < rect_aspect) {
+	    scale_factor = rect_width  / (double)width;
+	}
 	return scale_factor;
 }
 /////////////
@@ -1072,20 +1168,6 @@ int Image::get_aspect_ratio_correction(lua_State * L)
     return 1;	
 }
 /////////////
-int Image::get_new_width()        const // deprecated (delete soon)
-{
-	return new_width;
-}
-/////////////
-int Image::get_new_height()       const // deprecated (delete soon)
-{
-	return new_height;
-}
-/////////////
-Vector2 Image::get_new_size()     const // deprecated (delete soon)
-{
-	return Vector2(get_new_width(), get_new_height());
-}
 /////////////
 std::string Image::get_alignment() const
 {

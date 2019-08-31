@@ -17,7 +17,7 @@ bool Keyboard::is_pressed(int key, int times_pressed)
 #endif
 #ifdef __gnu_linux__
 #ifdef DOKUN_X11 // XkbGetState() is equivalent to GetAsyncKeyState() in Win32
-	if(Keyboard::key == key)
+    if((Keyboard::key == key) & 0x8000 != 0)
 	{
 		if(Keyboard::down) return true;
 	}

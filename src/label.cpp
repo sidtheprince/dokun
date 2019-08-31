@@ -4,6 +4,7 @@ Label::Label() : width(0), height(0), color(255, 255, 255, 255), alignment("none
 {
     if(!FONT::system_font->get_file().empty()) set_font(*FONT::system_font); // if the default font has already been loaded, set the font      //Logger("Default font has been set to label " + String(this).str());                                                  
 	set_position(0, 0);
+	set_relative_position(0, 0);
 }
 /////////////
 Label::Label(const Label& label)
@@ -14,7 +15,7 @@ Label::Label(const Label& label)
 	set_style(label.get_style());
 	set_background_color(label.get_background_color());
 	set_alignment(label.get_alignment());
-	//set_relative_position(label.get_relative_position());
+	set_relative_position(label.get_relative_position());
 	
 	set_position(label.get_position());
 	set_width(label.get_width());
@@ -24,25 +25,30 @@ Label::Label(const Label& label)
 Label::Label(const FONT& font) : width(0), height(0), color(255, 255, 255, 255), alignment("none")
 {
 	set_font(font);
+	set_position(0, 0);
+	set_relative_position(0, 0);
 }
 /////////////
 Label::Label(const std::string& text) : width(0), height(0), color(255, 255, 255, 255), alignment("none")
 {
     if(!FONT::system_font->get_file().empty()) set_font(*FONT::system_font); // if the default font has already been loaded, set the font
 	set_string(text);
-	set_position(0, 0);	
+	set_position(0, 0);
+	set_relative_position(0, 0);	
 }
 /////////////
 Label::Label(int x, int y) : width(0), height(0), color(255, 255, 255, 255), alignment("none")
 {
     if(!FONT::system_font->get_file().empty()) set_font(*FONT::system_font); // if the default font has already been loaded, set the font 
 	set_position (x, y);
+	set_relative_position(0, 0);
 }
 /////////////
 Label::Label(int x, int y, int width, int height) : color(255, 255, 255, 255), alignment("none")
 {
     if(!FONT::system_font->get_file().empty()) set_font(*FONT::system_font);
-	set_position (x, y); 
+	set_position (x, y);
+	set_relative_position(0, 0); 
 	set_width (width);
 	set_height (height);
 }
@@ -52,6 +58,7 @@ Label::Label(const std::string& text, int x, int y, int width, int height) : col
     if(!FONT::system_font->get_file().empty()) set_font(*FONT::system_font); // if the default font has already been loaded, set the font
 	set_string (text);
 	set_position (x, y);
+	set_relative_position(0, 0);
 	set_width (width);
 	set_height (height);
 }
@@ -61,6 +68,7 @@ Label::Label(const std::string& text, const FONT& font) : width(0), height(0), c
 	set_font(font);
 	set_string(text);
 	set_position(0, 0);
+	set_relative_position(0, 0);
 }
 /////////////
 int Label::label_new(lua_State *L)
@@ -115,6 +123,26 @@ int Label::draw(lua_State *L)
 		label->draw();
 	}
 	return 0;
+}
+/////////////
+void Label::copy(const Label& label)
+{
+	set_font(* label.get_font());
+	set_string(label.get_string());
+	set_color(label.get_color());
+	set_style(label.get_style());
+	set_background_color(label.get_background_color());
+	set_alignment(label.get_alignment());
+	//set_relative_position(label.get_relative_position());
+	//set_position(label.get_position());
+	//set_scale(label.get_scale());
+	set_width(label.get_width());
+	set_height(label.get_height());	
+}
+/////////////
+int Label::copy(lua_State *L)
+{
+    return 0;
 }
 /////////////
 void Label::update(void)

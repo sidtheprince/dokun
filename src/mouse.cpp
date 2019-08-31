@@ -22,12 +22,13 @@ int Mouse::is_moved(lua_State *L)
 	lua_pushboolean(L, Mouse::is_moved());
 	return 1;
 }
-/////////////
+///////////// https://unix.stackexchange.com/questions/25601/how-do-mouse-events-work-in-linux : /dev/input/mice (this device collects events from all connected mice)
 bool Mouse::is_scrolled()
 {
 #ifdef __windows__
 #endif
 #ifdef __gnu_linux__
+
 #endif
 	return false;
 }
@@ -128,11 +129,8 @@ bool Mouse::is_over(const WINDOW& window) // hover over a window
 bool Mouse::is_over(double x, double y, int width, int height) // hover over a 2d object
 {
     WINDOW * window = WINDOW::get_active();
-	if(!window) {
-		return false;
-	}
-	if((get_position(*window).x < x  + width) && (x < get_position(*window).x) && (get_position(*window).y < y + height) && (y < get_position(*window).y))
-        return true;
+	if(!window) return false;
+	if((get_position(*window).x < x  + width) && (x < get_position(*window).x) && (get_position(*window).y < y + height) && (y < get_position(*window).y)) return true; 
     return false;
 }
 /////////////

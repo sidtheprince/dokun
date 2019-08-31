@@ -15,6 +15,10 @@ extern "C" {
 #define DOKUN_MOUSE_WDOWN  5 
 #define DOKUN_MOUSE_THUMB  8
 
+#ifdef DOKUN_LINUX
+    #define DOKUN_MOUSE_DEVICE_FILE "/dev/input/mice"
+#endif
+
 #ifdef __cplusplus
 #include <iostream>
 

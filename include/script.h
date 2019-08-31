@@ -34,7 +34,7 @@ class Script
 		void copy(Script& script); // copy the contents of another script
 		static bool save(lua_State *L, const std::string& table); static int save(lua_State *L);// saves a table's data to a text file
 		void clean_stack(); // void clean() { int n = lua_gettop(L); lua_pop(L, n); }
-		
+		static void save_cache();
 		void write_to_table(lua_State *L, void * object, const std::string& _class);
 		static bool call(lua_State * L, const std::string& function, int returns = 0); // calls either a C++ function or Lua function
 		// setters

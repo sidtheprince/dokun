@@ -28,6 +28,7 @@ void Event::wait()
 //////////
 //////////
 //////////
+//////////
 void Event::on_load(lua_State *L) // dokun.load
 		{
 			lua_getglobal(L, "dokun");
@@ -275,6 +276,83 @@ dokun_Event Event::get_type()const
 {
 	return type;
 }
+//////////
+//////////
+int Event::open_mouse_device  ()
+{
+/*
+    int fd, bytes;
+    unsigned char data[3];//mode_t mode = S_IRWXU | S_IRWXG | S_IRWXO
+ #ifdef __gnu_linux__
+    // check user's permission for a file
+    if(::access("/dev/input/mice", R_OK) == -1) // #include <unistd.h>
+        ::chmod("/dev/input/mice", S_IRWXU | S_IRWXG | S_IRWXO); // cat /proc/bus/input/devices # prints out all devices
+    // before opening the device file, force admin privilidges
+    //chmod, fchmod - change permissions of a file
+    //int sudo = chmod("/dev/input/mice", S_IRWXU | S_IRWXG | S_IRWXO); // #include <sys/stat.h> //system("sudo chmod 744 /dev/input/mice"); // sudo gedit /dev/input/mice
+    
+    //
+#endif
+    int left, middle, right;
+    signed char x, y; 
+
+*/
+#ifdef DOKUN_LINUX
+    mouse_device = ::open("/dev/input/mice", O_RDONLY, S_IRWXU | S_IRWXG | S_IRWXO); // U=user, G=group, O=others// #include <sys/stat.h>, #include <fcntl.h>
+    if(mouse_device == -1)
+    {
+        std::cerr << "Event::open_mouse_device_error : could not open: " << "/dev/input/mice" << std::endl;
+        switch(mouse_device) // and give a reason for the error ...
+        {
+            case EACCES: std::cerr << "::open() : could not open \"/dev/input/mice\": permission denied" << std::endl; break;
+        }
+        return -1;
+    }
+#endif
+    return 0; // no errors occured
+}
+//////////
+void Event::close_mouse_device()
+{
+#ifdef DOKUN_LINUX
+    ::close(mouse_device);
+#endif
+}
+//////////
+void Event::get_mouse_event()
+{
+#ifdef DOKUN_LINUX
+    unsigned char data[3];
+    if(::read(mouse_device, data, sizeof(data)) > 0)// read bytes bytes = ::read(fd, data, sizeof(data));
+    {
+        //int left = data[0] & 0x1; int right = data[0] & 0x2; int middle = data[0] & 0x4;
+        //double x = data[1];
+        //double y = data[2];
+        //printf("x=%d, y=%d, left=%d, middle=%d, right=%d\n", x, y, left, middle, right);
+    }
+#endif    
+}
+//////////
+//////////
+//////////
+//////////
+//////////
+//////////
+//////////
+//////////
+//////////
+//////////
+//////////
+//////////
+//////////
+//////////
+//////////
+//////////
+//////////
+//////////
+//////////
+//////////
+//////////
 //////////
 //////////
 //////////

@@ -243,7 +243,7 @@ bool Audible::load(const std::string& file_name)
 	{
 	    return load_flac(file_name);    
 	}
-	return load_ogg(file_name);
+	return load_ogg(file_name); // vorbis
 }
 /////////////
 bool Audible::load(void * data, size_t size, int format, int sample_rate)
@@ -1086,9 +1086,7 @@ bool Audible::load_ogg(const std::string& file_name)
         }
     }*/
 #ifdef DOKUN_OPENAL
-	ALuint format;
-	(vi->channels == 1) ? format = AL_FORMAT_MONO16 : format = AL_FORMAT_STEREO16;
-
+    ALuint format = (channels > 1) ? AL_FORMAT_STEREO16 : AL_FORMAT_MONO16; // ogg vorbis is 16-bit ONLY. No 8-bit! unlike flac which can have both 8 and 16 bits.//if(format == AL_FORMAT_MONO16) std::cout << "16-bit Mono\n"; else std::cout << "16-bit Stereo\n";
 	alSourceUnqueueBuffers(static_cast<ALuint>(source), 1, static_cast<ALuint*>(&buffer));
 	alBufferData(buffer, format, &data[0], static_cast<ALsizei>(data.size()), vi->rate);
 	alSourceQueueBuffers(static_cast<ALuint>(source), 1, static_cast<ALuint*>(&buffer));
@@ -1117,10 +1115,8 @@ bool Audible::load_flac(const std::string& file_name)
 	    }
 	}    
 	return false;
-/*
-    unsigned char * data = new unsigned char[];;
-
-	FILE * file = fopen(file_name.c_str(), "rb");
+	////////////////////////////////////////////////////////////////////////////////////////////
+	/*FILE * file = fopen(file_name.c_str(), "rb");
 	if(!file) { return false; }
     
 	FLAC__StreamDecoder * decoder = 0;
@@ -1135,7 +1131,7 @@ bool Audible::load_flac(const std::string& file_name)
     FLAC__StreamDecoderInitStatus init_status;
     FLAC__bool ok = true; 
     std::cout << "stored contents of : " << file_name << " to " << "Audible::data" << std::endl;
-    init_status = FLAC__stream_decoder_init_FILE(decoder, file, write_callback, metadata_callback, error_callback, data);//FLAC__stream_decoder_init_file(decoder, file_name.c_str(), write_callback, metadata_callback, error_callback, (void *)data); // FLAC__stream_decoder_init_FILE(decoder, file, write_callback, nullptr, error_callback, nullptr); // argv[1] should be file_name : https://xiph.org/flac/api/group__flac__stream__decoder.html#ga4021ead5cff29fd589c915756f902f1a
+    init_status = FLAC__stream_decoder_init_FILE(decoder, file, static_cast<FLAC__StreamDecoderWriteCallback>(this->write_callback), static_cast<FLAC__StreamDecoderMetadataCallback>(this->metadata_callback), static_cast<FLAC__StreamDecoderErrorCallback>(this->error_callback), data);//FLAC__stream_decoder_init_file(decoder, file_name.c_str(), write_callback, metadata_callback, error_callback, (void *)data); // FLAC__stream_decoder_init_FILE(decoder, file, write_callback, nullptr, error_callback, nullptr); // argv[1] should be file_name : https://xiph.org/flac/api/group__flac__stream__decoder.html#ga4021ead5cff29fd589c915756f902f1a //FLAC__stream_decoder_init_stream (decoder, FLAC__StreamDecoderReadCallback read_callback, nullptr, nullptr, nullptr, nullptr, write_callback, metadata_callback, error_callback, nullptr);
     if(init_status != FLAC__STREAM_DECODER_INIT_STATUS_OK) {
 		std::cerr << "ERROR: initializing decoder: " << FLAC__StreamDecoderInitStatusString[init_status] << std::endl;
 		ok = false;
@@ -1144,9 +1140,9 @@ bool Audible::load_flac(const std::string& file_name)
 		ok = FLAC__stream_decoder_process_until_end_of_stream(decoder);
 		fprintf(stderr, "decoding: %s\n", ok? "succeeded" : "FAILED");
 		fprintf(stderr, "   state: %s\n", FLAC__StreamDecoderStateString[FLAC__stream_decoder_get_state(decoder)]);
-	}
+	}*/
 	//std::cout << "decoder channels: " << channels = FLAC__stream_decoder_get_channels (decoder)    << std::endl;
-	//std::cout << "decoder channels: " << FLAC__stream_decoder_get_sample_rate (decoder) << std::endl;*/
+	//std::cout << "decoder channels: " << FLAC__stream_decoder_get_sample_rate (decoder) << std::endl;
 /*#ifdef DOKUN_OPENAL
 	ALuint format;
 	(vi->channels == 1) ? format = AL_FORMAT_MONO16 : format = AL_FORMAT_STEREO16;
@@ -1159,6 +1155,52 @@ bool Audible::load_flac(const std::string& file_name)
 	//fclose(file);
 	//return true;    
 }
+/////////////
+/////////////
+//FLAC__StreamDecoderReadStatus Audible::read_callback(FLAC__byte buffer[], unsigned *bytes)
+//{return }
+/////////////
+FLAC__StreamDecoderWriteStatus Audible::write_callback(const FLAC__Frame *frame, const FLAC__int32 * const buffer[])
+{
+    for(size_t i = 0; i < frame->header.blocksize; i++)
+    {
+        data[index] = buffer[0][i]; // channel audio on the left
+        ++index;
+        
+        data[index] = buffer[1][i]; // what about the right channel?
+    }
+	return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
+}
+/////////////
+void Audible::metadata_callback(const FLAC__StreamMetadata *metadata)
+{
+	if(metadata->type == FLAC__METADATA_TYPE_STREAMINFO) {
+		this->total_samples   = metadata->data.stream_info.total_samples;
+		this->sample_rate     = metadata->data.stream_info.sample_rate;
+		this->channels        = metadata->data.stream_info.channels;
+		this->bits_per_sample = metadata->data.stream_info.bits_per_sample;
+	}
+	// set format depending on bits_per_second and number of channels
+	ALuint format;
+	switch(this->bits_per_sample) {
+	    case 8:
+		    if(this->channels > 1) { format = AL_FORMAT_STEREO8;  Logger("8-bits Stereo", "info"); } else { format = AL_FORMAT_MONO8;  Logger("8-bits Mono", "info"); }
+		    break;
+		case 16:
+		    if(this->channels > 1) { format = AL_FORMAT_STEREO16; Logger("16-bits Stereo", "info");} else { format = AL_FORMAT_MONO16; Logger("16-bits Mono", "info");}
+		    break;
+	}
+	// set size and resize data_vector based on number of total_samples, reset index
+	size = static_cast<ALuint>( this->sample_rate * this->channels * (this->bits_per_sample / 8) );
+	data.resize( total_samples );
+	index = 0;
+}
+/////////////
+void Audible::error_callback(FLAC__StreamDecoderErrorStatus status)
+{
+    fprintf(stderr, "Got error callback: %s\n", FLAC__StreamDecoderErrorStatusString[status]);
+}
+/////////////
 /////////////
 bool Audible::load_wav(const std::string& file_name) // Every time you convert to lossy(ogg, mp3) there is loss of quality
 {
@@ -1469,6 +1511,7 @@ FLAC__uint64 Audible::total_samples_dec  (0);
 unsigned int Audible::bits_per_sample_dec(0); // 8 bit, 16 bit for 2 channel stereo
 unsigned int Audible::sample_rate_dec    (0); // same as frequency (eg. 44100, 22050, etc.)
 unsigned int Audible::channels_dec       (0); // 1=mono, 2=stereo
+unsigned int Audible::format_dec         (0);
 /////////////
 bool Audible::decode_flac(const std::string& file_name) // converts .flac to .wav
 {
@@ -1489,7 +1532,7 @@ bool Audible::decode_flac(const std::string& file_name) // converts .flac to .wa
     FLAC__StreamDecoderInitStatus init_status;
     FLAC__bool ok = true; 
     std::cout << "converted: " << file_name << " to " << std::string(file_name.substr(0, file_name.find(".")) + ".wav").c_str() << std::endl;
-    init_status = FLAC__stream_decoder_init_file(decoder, file_name.c_str(), write_callback, metadata_callback, error_callback, file); // FLAC__stream_decoder_init_FILE(decoder, file, write_callback, nullptr, error_callback, nullptr); // argv[1] should be file_name : https://xiph.org/flac/api/group__flac__stream__decoder.html#ga4021ead5cff29fd589c915756f902f1a
+    init_status = FLAC__stream_decoder_init_file(decoder, file_name.c_str(), decoder_write_callback, decoder_metadata_callback, decoder_error_callback, file); // FLAC__stream_decoder_init_FILE(decoder, file, write_callback, nullptr, error_callback, nullptr); // argv[1] should be file_name : https://xiph.org/flac/api/group__flac__stream__decoder.html#ga4021ead5cff29fd589c915756f902f1a
     if(init_status != FLAC__STREAM_DECODER_INIT_STATUS_OK) {
 		std::cerr << "ERROR: initializing decoder: " << FLAC__StreamDecoderInitStatusString[init_status] << std::endl;
 		ok = false;
@@ -1505,7 +1548,7 @@ bool Audible::decode_flac(const std::string& file_name) // converts .flac to .wa
 	return true;
 }
 /////////////
-unsigned int Audible::total_samples (0);
+unsigned int Audible::total_samples_enc(0);
 /////////////
 bool Audible::encode_flac(const std::string& file_name) // converts .wav to .flac
 {
@@ -1539,7 +1582,7 @@ bool Audible::encode_flac(const std::string& file_name) // converts .wav to .fla
 	sample_rate = ((((((unsigned)buf[27] << 8) | buf[26]) << 8) | buf[25]) << 8) | buf[24];
 	channels = 2;
 	bits_per_sample = 16;
-	total_samples = (((((((unsigned)buf[43] << 8) | buf[42]) << 8) | buf[41]) << 8) | buf[40]) / 4;
+	total_samples_enc = (((((((unsigned)buf[43] << 8) | buf[42]) << 8) | buf[41]) << 8) | buf[40]) / 4;
 
 	/* allocate the encoder */
 	if((encoder = FLAC__stream_encoder_new()) == NULL) {
@@ -1553,7 +1596,7 @@ bool Audible::encode_flac(const std::string& file_name) // converts .wav to .fla
 	ok &= FLAC__stream_encoder_set_channels(encoder, channels);
 	ok &= FLAC__stream_encoder_set_bits_per_sample(encoder, bits_per_sample);
 	ok &= FLAC__stream_encoder_set_sample_rate(encoder, sample_rate);
-	ok &= FLAC__stream_encoder_set_total_samples_estimate(encoder, total_samples);
+	ok &= FLAC__stream_encoder_set_total_samples_estimate(encoder, total_samples_enc);
 	
 	/* now add some metadata; we'll add some tags and a padding block */
 	if(ok) {
@@ -1576,7 +1619,7 @@ bool Audible::encode_flac(const std::string& file_name) // converts .wav to .fla
 	}
 	/* initialize encoder */
 	if(ok) {
-		init_status = FLAC__stream_encoder_init_file(encoder, std::string(file_name.substr(0, file_name.find(".")) + ".flac").c_str(), progress_callback, /*client_data=*/NULL);
+		init_status = FLAC__stream_encoder_init_file(encoder, std::string(file_name.substr(0, file_name.find(".")) + ".flac").c_str(), encoder_progress_callback, /*client_data=*/NULL);
 		if(init_status != FLAC__STREAM_ENCODER_INIT_STATUS_OK) {
 			fprintf(stderr, "ERROR: initializing encoder: %s\n", FLAC__StreamEncoderInitStatusString[init_status]);
 			ok = false;
@@ -1584,7 +1627,7 @@ bool Audible::encode_flac(const std::string& file_name) // converts .wav to .fla
 	}		
 	/* read blocks of samples from WAVE file and feed to encoder */
 	if(ok) {
-		size_t left = (size_t)total_samples;
+		size_t left = (size_t)total_samples_enc;
 		while(ok && left) {
 			size_t need = (left>1024? (size_t)1024 : (size_t)left);
 			//data.insert(data.end(), pcm, pcm + need); // get data and pass it to openAL --------------------------------------------------------------------
@@ -1633,7 +1676,7 @@ bool Audible::encode_flac(const std::string& file_name) // converts .wav to .fla
 /////////////
 // callbacks (decoder)
 /////////////
-FLAC__StreamDecoderWriteStatus Audible::write_callback(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data)
+FLAC__StreamDecoderWriteStatus Audible::decoder_write_callback(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data)
 {
 	FILE *f = (FILE*)client_data;
 	const FLAC__uint32 total_size = (FLAC__uint32)(total_samples_dec * channels_dec * (bits_per_sample_dec/8));
@@ -1697,7 +1740,7 @@ FLAC__StreamDecoderWriteStatus Audible::write_callback(const FLAC__StreamDecoder
 	return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
 }
 /////////////
-void Audible::metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data)
+void Audible::decoder_metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data)
 {
 	(void)decoder, (void)client_data;
 
@@ -1716,7 +1759,7 @@ void Audible::metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__
 	}
 }
 /////////////
-void Audible::error_callback(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data)
+void Audible::decoder_error_callback(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data)
 {
 	(void)decoder, (void)client_data;
 
@@ -1726,11 +1769,11 @@ void Audible::error_callback(const FLAC__StreamDecoder *decoder, FLAC__StreamDec
 /////////////
 // callbacks (encoder)
 ///////////// 
-void Audible::progress_callback(const FLAC__StreamEncoder *encoder, FLAC__uint64 bytes_written, FLAC__uint64 samples_written, unsigned frames_written, unsigned total_frames_estimate, void *client_data)
+void Audible::encoder_progress_callback(const FLAC__StreamEncoder *encoder, FLAC__uint64 bytes_written, FLAC__uint64 samples_written, unsigned frames_written, unsigned total_frames_estimate, void *client_data)
 {
 	(void)encoder, (void)client_data;
 
-	fprintf(stderr, "wrote %" PRIu64 " bytes, %" PRIu64 "/%u samples, %u/%u frames\n", bytes_written, samples_written, static_cast<unsigned int>(total_samples), frames_written, total_frames_estimate);
+	fprintf(stderr, "wrote %" PRIu64 " bytes, %" PRIu64 "/%u samples, %u/%u frames\n", bytes_written, samples_written, static_cast<unsigned int>(total_samples_enc), frames_written, total_frames_estimate);
 }
 /////////////
 /////////////

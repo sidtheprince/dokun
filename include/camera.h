@@ -143,5 +143,10 @@ private:
             if(Keyboard::is_pressed(DOKUN_KEY_W)) camera->set_position( camera->get_position().x, camera->get_position().y - 1, camera->get_position().z );
             if(Keyboard::is_pressed(DOKUN_KEY_A)) camera->set_position( camera->get_position().x - 1, camera->get_position().y, camera->get_position().z );
             if(Keyboard::is_pressed(DOKUN_KEY_S)) camera->set_position( camera->get_position().x, camera->get_position().y + 1, camera->get_position().z );
-            if(Keyboard::is_pressed(DOKUN_KEY_D)) camera->set_position( camera->get_position().x + 1, camera->get_position().y, camera->get_position().z );            
+            if(Keyboard::is_pressed(DOKUN_KEY_D)) camera->set_position( camera->get_position().x + 1, camera->get_position().y, camera->get_position().z );
+            
+            
+        // camera follow sprite test (will affect Mouse_position)
+        int camera_height = -(window.get_client_height() / 2);// keep camera at center height of screen;  negative = up   positive = down
+        camera->set_position(Vector3(sprite->get_position(), 0.0) + Vector3(-(window.get_client_width() - window.get_client_height() / 2), camera_height, 0) );//Vector3(0, camera_height, 0)//Vector3(cam_x_position_away_from_sprite, camera_height, 0)                        
 */

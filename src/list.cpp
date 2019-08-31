@@ -56,7 +56,7 @@ void List::draw()
 			if(i == 0) item->set_position(get_position()); // first item is set at position of list (this)
 		    if(i != 0) {item->previous = item_list[i - 1];  item->set_position(get_position().x, item->previous->get_position().y + item->previous->get_height());} // item[0] is the first item so it won't have any previous
             on_item(item, i);
-			// Draw list
+			// Draw box (multiple)
 		    Renderer::draw_box(item->get_x(), item->get_y(), item->get_width(), item->get_height(), 
 			    get_angle(), get_scale().x, get_scale().y, 
 			    item->get_color().x, item->get_color().y, item->get_color().z, item->get_color().w,
@@ -70,8 +70,8 @@ void List::draw()
 			Image * image = item->get_image();
             if(image != nullptr)
 			{
-				int image_width  = (image->is_resized() == false) ? image->get_width () : image->get_new_width ();
-			    int image_height = (image->is_resized() == false) ? image->get_height() : image->get_new_height();					
+				int image_width  = (image->is_resized() == false) ? image->get_width () : image->get_width_scaled ();
+			    int image_height = (image->is_resized() == false) ? image->get_height() : image->get_height_scaled();					
 				if(image->get_alignment() == "left"  ) image->set_relative_position(0, 0);
 				if(image->get_alignment() == "center") image->set_relative_position((item->get_width() - item->get_height()) / 2, 0);
 				if(image->get_alignment() == "right" ) image->set_relative_position(item->get_width() - item->get_height(), 0);		
@@ -79,9 +79,20 @@ void List::draw()
 				image->scale_to_fit(get_width(), get_height());
                 image->draw();				
 			}	
+			// Draw label
+			Label * label = item->get_label();
+			if(label)
+			{
+		        if(label->get_alignment() == "left"  ) { label->set_relative_position(0                                          , 0); } // default - relative_position will always be (0, 0) unless you change the alignment
+				if(label->get_alignment() == "center") { label->set_relative_position((item->get_width()-label->get_width())/2   , (item->get_height()-label->get_height())/2); }						
+				if(label->get_alignment() == "right" ) { label->set_relative_position(item->get_width() - label->get_width()     , 0); }	
+                if(label->get_alignment() == "none"  ) {} // with this you are free to set the label's relative position to whatever you want         
+                label->set_position(item->get_x() + label->get_relative_x(), item->get_y() + label->get_relative_y()); // set actual position
+                label->draw(); // draw label manually since we are drawing from List::draw and NOT Box::draw  
+			}			
 	    }
+	    on_draw(); // callback for all gui
 	}
-	on_draw(); // callback for all gui
 }
 int List::draw(lua_State *L)
 {
@@ -105,6 +116,7 @@ int List::add(lua_State *L)
 void List::set_label(const Label& label)
 {
 	this->label = &const_cast<Label&>(label);
+	//this->label->set_parent(*this);
 }
 void List::set_color(int red, int green, int blue, int alpha)
 {
@@ -139,7 +151,7 @@ Box * List::get_item(int index) const
 {
 	if(item_list.size() < index + 1)
 	{
-		Logger("Attempt to access invalid item in get_item() | list.cpp (162)");
+		Logger("List::get_item : Attempting to access invalid item location", "error");
 		return nullptr;
 	}
 	return item_list[index];

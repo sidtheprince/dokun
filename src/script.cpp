@@ -369,6 +369,46 @@ int Script::save(lua_State *L)
 	return 1;
 }
 //////////
+void Script::save_cache()
+{
+    if(cache.empty()) return; // cache is empty, so return (since there is nothing to save)
+    ////////////////////////
+    // open file for reading
+    std::ifstream rfile;
+    rfile.open ("script_cache.txt", std::ios::in | std::ios::app);
+    // if file already exists
+    std::stringstream stream;
+    std::vector<std::string> content_in_file;
+    if(rfile.is_open()) {
+	    stream << rfile.rdbuf(); // dump file contents	
+	    content_in_file = String::split(stream.str(), "\n"); // split each line
+	    // cache can ONLY hold 5 filenames
+	    if(content_in_file.size() >=5) content_in_file.clear(); // erase all file contents if the number of filenames reach 5
+	    // look for duplicate names and remove them ...
+	    for(int i = 0; i < content_in_file.size(); i++)
+	    {
+	        for(int j = 0; j < cache.size(); j++) 
+	        {
+	            if(cache[j] == content_in_file[i]) { cache[j].clear(); } // remove duplicate filenames previously saved to cache file: "script_cache.txt" //if(String::contains(content_in_file[i], ".lua")) std::cout << "Found recent files: " << content_in_file[i] << std::endl; // if its a lua file, print filename
+	        }
+	    }
+    }
+    if(rfile.is_open()) rfile.close();
+    ////////////////////////
+    // open file for writing
+    std::ofstream cfile;
+    cfile.open ("script_cache.txt", std::ios::out | std::ios::app); // std::ios::out is default mode for ofstream (writing to file)
+    if(!cfile.is_open()) {Logger(String("Script::save_cache : Could not open file: ") + "script_cache.txt");return;}
+    for(int i = 0; i < cache.size(); i++)
+    {
+        if(!cache[i].empty()) cfile << cache[i] << std::endl;
+    }
+    cfile.close();    
+}
+//////////
+// getters
+//////////
+//////////
 void Script::get_table(lua_State *L, const std::string& table) // can also get subtables
 {
 	if(!String::contains(table, ".")) // no dots
@@ -1108,6 +1148,8 @@ int Script::is_script(lua_State *L)
 //////////
 int Script::new_(lua_State *L)
 {
+    std::string file_name = lua_tostring(L, -1);
+    // clear stack
 	lua_settop(L, 0);
 	// create table
 	lua_createtable(L, 0, 0);
@@ -1116,7 +1158,8 @@ int Script::new_(lua_State *L)
 	lua_setmetatable(L, 1);
 	// create udata
 	Script **script = static_cast<Script **>(lua_newuserdata(L, sizeof(Script *)));
-	*script = new Script();
+	if(!file_name.empty()) *script = new Script(L, file_name);
+	else *script = new Script();
 	lua_setfield(L, 1, "udata");
 	// non-static load function
 	lua_pushcfunction(L, Script::load);

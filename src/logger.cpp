@@ -12,7 +12,7 @@ Logger::Logger(int code, std::string type) // Usage: Logger(1, "error");
     if(String::lower(type) == "warning") std::cerr << "\033[0;33m";
     if(String::lower(type) == "info"   ) std::cerr << "\033[0;32m";
 #endif
-    std::cout << print_error(code) << std::endl; // print error
+    std::cout << print_error(code) << std::endl; // print error //Console::write(print_error(code));
 #ifdef DOKUN_LINUX
 	std::cout << "\033[0m"; // restore console color
 #endif    
@@ -30,7 +30,7 @@ Logger::Logger(const String& message, std::string type) // Usage: Logger("Hello 
     if(String::lower(type) == "special") std::cout << "\033[0;34m"; // 34=blue
     if(String::lower(type) == "dark"   ) std::cout << "\033[0;30m"; // 30=black
 #endif
-	std::cout << DOKUN_TAG message << std::endl; // print message on console // std::clog, std::cerr - for errors and info, std::cout - for actual program output
+	std::cout << DOKUN_TAG message << std::endl; // print message on console // std::clog, std::cerr - for errors and info, std::cout - for actual program output //Console::write(message.str());
 #ifdef DOKUN_LINUX
 	std::cout << "\033[0m"; // restore console color
 #endif
@@ -47,7 +47,7 @@ Logger::Logger(const String& message, /*const std::string& function,*/ const std
     if(String::lower(logger_ptr->type) == "special") std::cout << "\033[0;34m"; // 34=blue
     if(String::lower(logger_ptr->type) == "dark"   ) std::cout << "\033[0;30m"; // 30=black
 #endif
-	std::cout << DOKUN_TAG message << std::endl; // print message on console // std::clog, std::cerr - for errors and info, std::cout - for actual program output
+	std::cout << DOKUN_TAG message << std::endl; // print message on console // std::clog, std::cerr - for errors and info, std::cout - for actual program output //Console::write(message.str());
 #ifdef DOKUN_LINUX
 	std::cout << "\033[0m"; // restore console color
 #endif
@@ -97,7 +97,15 @@ void Logger::close() // private: can only be called by engine
 	if(!Logger::save("dokun_log.txt")) Logger("Logger::save : Could not save log to: dokun_log.txt");
 }
 ////////////
-void Logger::push(const String& message) { logger_ptr->session.push_back(message.str());}
+void Logger::push(const String& message) 
+{
+    //if(logger_ptr->session.size() > 1) 
+    //{
+    //    std::string prev_str = logger_ptr->session[logger_ptr->session.size() - 1]; 
+    //}    
+    // push message    
+    logger_ptr->session.push_back(message.str());
+}
 ////////////
 void Logger::push(const Logger& logger ) // Usage: Logger::push(Logger("This is a warning", "warning"));
 {
@@ -208,7 +216,7 @@ std::string Logger::print_error(int error_code)
 	return message;
 }
 ////////////
-unsigned int Logger::opengl_error(std::string filename, std::string line)
+unsigned int Logger::opengl_error(const std::string& filename, const std::string& line)
 {
 		unsigned int error_code = 0;
     #ifdef DOKUN_OPENGL	
@@ -245,7 +253,7 @@ unsigned int Logger::opengl_error(std::string filename, std::string line)
 		return error_code; 
 }
 ////////////
-int Logger::vulkan_error(int result, std::string filename, std::string line)
+int Logger::vulkan_error(int result, const std::string& filename, const std::string& line)
 {
 #ifdef DOKUN_VULKAN
         switch(result)

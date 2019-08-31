@@ -8,38 +8,55 @@ set(VERSION_PATCH "0")
 set(PROJECT_VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH})
 #############
 # platform
-if(WIN32) # tested on Windows 10 with MinGW (GNU 6.3.0)   8MB
+if(WIN32) # tested on Windows 10 with MinGW (GNU 6.3.0)
     message("WIN32 device detected")
     set(WINDOWS TRUE)
 endif()
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux") # tested on Ubuntu 14.04(with GCC/G++4.8), 16.04(GCC/G++5.4.0), 19.04 (GCC 8.3.0)
     message("Linux device detected")
     set(LINUX TRUE)
+    option(DOKUN_CLANG "use clang" OFF) # clang (BSD License - your code can be used commercially and can be closed-source)
+    option(DOKUN_GCC   "use gcc"   ON ) # gcc - shipped with Ubuntu by default (GPL License - your code must be free and open-source)
     set(CMAKE_C_COMPILER   /usr/bin/gcc)
     set(CMAKE_CXX_COMPILER /usr/bin/g++)
 endif()
-#if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" ) message("MacOSX device detected" ) set(MACOSX  TRUE) endif()
-#if(${CMAKE_SYSTEM_NAME} MATCHES "Android") message("Android device detected") set(ANDROID TRUE) endif()
+#############
+# compiler
+if(LINUX) # if user chooses to compile with clang
+if(DOKUN_CLANG) # cmake -DDOKUN_CLANG=ON -G"Unix Makefiles"
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang") # check if clang is set as the current compiler
+    set(DOKUN_GCC OFF )  
+    set(DOKUN_CLANG ON) # use clang (if not using gcc)
+    set(CMAKE_C_COMPILER   /usr/bin/clang  )
+    set(CMAKE_CXX_COMPILER /usr/bin/clang++)
+else()
+    message(WARNING "clang is not the default compiler!")
+endif()
+endif()
+endif()
 #############
 # use C++ 11 (REQUIRED)
-if(CMAKE_VERSION VERSION_LESS "3.1") 
-    message("cmake version less than 3.1. Using CMAKE_CXX_FLAGS")
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU") # if(CMAKE_COMPILER_IS_GNUCXX)
+if(CMAKE_VERSION VERSION_LESS "3.1")
+if(DOKUN_GCC) # if(CMAKE_COMPILER_IS_GNUCXX) # if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     set(CMAKE_CXX_FLAGS "-std=gnu++11") # 98, 11, 14, 17, 20
 endif()
+if(DOKUN_CLANG)
+    set(CMAKE_CXX_FLAGS "-std=c++11"  )
+endif()
 else()
-    message("cmake version 3.1 or greater. Using CMAKE_CXX_STANDARD")
     set(CMAKE_CXX_STANDARD 11) # supported in cmake version 3.1 and higher
 endif() #
 #############
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    list(APPEND CMAKE_CXX_FLAGS "-no-pie") # no position independent executable (PIE)
+if(DOKUN_GCC) # if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    list(APPEND CMAKE_CXX_FLAGS "-no-pie") # no position independent executable (PIE) #gcc="-no-pie" #clang="-nopie"
+endif()
+if(DOKUN_CLANG)
+    list(APPEND CMAKE_CXX_FLAGS "-w"     ) #-w=ignores all warnings
 endif()
 #############
 # engine (dokun)
 set(dokun_res  dokun.rc      )
-set(dokun_src  src/engine.cpp src/window.cpp src/sprite.cpp src/model.cpp src/texture.cpp src/image.cpp src/vertex.cpp src/mouse.cpp src/keyboard.cpp src/joystick.cpp src/touch.cpp src/virtual.cpp src/brain.cpp src/audio.cpp src/sound.cpp src/music.cpp src/voice.cpp src/font.cpp src/ui.cpp src/box.cpp src/button.cpp src/label.cpp src/edit.cpp src/progressbar.cpp src/slider.cpp src/toggle.cpp src/scrollbar.cpp src/list.cpp src/spinner.cpp src/menubar.cpp src/grid.cpp src/combo.cpp src/tab.cpp src/server.cpp src/client.cpp src/entity.cpp src/component.cpp src/camera.cpp src/level.cpp src/timer.cpp src/light.cpp src/shader.cpp src/resource.cpp src/animator.cpp src/data.cpp src/factory.cpp src/script.cpp src/console.cpp src/video.cpp src/plugin.cpp src/file.cpp src/event.cpp src/renderer.cpp src/process.cpp src/http.cpp src/logger.cpp
-  src/player.cpp)
+set(dokun_src  src/engine.cpp src/window.cpp src/sprite.cpp src/model.cpp src/texture.cpp src/image.cpp src/vertex.cpp src/mouse.cpp src/keyboard.cpp src/joystick.cpp src/touch.cpp src/virtual.cpp src/brain.cpp src/audio.cpp src/sound.cpp src/music.cpp src/voice.cpp src/font.cpp src/ui.cpp src/box.cpp src/button.cpp src/label.cpp src/edit.cpp src/progressbar.cpp src/slider.cpp src/toggle.cpp src/scrollbar.cpp src/list.cpp src/spinner.cpp src/menubar.cpp src/grid.cpp src/combo.cpp src/tab.cpp src/server.cpp src/client.cpp src/entity.cpp src/component.cpp src/camera.cpp src/level.cpp src/timer.cpp src/light.cpp src/shader.cpp src/resource.cpp src/animator.cpp src/data.cpp src/factory.cpp src/script.cpp src/console.cpp src/video.cpp src/plugin.cpp src/file.cpp src/event.cpp src/renderer.cpp src/process.cpp src/browser.cpp src/logger.cpp)
 set(editor_src src/editor.cpp)
 set(game_src   src/game.cpp  ) # game demo
 #############
@@ -62,7 +79,7 @@ if(DOKUN_LUA53) # cmake -G"..Makefiles" -DDOKUN_LUA53=ON
     add_definitions(-DLUA_LIBRARY) # required if using lua 5.3
 endif()
 if(NOT lua_src)
-    message("-- Lua version not specified. Using Lua 5.3 by default")
+    message(STATUS "Lua version not specified. Using Lua 5.3 by default")
 	set(DOKUN_LUA53 ON)
 	set(lua_src ${lua53_src})
 	add_definitions(-DLUA_LIBRARY) # lua 5.3

@@ -6,8 +6,9 @@ Sprite::Sprite(void) : x(0), y(0), angle(0), scale_factor(1, 1), texture(nullptr
 {
 	Factory::get_sprite_factory()->store(this);
 #ifdef DOKUN_DEBUG 	
-	Logger::push(DOKUN_LOGTAG + "Sprite " + String(this).str() + " allocated (index=" + String(Factory::get_sprite_factory()->get_location(this)).str() + ")" + " (total_sprite_instances=" + String(Factory::get_sprite_factory()->get_size()).str() + ")");
-#endif	
+	Logger::push("dokun: " + String(this).str() + " has been allocated with Sprite::new ()");
+	Logger::push("       (index=" + std::to_string(Factory::get_sprite_factory()->get_location(this)) + ", total_sprite_count=" + std::to_string(Factory::get_sprite_factory()->get_size()) + ")");
+#endif
 }
 ////////////
 Sprite::Sprite(const Sprite& sprite)
@@ -53,7 +54,7 @@ Sprite::~Sprite(void)
 {
 	Factory::get_sprite_factory()->release(this); // dont destroy texture cause it may be reused by another sprite. Deallocate it seperately
 #ifdef DOKUN_DEBUG 	
-	Logger::push(DOKUN_LOGTAG + "Sprite " + String(this).str() + " deallocated (total_sprite_instances=" + String(Factory::get_sprite_factory()->get_size()).str() + ")");
+	Logger::push("dokun: " + String(this).str() + " deallocated with Sprite::Sprite~()\n       (total_sprite_count=" + String(Factory::get_sprite_factory()->get_size()).str() + ")");
 #endif	
 }
 ////////////
@@ -547,6 +548,11 @@ int Sprite::set_position(lua_State *L)
 	{
 		Sprite * sprite = *static_cast<Sprite **>(lua_touserdata(L, -1));
 	    sprite->set_position (static_cast<double>(lua_tonumber(L, 2)), static_cast<double>(lua_tonumber(L, 3)));
+		// set in lua as well ...
+		lua_pushvalue(L, 2);
+		lua_setfield(L, 1, "x");
+		lua_pushvalue(L, 3);
+		lua_setfield(L, 1, "y");			    
 	}
 	return 0;
 }
@@ -565,7 +571,10 @@ int Sprite::set_angle(lua_State *L)
 	if(lua_isuserdata(L, -1)) 
 	{
 		Sprite * sprite = *static_cast<Sprite **>(lua_touserdata(L, -1));
-		sprite->set_angle (static_cast<double>(lua_tonumber(L, 2)));	
+		sprite->set_angle (static_cast<double>(lua_tonumber(L, 2)));
+		// set in lua as well ...
+		lua_pushvalue(L, 2);
+		lua_setfield(L, 1, "angle");			
 	}
 	return 0;
 }
@@ -585,7 +594,12 @@ int Sprite::set_scale(lua_State *L)
 	if(lua_isuserdata(L, -1)) 
 	{
 		Sprite * sprite = *static_cast<Sprite **>(lua_touserdata(L, -1));
-		sprite->set_scale (static_cast<double>(lua_tonumber(L, 2)), static_cast<double>(lua_tonumber(L, 3)));	
+		sprite->set_scale (static_cast<double>(lua_tonumber(L, 2)), static_cast<double>(lua_tonumber(L, 3)));
+		// set in lua as well ...
+		lua_pushvalue(L, 2);
+		lua_setfield(L, 1, "scale_x");
+		lua_pushvalue(L, 3);
+		lua_setfield(L, 1, "scale_y");					
 	}
 	return 0;	
 }
@@ -656,6 +670,11 @@ int Sprite::set_size(lua_State *L)
 	{
 	    Sprite * sprite = *static_cast<Sprite **>(lua_touserdata(L, -1));
 		sprite->set_size(static_cast<int>(lua_tonumber(L, 2)), static_cast<int>(lua_tonumber(L, 3)));
+		// set in lua as well ...
+		lua_pushvalue(L, 2);
+		lua_setfield(L, 1, "width");
+		lua_pushvalue(L, 3);
+		lua_setfield(L, 1, "height");				
 	}
 	return 0;
 }
@@ -686,6 +705,15 @@ int Sprite::set_color(lua_State *L)
 	{
 		Sprite * sprite = *static_cast<Sprite **>(lua_touserdata(L, -1));
 		sprite->set_color(static_cast<int>(lua_tonumber(L, 2)), static_cast<int>(lua_tonumber(L, 3)), static_cast<int>(lua_tonumber(L, 4)));
+		// set in lua as well ...
+		lua_pushvalue(L, 2);
+		lua_setfield(L, 1, "red");
+		lua_pushvalue(L, 3);
+		lua_setfield(L, 1, "green");
+		lua_pushvalue(L, 4);
+		lua_setfield(L, 1, "blue");
+		lua_pushvalue(L, 5);
+		lua_setfield(L, 1, "alpha");								
 	}
 	return 0;
 }
@@ -710,6 +738,11 @@ int Sprite::set_origin(lua_State * L)
 	{
 		Sprite * sprite = *static_cast<Sprite **>(lua_touserdata(L, -1));
 		sprite->set_origin(static_cast<int>(lua_tonumber(L, 2)), static_cast<int>(lua_tonumber(L, 3)));
+		// set in lua as well ...
+		lua_pushvalue(L, 2);
+		lua_setfield(L, 1, "origin_x");
+		lua_pushvalue(L, 3);
+		lua_setfield(L, 1, "origin_y");	
 	}	
 	return 0;
 }
@@ -795,7 +828,7 @@ int Sprite::get_texture(lua_State *L)
 ////////////
 int Sprite::get_width() const
 {
-	if(!width && texture) return texture->get_width() * get_scale().x; // if the width of a sprite is not set, return the width of the texture whether scaled or not
+	if(/*!width &&*/ texture) return texture->get_width() * get_scale().x; // if the width of a sprite is not set, return the width of the texture whether scaled or not
 	return width * get_scale().x; // returns width whether scaled or not
 }
 ////////////
@@ -815,7 +848,7 @@ int Sprite::get_width(lua_State *L)
 ////////////
 int Sprite::get_height() const
 {
-	if(!height && texture) return texture->get_height() * get_scale().y; // if the height of a sprite is not set, return the height of the texture whether scaled or not
+	if(/*!height &&*/ texture) return texture->get_height() * get_scale().y; // if the height of a sprite is not set, return the height of the texture whether scaled or not
 	return height * get_scale().y; // returns height whether scaled or not
 }
 ////////////

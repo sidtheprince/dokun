@@ -107,6 +107,10 @@
 ////////////
 #ifdef __gnu_linux__              // GNU/Linux
     #define __desktop__           // on a desktop
+    #if defined(__GNUC__) || defined(__GNUG__) && !defined(__llvm__) && !defined(__INTEL_COMPILER) // check for both gcc and g++; clang pretends to be gcc so check that compiler is not clang
+    #endif
+	#if defined(__clang__) //#if defined(__clang_major__ >= 3) && defined(__clang_minor__ >= 3) // clang 3.3 required to use all C++ 11 features
+	#endif 
 	#ifdef DOKUN_OPENGL           // opengl (OPTIONAL), glew (REQUIRED If using OpenGL and must be included before gl.h and glu.h)
 		#define GLEW_STATIC
         #include <GL/glew.h>

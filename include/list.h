@@ -15,7 +15,7 @@ public:
 		
 	void draw();                        static int draw(lua_State *L);
 	void add(const Box& item);       static int add(lua_State *L);// adds a new list obj
-	
+	// setters (applies to all list items)
 	void set_color(int red, int green, int blue, int alpha=255);
 	void set_color(const Vector3& color);
 	void set_color(const Vector4& color);
@@ -58,22 +58,41 @@ private:
 #endif
 #endif
 /*
+Usage:
 	List * list = new List();
-	list->add(*new List());
+	list->add(* new Box());
 	// lists with different sizes
-	list->add(*new List(0, 0, 104, 67));
-	list->add(*new List(0, 0, 48, 27));
-	list->add(*new List(0, 0, 64, 37));
-	list->add(*new List(0, 0, 14, 97));
+	list->add(* new Box());
+	list->add(* new Box());
+	list->add(* new Box());
+	list->add(* new Box());
+	list->get_item(0)->set_size(104, 67);
+	list->get_item(1)->set_size(48, 27);
+	list->get_item(2)->set_size(64, 37);
+	list->get_item(3)->set_size(14, 97);
 	// .. and different colors
-	list->get_item(0)->set_color(220,	20,	60);
-	list->get_item(1)->set_color(218,	112,	214);
-	list->get_item(2)->set_color(65,	105,	225);
-	list->get_item(3)->set_color(110,	123,	139);
-	list->get_item(4)->set_color(0,	139,	69);
+	list->get_item(0)->set_color(220, 20, 60);
+	list->get_item(1)->set_color(218, 112, 214);
+	list->get_item(2)->set_color(65, 105, 225);
+	list->get_item(3)->set_color(110, 123, 139);
+	list->get_item(4)->set_color(0,	139, 69);
 	// and text
-	list->get_item(0)->set_text("A");
-	list->get_item(1)->set_text("B");
-	list->get_item(2)->set_text("C");
-	list->get_item(3)->set_text("D");
+	list->get_item(0)->set_label(*new Label("A"));
+	list->get_item(1)->set_label(*new Label("B"));
+	list->get_item(2)->set_label(*new Label("C"));
+	list->get_item(3)->set_label(*new Label("D"));
+	list->get_item(4)->set_label(*new Label("E"));
+	list->get_item(0)->get_label()->set_alignment("center");
+	list->get_item(1)->get_label()->set_alignment("center");
+	list->get_item(2)->get_label()->set_alignment("center");
+	list->get_item(3)->get_label()->set_alignment("center");
+	list->get_item(4)->get_label()->set_alignment("center");	
+	// and image
+	list->get_item(0)->set_image(*new Image(Resource::get_image("box")->get_data(), 102, 102));
+    // combobox
+    Combobox * combo = new Combobox();
+    combo->set_position(98, 300);
+    combo->set_list(*list);
+    // draw Combobox (also draws the list attached to it)
+    combo->draw();
 */

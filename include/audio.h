@@ -140,12 +140,16 @@ protected:
 	void wav_to_ogg(const std::string& in_file, const std::string& out_file); void wave_to_vorbis(const std::string& in_file, const std::string& out_file);
 	static bool decode_flac(const std::string& file_name); // converts .flac to .wav
 	static bool encode_flac(const std::string& file_name); // converts .wav to .flac	
+	// callbacks (this)
+	FLAC__StreamDecoderWriteStatus write_callback(const FLAC__Frame *frame, const FLAC__int32 * const buffer[]);
+	void metadata_callback(const FLAC__StreamMetadata *metadata);
+	void error_callback(FLAC__StreamDecoderErrorStatus status);
 	// callbacks (decoder - for reading) // will not work unless callbacks are static
-	static FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data);
-	static void metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data);
-	static void error_callback(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
+	static FLAC__StreamDecoderWriteStatus decoder_write_callback(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data);
+	static void decoder_metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data);
+	static void decoder_error_callback(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
 	// callbacks (encoder - for writing) // will not work unless callbacks are static
-	static void progress_callback(const FLAC__StreamEncoder *encoder, FLAC__uint64 bytes_written, FLAC__uint64 samples_written, unsigned frames_written, unsigned total_frames_estimate, void *client_data);
+	static void encoder_progress_callback(const FLAC__StreamEncoder *encoder, FLAC__uint64 bytes_written, FLAC__uint64 samples_written, unsigned frames_written, unsigned total_frames_estimate, void *client_data);
 	// helper
 	static FLAC__bool write_little_endian_uint16(FILE* f, FLAC__uint16 x);
 	static FLAC__bool write_little_endian_int16(FILE* f, FLAC__int16 x);
@@ -165,15 +169,17 @@ private:
 	unsigned int bits_per_sample; // 8 bit, 16 bit for 2 channel stereo
 	unsigned int sample_rate;     // same as frequency (eg. 44100, 22050, etc.)
 	unsigned int channels;        // 1=mono, 2=stereo
+	unsigned int total_samples;
+	unsigned int size;
+	unsigned int index;
 	// for decoding
 	static unsigned int bits_per_sample_dec; // 8 bit, 16 bit for 2 channel stereo
 	static unsigned int sample_rate_dec;     // same as frequency (eg. 44100, 22050, etc.)
 	static unsigned int channels_dec;        // 1=mono, 2=stereo
 	static FLAC__uint64 total_samples_dec; // for decoding
+	static unsigned int format_dec;
 	// for encoding
-	static unsigned int total_samples;
-	static FLAC__byte buf[1024/*samples*/ * 2/*bytes_per_sample*/ * 2/*channels*/]; /* we read the WAVE data into here */
-    static FLAC__int32 pcm[1024/*samples*/ * 2/*channels*/]; // #define READSIZE 1024
+	static unsigned int total_samples_enc;
 	// frames = 4096
 	// property (external) 
     static int default_volume;

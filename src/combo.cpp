@@ -1,9 +1,10 @@
 #include "../include/combo.h"
 
-Combobox::Combobox() : color(106, 106, 106, 255), list(nullptr), scrollbar(nullptr), image(nullptr),
+Combobox::Combobox() : color(106, 106, 106, 255), list(nullptr), scrollbar(nullptr), image(nullptr), label(nullptr),
 // button
 button_color(0, 51, 102, 255),
 button_width(20),
+button_activated (false),
 // outline
 outline(false),
 outline_width(2.0),
@@ -16,8 +17,6 @@ highlight_color(0, 51, 102, 255)
 	set_position(0, 0);
 	set_size(90, 20); // 50, 25
 	set_orientation(0);
-	
-	label = new Label();
 }
 Combobox::~Combobox()
 {}
@@ -27,10 +26,12 @@ void Combobox::draw()
 	if(is_visible())
 	{
         on_button();	
+		// update combo properties based on 'selected' widget
+	    on_select();
 		// Draw combo_box
 		Renderer::draw_combobox(get_x(), get_y(), get_width(), get_height(), get_angle(), get_scale().x, get_scale().y,
 		    get_color().x, get_color().y, get_color().z, get_color().w,
-			button_color, button_width);	
+			button_color, button_width, button_activated);	
 		// Draw arrow		
 		if(list != nullptr)
 		{
@@ -41,10 +42,7 @@ void Combobox::draw()
 			}
 			// set list right below combo_box
 			list->set_position(get_position().x, get_position().y + get_height()); // item[0] is the first item so i
-			// update combo properties based on 'selected' widget
-	        on_select();
-			// Draw list
-			list->draw();
+			list->draw(); // Draw list
 		} // list is not null
 		if(scrollbar != nullptr) 
 		{
@@ -54,13 +52,23 @@ void Combobox::draw()
 		}
 	    if(image != nullptr)
 		{
-			image->set_position(get_x() + image->get_relative_x(), get_y() + image->get_relative_y());
+		    if(image->get_alignment() == "left"  ) image->set_relative_position(0, 0);
+            if(image->get_alignment() == "center") image->set_relative_position((get_width() - get_height()) / 2, 0);
+		    if(image->get_alignment() == "right" ) image->set_relative_position(get_width() - get_height(), 0);		
+			image->set_position(get_x() + image->get_relative_x(), get_y() + image->get_relative_y()); // update image position
 			image->scale_to_fit(get_width(), get_height());
 			image->draw();
 		}
+		if(label != nullptr)
+		{
+			if(label->get_alignment() == "left"  ) label->set_relative_position(0, 0);
+		    if(label->get_alignment() == "center") label->set_relative_position((get_width()-label->get_width())/2, (get_height()-label->get_height())/2);						
+		    if(label->get_alignment() == "right" ) label->set_relative_position(get_width() - label->get_width(), 0);	       
+            label->set_position(get_x() + label->get_relative_x(), get_y() + label->get_relative_y()); // update label position		
+		}
+		// callback function
+	    on_draw();
 	} // is visible
-	// callback function
-	on_draw();
 }                            
 int Combobox::draw(lua_State * L)
 {
@@ -96,7 +104,8 @@ int Combobox::set_scrollbar(lua_State * L)
 /////////////
 void Combobox::set_text(const std::string& text)
 {
-	get_label()->set_string(text);
+    if(!label) Logger("Combo::set_text: attempting to access function of nullptr, label", "error");
+	label->set_string(text);
 }     
 int Combobox::set_text(lua_State *L)
 {
@@ -105,8 +114,9 @@ int Combobox::set_text(lua_State *L)
 /////////////
 void Combobox::set_label(const Label& label)
 {
-	this->label = &const_cast<Label&>(label);
-}         
+	if(!this->label) { this->label = new Label(); this->label->set_parent(*this); } // if self.label does not exist, create it and set as child
+	this->label->copy(label); // copy the label data, instead of setting a new one (that may already have its own parent)
+}
 int Combobox::set_label(lua_State *L)
 {
     return 0;
@@ -114,12 +124,9 @@ int Combobox::set_label(lua_State *L)
 /////////////
 void Combobox::set_image(const Image& image)
 {
-	if(get_image()) // delete old image
-	{
-		delete this->image;
-	}
-	this->image = &const_cast<Image&>(image);
-}         
+	if(!this->image) { this->image = new Image(); } // if self.image does not exist, create it
+	this->image->copy(image); // copy the image data, instead of setting a new one (that may already have its own parent)
+}
 int Combobox::set_image(lua_State *L)
 {
     return 0;
@@ -240,7 +247,8 @@ void Combobox::on_button() // show or hide list on buttonpress or buttonrelease
 		if(Mouse::is_pressed(1))
 		{
 			if(list) list->set_visible(true);
-            if(scrollbar) scrollbar->set_visible(true);				
+            if(scrollbar) scrollbar->set_visible(true);
+            button_activated = true; // button activated				
 		}
     } else //if(!Mouse::is_over(get_button_x(), get_button_y(), get_button_width(), get_button_height()))  
 	{
@@ -265,6 +273,7 @@ void Combobox::on_button() // show or hide list on buttonpress or buttonrelease
 		        {				
 					if(list) list->set_visible(false);
 		            if(scrollbar) scrollbar->set_visible(false);
+		            button_activated = false; // button not activated
 				}
 		    }
 		}
@@ -272,29 +281,28 @@ void Combobox::on_button() // show or hide list on buttonpress or buttonrelease
 	} // mouse over button	
 }
 /////////////
-void Combobox::on_select()
+void Combobox::on_select() // what happens after selecting an item
 {
-	if(list)
+    if(!list) return; // if no list, exit function
+	Box * selection = list->get_selection();
+	if(!selection) return; // if no selection, exit function
+	// copy Color from selection
+	set_color(selection->get_color()); 
+	// copy Image from selection
+	if(selection->get_image())
 	{
-		Box * selection = list->get_selection();
-		if(selection)
-		{
-			set_color(selection->get_color()); 
-			// Image
-			if(selection->get_image()) 
-			{
-				set_image(* new Image(*selection->get_image()));
-				if(image->get_alignment() == "left"  ) image->set_relative_position(0, 0);
-                if(image->get_alignment() == "center") image->set_relative_position((get_width() - get_height()) / 2, 0);
-				if(image->get_alignment() == "right" ) image->set_relative_position(get_width() - get_height(), 0);
-			}  else set_image(* static_cast<Image *>(nullptr));	
-            // Label	 
-            if(selection->get_label())
-	        {
-				if(!selection->get_label()->get_string().empty())
-					;// set label
-				else ;
-			}			
-		}
+		set_image(*selection->get_image()); // copy image
+		image->set_visible(true);
+	} 
+	else if(!selection->get_image()) {
+	    if(image) image->set_visible(false);  // what if selection has no image, hide image
 	}
+    // copy Label from selection
+    if(selection->get_label())
+	{
+		if(!selection->get_label()->get_string().empty()) set_label(*selection->get_label()); // copy label
+    } 
+    else if(!selection->get_label()) { 
+        if(label) set_text(""); // what if selection has no label, clear string (combobox must have a label first or will crash)
+    }
 }

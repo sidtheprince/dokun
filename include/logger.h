@@ -17,6 +17,7 @@
 #include "string.h"
 #include "system.h"
 #include "factory.h"
+
 #ifdef __cplusplus // if c++
 #include <iostream>
 #include <typeinfo>
@@ -56,9 +57,9 @@ struct Logger {
 	/////////
 	static std::string print_error(int error);
 	////////////////////
-	static unsigned int opengl_error(std::string filename = DOKUN_FILE, std::string line = DOKUN_LINE);
+	static unsigned int opengl_error(const std::string& filename, const std::string& line);
 	////////////////////
-	static int vulkan_error(int result, std::string filename = DOKUN_FILE, std::string line = DOKUN_LINE);
+	static int vulkan_error(int result, const std::string& filename, const std::string& line);
 	////////////////////
 	static void lua_err(lua_State *L, const String& message, bool print_out = 1);
 	/////////
@@ -116,9 +117,9 @@ private:
 	}*/	
 	static void close();
 	/////////	
-	static void error_push(const String& error, String file =__FILE__,
-	    String function=__FUNCTION__, int line=__LINE__, 
-		String date=__DATE__, String time=__TIME__);
+	static void error_push(const String& error, String file,
+	    String function, int line, 
+		String date, String time);
 	/*{
 		dokun_session.push_back("\n");
 		dokun_session.push_back("ERROR_START ===========================================================================================");

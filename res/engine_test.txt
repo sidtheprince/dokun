@@ -1,4 +1,17 @@
 //////////////////////////////////////////////
+CMakeLists.txt:
+# platform
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" ) message("MacOSX device detected" ) set(MACOSX  TRUE) endif()
+if(${CMAKE_SYSTEM_NAME} MATCHES "Android") message("Android device detected") set(ANDROID TRUE) endif()
+
+# force use of clang
+execute_process(COMMAND bash -c "sudo update-alternatives --install /usr/bin/cc cc /usr/bin/clang 100"     OUTPUT_VARIABLE output_var)
+execute_process(COMMAND bash -c "sudo update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++ 100" OUTPUT_VARIABLE output_var)
+
+# to set the current compiler manually, use the following commands:
+# sudo update-alternatives --config cc
+# sudo update-alternatives --config c++
+//////////////////////////////////////////////
 // embeding a custom library into the Lua interpreter
 lualib.h:
 #define LUA_ENGINELIBNAME "dokun"

@@ -12,14 +12,16 @@ alignment("left"), // left is default
 forbidden_area(0, 0, 0, 0), // forbidden area
 // title bar
 title_bar(false), 
-title_bar_height(16),
+title_bar_height(30),
 title_bar_color(0, 51, 102, 255),
 title_bar_button_iconify(false),
 title_bar_button_maximize(false),
 title_bar_button_close(true),
-title_bar_button_width(10),
+title_bar_button_size(10),
 title_bar_image(nullptr), // if you operate on this and do not assign it to nullptr or any value then the engine will crash (on Linux especially)
 title_bar_label(nullptr), // if you operate on this and do not assign it to nullptr or any value then the engine will crash (on Linux especially)
+title_bar_button_close_color(64, 64, 64, 255), // 235, 26, 34, 255
+title_bar_horizontal_padding(10), // for label, image and other content inside titlebar
 // outline
 outline(false),
 outline_width(2.0),
@@ -41,6 +43,12 @@ shadow(false),
 // highlight - used when hovered over ui
 highlight(true),
 highlight_color(0, 51, 102, 255),
+// tooltip
+tooltip_arrow_direction("down"),
+tooltip_arrow_width(10),
+tooltip_arrow_height(5),
+tooltip_arrow_position(-1.0), // can be either x or y
+tooltip_arrow_color(color),
 // other
 previous(nullptr),
 next(nullptr)
@@ -170,8 +178,8 @@ void Box::draw(void)
             on_drag();
 			on_resize();
 			// Close button mouse hover
-			/*if(Mouse::is_over(get_title_bar_button_close_position(), get_title_bar_button_close_size())) title_bar_button_close_color = Vector4(255, 51, 51, 255); // 227,38,54
-			else title_bar_button_close_color = color;*/
+			if(Mouse::is_over(get_title_bar_button_close_position(), get_title_bar_button_close_size())) title_bar_button_close_color = Vector4(255, 51, 51, 255); // 227,38,54
+			else title_bar_button_close_color = color;
             /////////////////////////////////////////////////////////////////////////
             // Draw box	- at (0, 0) the titlebar will not show as it is the main widget at 0, 0 so the title bar would be hidden by the window's titlebar		
 			Renderer::draw_box(get_position().x, get_position().y, get_width(), get_height(), get_angle(), 
@@ -197,83 +205,73 @@ void Box::draw(void)
 			{   // title_bar image or icon (goes on the titlebar)
 				if(title_bar_image) // if title_bar_image is not nullptr
 				{
-					if(title_bar_image->get_alignment() == "left"  ) {title_bar_image->set_relative_position(0, 0);} // relative: child_position = parent_position + relative_position
-                    if(title_bar_image->get_alignment() == "center") {title_bar_image->set_relative_position((get_title_bar_size().x - get_title_bar_size().y) / 2, 0);}			
-                    if(title_bar_image->get_alignment() == "right" ) {title_bar_image->set_relative_position(get_title_bar_size().x - get_title_bar_size().y, 0);}								
+				    // set title_bar_image position relative to title_bar
+					if(title_bar_image->get_alignment() == "left"  ) {title_bar_image->set_relative_position(0/* + title_bar_horizontal_padding*/                                                , 0);} // we are scaling to fit image into titlbar, so no need to mess with image_relative_y // relative: child_position = parent_position + relative_position
+                    if(title_bar_image->get_alignment() == "center") {title_bar_image->set_relative_position((get_title_bar_size().x - get_title_bar_size().y) / 2                               , 0);}			
+                    if(title_bar_image->get_alignment() == "right" ) {title_bar_image->set_relative_position((get_title_bar_size().x - get_title_bar_size().y)/* - title_bar_horizontal_padding*/, 0);}								
 					if(title_bar_image->get_alignment() == "none"  ) {}
-                    // set title_bar_image position relative to title_bar
 				    title_bar_image->set_position(get_title_bar_position().x + title_bar_image->get_relative_x(), get_title_bar_position().y + title_bar_image->get_relative_y());
-				    // scale image to fit the title_bar - ???
+				    // scale image to fit the title_bar
                     title_bar_image->scale_to_fit(get_title_bar_size().x, get_title_bar_size().y);
                     // and finally, draw the title_bar_image
 				    title_bar_image->draw();// will crash engine if not assigned to nullptr or any value
 				}
                 // title_bar text (goes on the titlebar)
-                if(title_bar_label) // the code inside this "if" statement will crash engine if "title_bar_label" is null
+                if(title_bar_label) // if "title_bar_label" is not nullptr
                 {
-                    if(!title_bar_label->get_string().empty()) {// be sure title_bar_label string is not empty 
-			        if(title_bar_label->get_alignment() == "left"  ) {title_bar_label->set_position(0, 0);} // default
-                    if(title_bar_label->get_alignment() == "center") {title_bar_label->set_position((get_title_bar_size().x - get_title_bar_size().y) / 2, 0);}			
-                    if(title_bar_label->get_alignment() == "right" ) {title_bar_label->set_position(get_title_bar_size().x - get_title_bar_size().y, 0);}
-                    if(title_bar_label->get_alignment() == "none"  ) {}
                     // set title_bar_label position to title_bar_position + title_bar_label_position
-					title_bar_label->set_position(get_title_bar_position().x + title_bar_label->get_x(), get_title_bar_position().y + title_bar_label->get_y());
-				    // scale label to fit titlebar
-                    //double aspect = title_bar_label->get_aspect_ratio_correction(get_title_bar_size().x, get_title_bar_size().y);
-					//title_bar_label->set_scale(aspect, aspect); // find a way to scale to fit
-                    // and finally, draw the title_bar_label
-                    title_bar_label->draw(); // title_bar_label's parent is not the Box but the Box's titlebar, so use set_position NOT set_relative_position // will crash engine if not assigned to nullptr or any value
-                    }
+			        if(title_bar_label->get_alignment() == "left"  ) { title_bar_label->set_relative_position(0 + title_bar_horizontal_padding                                                      , (get_title_bar_size().y - 10/*title_bar_label->get_height()*/) / 2); } // the 10 here, is used in place of the label's height (for more accurate results) // keep y positioned at center of titlebar at all times
+                    if(title_bar_label->get_alignment() == "center") { title_bar_label->set_relative_position((get_title_bar_size().x - title_bar_label->get_width()) / 2                           , (get_title_bar_size().y - 10/*title_bar_label->get_height()*/) / 2); } // the 10 here, is used in place of the label's height (for more accurate results) // keep y positioned at center of titlebar at all times			
+                    if(title_bar_label->get_alignment() == "right" ) { title_bar_label->set_relative_position((get_title_bar_size().x - title_bar_label->get_width()) - title_bar_horizontal_padding, (get_title_bar_size().y - 10/*title_bar_label->get_height()*/) / 2); } // the 10 here, is used in place of the label's height (for more accurate results) // keep y positioned at center of titlebar at all times
+                    if(title_bar_label->get_alignment() == "none"  ) {} // default
+                    title_bar_label->set_position(get_title_bar_position().x + title_bar_label->get_relative_x(), get_title_bar_position().y + title_bar_label->get_relative_y());
+                    // and finally, draw the title_bar_label (be sure title_bar_label string is not empty)
+                    if(!title_bar_label->get_string().empty()) title_bar_label->draw(); // NOTE: title_bar_label's parent is not the Box but the Box's titlebar // will crash engine if not assigned to nullptr or any value
                 }
 			} // end of titlebar image *********************************************
             /////////////////////////////////////////////////////////////////////////
 			// Draw label (goes inside box) **********************************************************
-            if(label) {// make sure Box has a (initialized) label first (regardless of whether it has a default label or a set label)
-		        if(label->get_alignment() == "left"  ) { label->set_relative_position(0                                    , 0); } // default - relative_position will always be (0, 0) unless you change the alignment
-				if(label->get_alignment() == "center") { label->set_relative_position((get_width()-label->get_width())/2   , (get_height()-label->get_height())/2); }						
-				if(label->get_alignment() == "right" ) { label->set_relative_position(get_width() - label->get_width()     , 0); }	
-                if(label->get_alignment() == "none"  ) {} // with this you are free to set the label's relative position to whatever you want         
-                label->set_position(get_x() + label->get_relative_x(), get_y() + label->get_relative_y()); // set actual position
-			#ifdef DOKUN_DEBUG1		
-				std::cout << "Label0 position:                 " << label->get_position() << std::endl;
-				std::cout << "Label0 position relative to box: " << label->get_relative_position() << std::endl;
-			#endif		
-				// NO need to draw label since child GUI are automatically drawn //if(!label->get_string().empty()) label->draw(); // child objects are drawn automatically. So DO NOT call draw function!!!
+            if(label) // make sure Box has an "initialized" label beforehand (or else engine will crash)
+            {   // set label's position relative to the Box
+		        if(label->get_alignment() == "left"  ) { label->set_relative_position(0                                     , 0); }
+				if(label->get_alignment() == "center") { label->set_relative_position((get_width() - label->get_width()) / 2, (get_height() - label->get_height()) / 2); }						
+				if(label->get_alignment() == "right" ) { label->set_relative_position((get_width() - label->get_width())    , 0); }	
+                if(label->get_alignment() == "none"  ) {} // default - with this you are free to set the label's relative position to whatever you want // relative_position will always be (0, 0) unless you change it    
+                label->set_position(get_x() + label->get_relative_x(), get_y() + label->get_relative_y()); // set actual position (No need to call since GUI::on_draw auto fixes child position to parent's)
+				// NO need to draw label since child GUI are automatically drawn  // child objects are drawn automatically (via GUI::on_draw()). So DO NOT call draw function!!!
             }
-             // Draw multiple labels ... 
+             // Draw multiple labels ... horizontal? vertical?
             for(int l = 0; l < label_list.size(); l++)//for(int l = 1; l <= label_list.size()-1; l++)
             {
                 label_list[0]->set_position(label->get_x(), (label->get_y() + label->get_height()) + 2);//if(label ) label_list[0]->set_position(label->get_x(), (label->get_y() + label->get_height()) + 2);
                 //if(!label) label_list[0]->set_position(get_x() + label_list[0]->get_relative_x(), get_y() + label_list[0]->get_relative_y());
-                if(l != 0) { // label_list[0] is the default label, so exclude it
-                    Label * prev = label_list[l-1];                          
-                    label_list[l]->set_position(prev->get_x(), (prev->get_y() + prev->get_height())); // set the sub labels position based on label0's position. Don't worry about alignments and whatnot       
-                }
-                // NO need to draw label since child GUI are automatically drawn //if(!label_list[l]->get_string().empty()) label_list[l]->draw(); // draw the label (ONLY if the string is not empty!)
+                // label_list[0] is the default label, so exclude it
+                if(l != 0) { Label * prev = label_list[l-1];    label_list[l]->set_position(prev->get_x(), (prev->get_y() + prev->get_height())); }// set the sub labels position based on label0's position. Don't worry about alignments and whatnot       
+                // NO need to draw label since child GUI are automatically drawn (via GUI::on_draw()). So DO NOT call draw function!!!
             }
             /////////////////////////////////////////////////////////////////////////
 			// Draw image (goes inside box) *******************************************
             if(image != nullptr)
 			{
 				// get image size whether its original or resized or scaled
-				int image_width  = image->get_width ();
-			    int image_height = image->get_height();
-                // set image alignment relative to GUI	
+				int image_width  = (image->is_resized() == false) ? image->get_width () : image->get_width_scaled ();
+			    int image_height = (image->is_resized() == false) ? image->get_height() : image->get_height_scaled();
+                // set image alignment and position relative to GUI	
 				if(image->get_alignment() == "left"  ) {image->set_relative_position(0, 0);}					
                 if(image->get_alignment() == "center") {image->set_relative_position((get_width() - image_width) / 2, (get_height() - image_height) / 2);}
 				if(image->get_alignment() == "right" ) {image->set_relative_position(get_width() - image_width, 0);}
                 if(image->get_alignment() == "none"  ) {}
-                // set image position relative to GUI
 				image->set_position(get_x() + image->get_relative_x(), get_y() + image->get_relative_y());
-				// make sure image is within widget bounds
-				if(image_width > get_width  ()) image->resize(get_width(), image->get_height());// if image is wider than widget, make width equal
+				// make sure image is within widget bounds - image size bounds restriction - void set_image_size_restriction(bool image_size_restriction)
+				if(image_width  > get_width ()) image->resize(get_width(), image->get_height());// if image is wider than widget, make width equal
 				if(image_height > get_height()) image->resize(image->get_width(), get_height());// if image is taller than widget, make height equal
 				// and finally, draw the image ...	
 				image->draw(); // Image is not a GUI so you cannot set its parent which means it must be drawn manually
 			}
+			// Draw multiple images ...
 			/////////////////////////////////////////////////////////////////////////
 			// on draw callback (if visible)
-	        on_draw();	
+	        on_draw();	// will automatically set child(label)'s position relative to parent(box)	
 		}
 	}
 	//-------------------------------
@@ -295,6 +293,42 @@ void Box::draw(void)
 	        on_draw();	
 		}
 	}
+	//-------------------------------
+	if(is_tooltip()) // if this box is a tooltip, draw tooltip
+	{
+	    if(is_visible())
+	    {
+	        Renderer::draw_tooltip("Hello", get_x(), get_y(), get_width(), get_height(), get_angle(), get_scale().x, get_scale().y, get_color().x, get_color().y, get_color().z, get_color().w, tooltip_arrow_direction, tooltip_arrow_width, tooltip_arrow_height, tooltip_arrow_position/*, tooltip_arrow_color*/);
+            // Draw label (goes inside box) **********************************************************
+            if(label) // make sure Box has an "initialized" label beforehand (or else engine will crash)
+            {   // set label's position relative to the Tooltip (Box)                     // 10 is the space between the text and the Box's edge
+		        if(label->get_alignment() == "left"  ) { label->set_relative_position(0 + 10                                , 0 + 10); }
+				if(label->get_alignment() == "center") { label->set_relative_position((get_width() - label->get_width()) / 2, (get_height() - label->get_height()) / 2); }
+				if(label->get_alignment() == "right" ) { label->set_relative_position((get_width() - label->get_width())    , 0 + 10); }
+                if(label->get_alignment() == "none"  ) {} // default - with this you are free to set the label's relative position to whatever you want // relative_position will always be (0, 0) unless you change it
+				// NO need to draw label since child GUI are automatically drawn  // child objects are drawn automatically. So DO NOT call draw function!!!
+            }
+            // Draw image (goes inside box) *******************************************
+            if(image) // make sure Box has an "initialized" image beforehand (or else engine will crash)
+			{   // get image size whether its original or resized or scaled
+				int image_width  = (image->is_resized() == false) ? image->get_width () : image->get_width_scaled ();
+			    int image_height = (image->is_resized() == false) ? image->get_height() : image->get_height_scaled();
+                // set image alignment and position relative to GUI	
+				if(image->get_alignment() == "left"  ) {image->set_relative_position(0, 0);}					
+                if(image->get_alignment() == "center") {image->set_relative_position((get_width() - image_width) / 2, (get_height() - image_height) / 2);}
+				if(image->get_alignment() == "right" ) {image->set_relative_position(get_width() - image_width, 0);}
+                if(image->get_alignment() == "none"  ) {}
+				image->set_position(get_x() + image->get_relative_x(), get_y() + image->get_relative_y());
+				// make sure image is within widget bounds - image size bounds restriction - void set_image_size_restriction(bool image_size_restriction)
+				if(image_width  > get_width ()) image->resize(get_width(), image->get_height());// if image is wider than widget, make width equal
+				if(image_height > get_height()) image->resize(image->get_width(), get_height());// if image is taller than widget, make height equal
+				// and finally, draw the image ...	
+				image->draw(); // Image is not a GUI so you cannot set its parent which means it must be drawn manually
+			}
+            // on draw callback (if visible)
+	        on_draw();	// will automatically set child(label)'s position relative to parent(tooltip_box)            
+	    }
+	}
 }
 /////////////
 int Box::draw(lua_State *L)  
@@ -308,15 +342,15 @@ int Box::draw(lua_State *L)
 	}
 	return 0;
 }
-/////////////
+///////////// // create a set_size_preserved() function
 void Box::maximize(void)
 {
     if(!is_maximized() /*&& !is_iconified()*/) // if not maximized yet
 	{
-	    old_width  = 200;//get_width (); // save old size
+	    old_width  = 200;//get_width ();// // save old size
         old_height = 150;//get_height();		
 
-		set_size(max_width, max_height); // set new size
+		set_size(max_width, max_height);//(get_width() * 2, get_height() * 2); // set new size
 	    maximized = true;	             // maximized is true
 		iconified = false;
 		restored = false;                // not restored to default size
@@ -334,8 +368,8 @@ void Box::iconify(void) // if maximized, keep maximized while iconified at the s
 	    if(image) image->set_visible(false);
 	    if(label) label->set_visible(false);
 	    // set iconify to true
+	    restored = false; // not restored to default size
 	    iconified = true;
-		restored = false; // not restored to default size
 	}
 }
 int Box::iconify(lua_State * L)
@@ -1088,6 +1122,26 @@ int Box::set_alignment(lua_State * L)
     return 0;
 }
 /////////////
+// tooltip
+/////////////
+void Box::set_as_tooltip(bool tooltip)
+{
+	type = (tooltip == true) ? "tooltip" : "box";
+}
+/////////////
+int Box::set_as_tooltip(lua_State *L)
+{
+    luaL_checktype(L, 1, LUA_TTABLE); // box
+    luaL_checktype(L, 2, LUA_TBOOLEAN); // boolean
+    lua_getfield(L, 1, "udata");
+	if(lua_isuserdata(L, -1))
+	{
+	    Box * box = *static_cast<Box **>(lua_touserdata(L, -1));
+	    box->set_as_tooltip(lua_toboolean(L, 2));
+	}
+	return 0;
+}
+/////////////
 /////////////
 // GETTERS
 /////////////
@@ -1193,6 +1247,11 @@ Vector4 Box::get_title_bar_color() const
 	return title_bar_color;
 }
 /////////////
+Label * Box::get_title_bar_label() const
+{
+    return title_bar_label;
+}
+/////////////
 std::string Box::get_title_bar_text() const
 {
 	if(!title_bar_label) // title_bar_label is null
@@ -1216,35 +1275,35 @@ Image * Box::get_title_bar_icon() const
 /////////////
 Vector2 Box::get_title_bar_button_iconify_position()const
 {
-	double x = get_title_bar_position().x + (get_title_bar_size().x - (title_bar_button_width * 3)) - 3;
+	double x = get_title_bar_position().x + (get_title_bar_size().x - (title_bar_button_size * 3)) - 3;
 	double y = get_title_bar_position().y + 2;
 	return Vector2(x, y);	
 }
 Vector2 Box::get_title_bar_button_iconify_size()const
 {
-	return Vector2(title_bar_button_width, title_bar_height - 5);	
+	return Vector2(title_bar_button_size, title_bar_height - 5);	
 }
 /////////////
 Vector2 Box::get_title_bar_button_maximize_position()const
 {
-	double x = get_title_bar_position().x + (get_title_bar_size().x - (title_bar_button_width * 2)) - 2;
+	double x = get_title_bar_position().x + (get_title_bar_size().x - (title_bar_button_size * 2)) - 2;
 	double y = get_title_bar_position().y + 2;
 	return Vector2(x, y);	
 }
 Vector2 Box::get_title_bar_button_maximize_size()const
 {
-	return Vector2(title_bar_button_width, title_bar_height - 5);	
+	return Vector2(title_bar_button_size, title_bar_height - 5);	
 }
 /////////////
 Vector2 Box::get_title_bar_button_close_position()const
 {
-	double x = get_title_bar_position().x + (get_title_bar_size().x - title_bar_button_width) - 1;
-	double y = get_title_bar_position().y + 2;
+	double x = get_title_bar_position().x + ((get_title_bar_size().x - title_bar_button_size) - 1);
+	double y = get_title_bar_position().y + 2;//((get_title_bar_size().y - title_bar_button_size) / 2); // (title_height - close_height) / 2
 	return Vector2(x, y);
 }
 Vector2 Box::get_title_bar_button_close_size()const
 {
-	return Vector2(title_bar_button_width, title_bar_height - 5);
+	return Vector2(title_bar_button_size, title_bar_height - 5);//title_bar_button_size);
 }
 Vector4 Box::get_title_bar_button_close_color()const
 {
@@ -1281,55 +1340,78 @@ int Box::get_alignment(lua_State * L)
 bool Box::is_box  ()const
 {
 	return (String::lower(type) == "box");
-} 
+}
+///////////// 
 int Box::is_box(lua_State * L)
 {
 	return 1;
 }
+/////////////
 bool Box::is_icon ()const
 {
 	return (String::lower(type) == "icon");
 }
+/////////////
 int Box::is_icon(lua_State * L)
 {
 	return 1;
 }
+/////////////
+bool Box::is_tooltip()const
+{
+    return (String::lower(type) == "tooltip");
+}
+/////////////
+int Box::is_tooltip(lua_State * L)
+{
+    return 1;
+}
+/////////////
 bool Box::has_title_bar()const
 {
 	return (title_bar == true);
 } 
+/////////////
 int Box::has_title_bar(lua_State * L)
 {
 	return 1;
 }
+/////////////
 bool Box::has_outline()const
 {
 	return (outline == true);
 }   
+/////////////
 int Box::has_outline(lua_State * L)
 {
 	return 1;
 }
+/////////////
 bool Box::has_border()const
 {
 	return (border == true);
 } 
+/////////////
 int Box::has_border(lua_State * L)
 {
 	return 1;
 }
+/////////////
 bool Box::has_shadow()const
 {
 	return (shadow == true);
 }
+/////////////
 int Box::has_shadow(lua_State * L)
 {
 	return 1;
 }
+/////////////
 bool Box::has_gradient()const
 {
 	return (gradient == true);
 }  
+/////////////
 int Box::has_gradient(lua_State * L)
 {
 	return 1;
@@ -1339,22 +1421,27 @@ bool Box::is_maximized()const
 {
 	return (maximized == true);
 }
+/////////////
 int Box::is_maximized(lua_State * L)
 {
 	return 1;
 }
+/////////////
 bool Box::is_iconified()const
 {
 	return (iconified == true);
 }
+/////////////
 int Box::is_iconified(lua_State * L)
 {
 	return 1;
 }
+/////////////
 bool Box::is_restored()const
 {
 	return (restored == true);
 }
+/////////////
 int Box::is_restored(lua_State * L)
 {
 	return 1;
