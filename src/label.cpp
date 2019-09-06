@@ -578,8 +578,7 @@ int Label::set_size(lua_State * L)
 // override (getters)
 int Label::get_width()const
 {
-	if(!width && font) 
-		return font->get_width(this->string) * get_scale().x; // if width is not set, return width of all characters combined, whether scaled or not
+	if(font) return font->get_width(this->string) * get_scale().x; // if font is set, return width of all characters combined, whether scaled or not
 	return width * get_scale().x; // return width whether scaled or not
 }
 int Label::get_width(lua_State * L)
@@ -598,8 +597,7 @@ int Label::get_width(lua_State * L)
 /////////////
 int Label::get_height()const
 {
-	if(!height && font)
-		return font->get_height(this->string) * get_scale().y; // if height is not set, return largest glyph height, whether scaled or not
+	if(font) return font->get_height(this->string) * get_scale().y; // if font is set, return largest glyph height, whether scaled or not
 	return height * get_scale().y; // return height whether scaled or not
 }
 int Label::get_height(lua_State * L)

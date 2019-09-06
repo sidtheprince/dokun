@@ -215,8 +215,10 @@ void server()
 ////////////
 int Engine::test(lua_State *L)
 {
+	//Video * video = new Video();
+	//video->decode("res/sample.ogg"); // video->texture->get_width(), video->texture->get_height()
 	WINDOW window;
-	window.create("Test", 1280, 720, 0); // titlebar is 16x39 //window.set_size(1500, 900);
+	window.create("Test", 1280, 720, 0);//video->texture->get_width(), video->texture->get_height(), 0); // titlebar is 16x39 //window.set_size(1500, 900);
 	window.show();
     //=================== script
 	//Script * script = new Script(L, "config.lua"); // load script
@@ -268,11 +270,18 @@ int Engine::test(lua_State *L)
     //===================
     Box * widget = new Box();
 	widget->set_title_bar(true);
-	widget->set_title_bar_size(30); // update titlebar_size before doing any operations with it
-    widget->set_title_bar_button_close(true);
-    widget->set_outline(true);
+	//widget->set_title_bar_size(30); // update titlebar_size before doing any operations with it
+    //widget->set_title_bar_button_close(true);
+    //widget->set_title_bar_button_maximize(true);
+    //widget->set_title_bar_button_iconify(true);
+    //widget->set_outline(true);
     widget->set_size(200, 50);
     widget->set_position(500, 500);//(0, 0 + widget->get_title_bar_size().y); // box_position should also include titlebar_position if "has_title_bar()" (or else the box's titlebar will be overlaped by the window's titlebar) // So basically the titlebar is a seperate entity with its own size and position though a part/extension of box
+    //widget->set_gradient(true);    // gradient
+    //widget->set_gradient_color(0, 158, 115);
+    //widget->set_image(*new Image("res/Dokun-logo.png"));
+    //widget->set_color(Vector4(widget->get_color().xyz, 200));//set_alpha(200);
+    widget->set_radius(50.0);
     // ---
     Label * title_label = new Label();
     title_label->set_string("dokun");
@@ -290,11 +299,13 @@ int Engine::test(lua_State *L)
     //Label * label2 = new Label();
     //label2->set_string("No data");
     //label2->set_position(window.get_client_width() / 3, 10);
-    //Grid * grid = new Grid(2,2);
-    //grid->set_position(100, 400);
-	//grid->set_row(2);
-	//grid->set_column(2);
+    Grid * grid = new Grid();
+    grid->set_size(32, 32);
+    grid->set_position(100, 400);
+	grid->set_row(1);
+	grid->set_column(2);
 	//grid->get_block(0, 0)->set_color(255, 51, 51);
+	grid->get_block(0, 0)->set_image(* new Image("res/Dokun-logo.png"));
 	//std::cout << "Grid: " << grid->get_row_count() << " x " << grid->get_column_count() << std::endl;
 	std::cout << "Size of label   = " << label->get_size  () << std::endl;
 	//===================
@@ -312,6 +323,7 @@ int Engine::test(lua_State *L)
 	// toggle
 	Toggle * toggle = new Toggle();
 	toggle->set_position(50, 50);
+	toggle->set_parent(*widget);
 	// button
 	Button * button = new Button();
 	button->set_position(300, 200);
@@ -438,9 +450,70 @@ int Engine::test(lua_State *L)
 	
 	Box * tool = new Box();
 	tool->set_as_tooltip(true);
+	tool->set_size(100, 50);
 	tool->set_position(750, 500);
-	tool->set_label(*new Label("This a Tooltip."));
-	tool->get_label()->set_alignment("center");
+	tool->set_image(*new Image("res/Dokun-logo.png"));
+	tool->get_image()->set_alignment("center");
+	//tool->set_label(*new Label("This a Tooltip."));
+	//tool->get_label()->set_alignment("center");
+	//===================
+	Sprite * bg = new Sprite();
+	bg->set_texture(*new Texture()); // empty texture
+	bg->set_color(28, 31, 33, 255);
+	bg->set_size(window.get_client_width(), window.get_client_height());
+	//===================
+	//===================
+    // framebuffer update timer
+    Timer * frame_timer = new Timer();
+    frame_timer->start();
+    // store framebuffer in image
+    Box * mini_map = new Box();
+    mini_map->set_outline(true);
+    mini_map->set_image(*new Image());
+    mini_map->get_image()->resize(mini_map->get_width(), mini_map->get_height());
+    
+    // get framebuffer pixel
+    Texture * frame_texture = Video::get_framebuffer_texture(window.get_client_width(), window.get_client_height()); // will crash the entire system
+    // copy framebuffer texture
+    if(frame_texture) mini_map->get_image()->copy(*frame_texture);
+    // delete framebuffer texture
+    delete frame_texture;
+	//===================
+	//===================
+	Menubar * menubar = new Menubar();
+	menubar->set_size(window.get_client_width(), menubar->get_height());
+	menubar->add("File");
+	menubar->add("Edit");
+	menubar->add("View");
+	menubar->add("Select");
+	menubar->add("Tools");
+	menubar->add("Windows");
+	menubar->add("Help");
+	menubar->sub("File", "New");
+	menubar->sub("File", "Open");
+	menubar->sub("File", "Save");
+	menubar->sub("File", "Save As");
+	menubar->sub("File", "Exit");
+	
+	/*menubar->get_menu("File")->set_size(40, menubar->get_height());
+	menubar->get_menu(1)->set_size(40, menubar->get_height());
+	menubar->get_menu(2)->set_size(40, menubar->get_height());*/
+	std::cout << "Font character count: " << label->get_font()->get_character_count() << std::endl;
+	//===================
+	int i,j;
+  ogg_packet op;
+  //SDL_Event event;
+  //Sprite * video_sprite = new Sprite(*video->texture);
+  int hasdatatobuffer = 1;
+  int playbackdone = 0;
+  double now, delay, last_frame_time = 0;
+
+  int frameNum=0;
+  int skipNum=0;
+    //===================
+    std::cout << "RGB: 255, 255, 255 (white) to YUV_test: " << Vector3::rgb_to_yuv_test(255, 255, 255) << std::endl;     // should return: 235.045 , 128, 128
+    std::cout << "YUV: 235, 128, 128 (white) to RGB_test: " << Vector3::yuv_to_rgb_test(235.045, 128, 128) << std::endl; // should return: 255, 255, 255
+    sprite->set_color(255.0, 255.0, 255.0);//sprite->set_color(Vector3::rgb_to_yuv_test(255.0, 255.0, 255.0));
 	//===================
     while(window.is_open()) // main loop
     {
@@ -461,19 +534,29 @@ int Engine::test(lua_State *L)
         // IIRC, Unicode escapes are \uXXXX where the XXXX is for hex digits.
         //std::cout << "number_to_char: " << static_cast<unsigned char>(65) << std::endl; // prints A
         //if(Mouse::is_pressed(4)) std::cout << "Mouse button 4 activated\n";
+        // update label properties
+        label->set_position(10, window.get_client_height() - 50);
         // update time and date
+        date_display->set_position(window.get_client_width() - date_display->get_width(), window.get_client_height() - date_display->get_height());
         date_display->set_string(Logger::format("%Y-%m-%d  %H:%M:%S %p"));
         // update console box
         //Console::write(std::to_string(Timer::seconds() ));
+        // update background sprite size
+        bg->set_size(window.get_client_width(), window.get_client_height());
+        // update menuvbar geometry
+        menubar->set_size(window.get_client_width(), menubar->get_height());
+        //////////////////////////////////////////////////////
+        //video_sprite->draw();
+        std::cout << "GUI count: " << Factory::get_gui_factory()->get_size() << std::endl;
         //////////////////////////////////////////////////////
 	    if(window.is_focused()) // if window is focused
 	    {
             if(music->is_paused()) music->play();
 
-			if(Keyboard::is_pressed(DOKUN_KEY_UP   )){ label->set_position(label->get_position().x, label->get_position().y-1);model->translate(0, 0, -1);sprite->translate(0                  ,-2 /* * Timer::delta()*/);}
-			if(Keyboard::is_pressed(DOKUN_KEY_DOWN )){ label->set_position(label->get_position().x, label->get_position().y+1);model->translate(0, 0, 1); sprite->translate(0                  , 2 /* * Timer::delta()*/);}
-			if(Keyboard::is_pressed(DOKUN_KEY_LEFT )){ slider->set_value(slider->get_value() - 1);  label->set_position(label->get_position().x-1, label->get_position().y);model->translate(1, 0, 0); sprite->translate(-2 /* * Timer::delta()*/, 0 );}
-			if(Keyboard::is_pressed(DOKUN_KEY_RIGHT)){ slider->set_value(slider->get_value() + 1);  label->set_position(label->get_position().x+1, label->get_position().y);model->translate(-1, 0, 0);sprite->translate(2  /* * Timer::delta()*/, 0 );}
+			if(Keyboard::is_pressed(DOKUN_KEY_UP   )){ widget->set_position(widget->get_x(), widget->get_y()-5);  label->set_position(label->get_position().x, label->get_position().y-1);model->translate(0, 0, -1);sprite->translate(0                  ,-2 /* * Timer::delta()*/);}
+			if(Keyboard::is_pressed(DOKUN_KEY_DOWN )){ widget->set_position(widget->get_x(), widget->get_y()+5);  label->set_position(label->get_position().x, label->get_position().y+1);model->translate(0, 0, 1); sprite->translate(0                  , 2 /* * Timer::delta()*/);}
+			if(Keyboard::is_pressed(DOKUN_KEY_LEFT )){ widget->set_position(widget->get_x()-5, widget->get_y());  slider->set_value(slider->get_value() - 1);  label->set_position(label->get_position().x-1, label->get_position().y);model->translate(1, 0, 0); sprite->translate(-2 /* * Timer::delta()*/, 0 );}
+			if(Keyboard::is_pressed(DOKUN_KEY_RIGHT)){ widget->set_position(widget->get_x()+5, widget->get_y());  slider->set_value(slider->get_value() + 1);  label->set_position(label->get_position().x+1, label->get_position().y);model->translate(-1, 0, 0);sprite->translate(2  /* * Timer::delta()*/, 0 );}
 			
 			if(Keyboard::is_pressed(DOKUN_KEY_1)) camera->set_zoom(camera->get_zoom() + 1); // zoom_out
 			if(Keyboard::is_pressed(DOKUN_KEY_2)) camera->set_zoom(camera->get_zoom() - 1); // zoom_in
@@ -499,6 +582,8 @@ int Engine::test(lua_State *L)
             if(Keyboard::is_pressed(DOKUN_KEY_C)) ;
             if(Keyboard::is_pressed(DOKUN_KEY_V)) ;
             if(Keyboard::is_pressed(DOKUN_KEY_R)) { Timer::reset_e(); std::cout << "Time resetted.\n";};
+            
+            if(Keyboard::is_pressed(DOKUN_KEY_U)) { grid->set_row(Math::random_generator(0, 10)); grid->set_column(Math::random_generator(0, 10)); } // every time u is pressed, update grid
             //if(Keyboard::is_pressed(DOKUN_KEY_)) ;
             // Mouse
             if(Mouse::is_pressed(1)) ;//label->set_string("Mouse pressed 1");//std::cout << "Mouse button LEFT is pressed" << std::endl;
@@ -514,6 +599,7 @@ int Engine::test(lua_State *L)
             if(Mouse::is_over(sprite_array[i]->get_position(), sprite_array[i]->get_size())) {std::cout << "Sprite " << String(sprite_array[i]) << " with color (" << sprite_array[i]->get_color() << ")" << std::endl;} 
             //if(Sprite::collide(*sprite, *sprite_array[i])) label->set_string ("Sprite " + String(sprite).str() + " has collided with another Sprite " + String(sprite_array[i]).str()); //std::cout << "Sprite " << String(sprite) << " has collided with another Sprite " << String(sprite_array[i]) << "!\n";
         }
+        bg->draw(); // draw before everything else ...
         model->draw();
         widget->draw();
         //label->set_string(String(sprite->get_position()).str());
@@ -525,11 +611,26 @@ int Engine::test(lua_State *L)
         spinner->draw();
         combo->draw();
         //label2->draw();
-        //grid->draw();
-        Console::draw();
+        grid->draw();
+        //Console::draw();
         date_display->draw();
-        //Renderer::draw_triangle(700, 500, 5, 5, 0.0, 1, 1, 255, 255, 255, 255);
-        tool->draw();//Renderer::draw_tooltip("Hello", 750, 500, 100, 50, 0.0, 1, 1, 106, 106, 106, 255);
+        tool->draw();
+        menubar->draw();
+        // take screenshot after everything is drawn
+        if(Keyboard::is_pressed(DOKUN_KEY_P)) Video::screenshot(window.get_client_width(), window.get_client_height(), "mini_map.png");
+        // update mini_map every x seconds
+        //std::cout << "Frame timer: " << frame_timer->increment() << "s" << std::endl;
+        if(frame_timer->increment() >= 5) 
+        {
+            std::cout << "Five seconds has passed" << std::endl;
+            // reset timer if x seconds has passed
+            frame_timer->reset();
+            // and start the cycle all over again ...
+            frame_timer->start();// -1
+        }
+        mini_map->get_image()->resize(mini_map->get_size()); // scale to fit pixels in mini_map entirely (will not lag)
+        //mini_map->draw(); // draw mini_map after reading framebuffer
+        /////////////////////////////////////////////// 
 		// update window
 		window.update();
 	}
@@ -727,7 +828,8 @@ int Engine::reg(lua_State *L)
 	Script::function(L, "Image", "resize", Image::resize);
     //Script::function(L, "Image", "scale_to_fit", Image::scale_to_fit);
     //Script::function(L, "Image", "generate"        , Image::generate);
-	Script::function (L, "Image", "destroy", Image::destroy);
+	Script::function(L, "Image", "destroy", Image::destroy);
+	Script::function(L, "Image", "clear"  , Image::clear  );
 	Script::function(L, "Image", "translate", 0);
 	Script::function(L, "Image", "rotate", 0);
 	Script::function(L, "Image", "scale", 0);

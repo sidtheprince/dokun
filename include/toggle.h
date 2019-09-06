@@ -47,9 +47,9 @@ class Toggle : public GUI { // includes check_box, radio, and switch
 		int get_handle_height()const;
 		Vector4 get_handle_color()const;
 		// boolean
-		bool is_checkbox();                                   static int is_check(lua_State *L);
-		bool is_radio();                                   static int is_radio(lua_State *L);
-		bool is_switch();                                  static int is_switch(lua_State *L);
+		bool is_checkbox() const;                                   static int is_check(lua_State *L);
+		bool is_radio() const;                                   static int is_radio(lua_State *L);
+		bool is_switch() const;                                  static int is_switch(lua_State *L);
 	    void set_switch();
 		void set_radio();
 		void set_checkbox();
@@ -66,6 +66,9 @@ class Toggle : public GUI { // includes check_box, radio, and switch
 		Vector4 outline_color;
 		double outline_width;
 		bool outline_antialiased;
+		// gradient
+		bool gradient;
+		Vector4 gradient_color;		
 };
 /////////
 /*

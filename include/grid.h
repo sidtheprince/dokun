@@ -25,8 +25,9 @@ public:
 	int get_column_count()const;                  static int get_column_count(lua_State *L);	
 	Vector4 get_color()const;                     static int get_color(lua_State *L); //static int _(lua_State *L);
 private:
-	std::vector< std::vector< Box > > block;
-    int rows, columns;	
+	std::vector< std::vector<Box *> > block;
+    int rows, columns;
+    std::vector<Box *> trash;	
 	Vector4 color;
 	// outline
 	bool outline;
@@ -36,6 +37,9 @@ private:
 	// highlight
 	bool highlight;
 	Vector4 highlight_color;
+	// gradient
+	bool gradient;
+	Vector4 gradient_color;	
 };
 #endif
 /*

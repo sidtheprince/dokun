@@ -13,11 +13,14 @@ button_height(20),
 // arrow
 arrow(false),
 arrow_color(32, 32, 32, 225),
-// outline
+// outline (or border)
 outline (true),
 outline_color(0, 0, 0, 255),
 outline_width(1.0),
 outline_antialiased(false),
+// gradient
+gradient(false),
+gradient_color(color),
 // border
 border(false)
 {

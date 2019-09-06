@@ -47,8 +47,9 @@ else()
     set(CMAKE_CXX_STANDARD 11) # supported in cmake version 3.1 and higher
 endif() #
 #############
+# compiler defines
 if(DOKUN_GCC) # if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    list(APPEND CMAKE_CXX_FLAGS "-no-pie") # no position independent executable (PIE) #gcc="-no-pie" #clang="-nopie"
+    list(APPEND CMAKE_CXX_FLAGS "-no-pie") # no position independent executable (PIE)
 endif()
 if(DOKUN_CLANG)
     list(APPEND CMAKE_CXX_FLAGS "-w"     ) #-w=ignores all warnings
@@ -244,7 +245,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/dependencies
    ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/openssl/include
 )
 #############
-# static_library_dir (.a or .lib)
+# static_library_dir (.a and .lib)
 link_directories(${CMAKE_CURRENT_SOURCE_DIR}/src) # stored in 'src' since libraries are precompiled sources
 #############
 #############

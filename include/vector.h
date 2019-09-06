@@ -1022,7 +1022,64 @@ struct Vector3
 	static Vector3 reflect(Vector3& vector, int x, int y, int z)
 	{
 		return vector.reflect(x, y, z);
+	}
+	//////////////////
+	static Vector3 rgb_to_yuv_test(double red, double green, double blue)
+	{/*
+        double Y = (0.257 * red) + (0.504 * green) + (0.098 * blue) + 16;
+        double V = (0.439 * red) - (0.368 * green) - (0.071 * blue) + 128;
+        double U = -(0.148 * red) - (0.291 * green) + (0.439 * blue) + 128;
+        */
+        double Y =  0.257 * red + 0.504 * green + 0.098 * blue +  16;
+        double U = -0.148 * red - 0.291 * green + 0.439 * blue + 128;
+        double V =  0.439 * red - 0.368 * green - 0.071 * blue + 128;
+        return Vector3(Y, U, V);
+	}
+	//////////////////
+	static Vector3 yuv_to_rgb_test(double y, double u, double v) 
+	{/*
+        double B = 1.164 * (y - 16) + 2.018 * (u - 128);
+        double G = 1.164 * (y - 16) - 0.813 * (v - 128) - 0.391 * (u - 128);
+        double R = 1.164 * (y - 16) + 1.596 * (v - 128);
+        (*/
+        y -= 16;
+        u -= 128;
+        v -= 128;
+        double R = 1.164 * y             + 1.596 * v;
+        double G = 1.164 * y - 0.392 * u - 0.813 * v;
+        double B = 1.164 * y + 2.017 * u;
+        return Vector3(R, G, B);
 	}	
+	//////////////////
+	//////////////////
+	static Vector3 rgb_to_yuv(double red, double green, double blue) 
+	{
+	    double Y = (0.299 * red) + (0.587 * green) + (0.114 * blue);
+        double U = (blue - Y) * 0.565;
+        double V = (red  - Y) * 0.713;
+        return Vector3(Y, U, V);
+	}
+	static Vector3 rgb_to_yuv(const Vector3& vector) 
+	{
+	    double Y = (0.299 * vector.x) + (0.587 * vector.y) + (0.114 * vector.z);
+        double U = (vector.z - Y) * 0.565;
+        double V = (vector.x - Y) * 0.713;
+        return Vector3(Y, U, V);	
+	}
+	static Vector3 yuv_to_rgb(double y, double u, double v) 
+	{
+	    double R = y + (1.403 * v);
+        double G = y - (0.344 * u) - (0.714 * v);
+        double B = y + (1.770 * u);
+        return Vector3(R, G, B);
+	}
+	static Vector3 yuv_to_rgb(const Vector3& vector) 
+	{
+	    double R = vector.x + (1.403 * vector.z);
+        double G = vector.x - (0.344 * vector.y) - (0.714 * vector.z);
+        double B = vector.x + (1.770 * vector.y);
+        return Vector3(R, G, B);
+	}
 	//////////////////
 	// Lua functions
 	static int Vector_new(lua_State *L) // equivalent = Vector3(0, 0, 0) -> 0, 0, 0

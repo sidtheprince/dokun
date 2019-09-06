@@ -54,6 +54,9 @@ private:
 	double outline_width;
 	Vector4 outline_color;
 	bool outline_antialiased;
+	// gradient
+	bool gradient;
+	Vector4 gradient_color;	// not sure if I need this, since each list_item can set its own unique gradient_color 
 };
 #endif
 #endif

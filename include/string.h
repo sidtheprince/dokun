@@ -272,6 +272,22 @@ static std::string narrow( const std::wstring& str )
         }
         return what_index;
 	}
+	static int get_index_first(const std::string& str, char what) // returns index of the first "what" found in string
+	{
+	    std::string string0 (str);
+	    size_t first = string0.find(what); // find location of the first 'what'
+	    if(first == std::string::npos)
+			return -1; // error
+	    return static_cast<int>(first);	
+	}
+	static int get_index_last (const std::string& str, char what) // returns index of the last "what" found in string
+	{
+	    std::string string0 (str);
+	    size_t last = string0.rfind(what); // find location of the last 'what'
+	    if(last == std::string::npos)
+			return -1; // error
+	    return static_cast<int>(last);
+	}
 	static double extract(const std::string& str)
 	{
 		if(!str.empty())

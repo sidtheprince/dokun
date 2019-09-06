@@ -23,6 +23,10 @@ public:
 	void set_color(int red, int green, int blue, int alpha = 225);
 	void set_color(const Vector3& color);
 	void set_color(const Vector4& color);
+	void set_submenu_color(int red, int green, int blue, int alpha = 225);
+	void set_submenu_color(const Vector3& color);
+	void set_submenu_color(const Vector4& color);
+	void set_fill(bool fill); static int set_fill(lua_State *L);
 	// outline
 	void set_outline(bool outline); static int set_outline(lua_State *L);
 	void set_outline_width(double width); static int set_outline_width(lua_State *L);
@@ -31,7 +35,8 @@ public:
 	void set_outline_color(const Vector4& color);// static int set_(lua_State *L);
 	void set_outline_antialiased(bool antialised); static int set_outline_antialiased(lua_State *L);	
 	// getters
-	Box * get_menu(int index);     static int get_menu(lua_State * L);
+	Box * get_menu(int index);     static int get_menu(lua_State * L); // by index
+	Box * get_menu(const std::string& menu_name); // by name
 	Box * get_submenu(int menu_index, int sub_index);     static int get_submenu(lua_State * L);
 	int get_menu_count(); static int get_menu_count(lua_State * L);
 	int get_submenu_count(int index); static int get_submenu_count(lua_State * L);
@@ -43,11 +48,17 @@ private:
     // callback
 	void on_hover(void);
 	void on_menu_press(Box * menu, int index);
-    Box * previous;
-	std::vector<Box *> menu_list; 
+    Box * bar;
+	std::vector<Box *> menu_list;
 	std::vector< std::vector<Box *> > sub_list;//std::vector<Box *> sub_menu;
 	Vector4 color; // applies to all menus
-	Vector4 submenu_color; // color for all submenus	
+	Vector4 submenu_color; // color for all submenus
+	// selected menu
+	static Box * selected_menu;	
+	// filling the entire menubar space if there are some left
+	bool fill;
+	// spacing
+	double spacing;
 	// outline
 	bool outline;
 	double outline_width;
@@ -56,6 +67,9 @@ private:
 	// highlight
 	bool highlight;
 	Vector4 highlight_color;
+	// gradient
+	bool gradient;
+	Vector4 gradient_color;
 };
 #endif
 #endif

@@ -29,12 +29,16 @@ public:
 	void set_text(const std::string& text); static int set_text(lua_State *L);// generates a label for button
     void set_image(const Image& image); static int set_image(lua_State *L); // GUI::add()
 	void set_label(const Label& label); static int set_label(lua_State *L); // Label::set_text
-	void set_color(double red, double green, double blue, double alpha = 255); static int set_color(lua_State *L);
-	void set_color(const Vector3& color);
-	void set_color(const Vector4& color);
+	void set_color(double red, double green, double blue, double alpha = 255, bool original = false); static int set_color(lua_State *L);
+	void set_color(const Vector3& color, bool original = false);
+	void set_color(const Vector4& color, bool original = false);
 	void set_alpha(double alpha);   static int set_alpha(lua_State *L);
 	void set_fill(bool fill); static int set_fill(lua_State *L);
 	void set_shadow(bool shadow); static int set_shadow(lua_State *L);
+	void set_gradient(bool gradient); static int set_gradient(lua_State *L);                             //  static int set_(lua_State *L);
+	void set_gradient_color(double red, double green, double blue, double alpha = 255); static int set_gradient_color(lua_State *L);
+	void set_gradient_color(const Vector3& color);
+	void set_gradient_color(const Vector4& color);
     // border functions
 	void set_border(bool has_border);
 	void set_border_width(int width, int side = 0); // thickness
@@ -70,6 +74,7 @@ private:
     Vector4 hover_color;
 	Vector4 press_color;
 	Vector4 old_color; // might not need
+	bool color_saved;
 	// content
 	Label * label;
 	Image * image;
@@ -98,7 +103,10 @@ private:
 	//////////////
 	// highlight
 	bool highlight;
-	Vector4 highlight_color;		
+	Vector4 highlight_color;
+	//////////////
+	bool gradient;
+	Vector4 gradient_color;		
 };
 #endif
 #endif

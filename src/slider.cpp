@@ -6,7 +6,10 @@ Slider::Slider() : value(0), range(0, 100), radius(50), foreground_color(0, 51, 
 	outline (false),
     outline_color(0, 0, 0, 255),
     outline_width(1.0),
-    outline_antialiased(false)
+    outline_antialiased(false),
+    // gradient
+    gradient(false),
+	gradient_color(background_color) // gradient.color1 = backgound_color, gradient.color0 = foreground_color
 {
 	set_position(0, 0);
 	set_size(200, 20);

@@ -1,6 +1,6 @@
 #include "../include/box.h"
 
-Box::Box() : radius(10.0), color(64, 64, 64, 255), fill(true), image (nullptr), type("box"),
+Box::Box() : radius(0.0), color(64, 64, 64, 255), fill(true), image (nullptr), type("box"),
 iconified(false),
 maximized(false),
 restored(true),
@@ -13,11 +13,11 @@ forbidden_area(0, 0, 0, 0), // forbidden area
 // title bar
 title_bar(false), 
 title_bar_height(30),
-title_bar_color(0, 51, 102, 255),
+title_bar_color(0, 51, 102, 255), // I call this color, dokun_blue
 title_bar_button_iconify(false),
 title_bar_button_maximize(false),
 title_bar_button_close(true),
-title_bar_button_size(10),
+title_bar_button_width(10),
 title_bar_image(nullptr), // if you operate on this and do not assign it to nullptr or any value then the engine will crash (on Linux especially)
 title_bar_label(nullptr), // if you operate on this and do not assign it to nullptr or any value then the engine will crash (on Linux especially)
 title_bar_button_close_color(64, 64, 64, 255), // 235, 26, 34, 255
@@ -25,7 +25,7 @@ title_bar_horizontal_padding(10), // for label, image and other content inside t
 // outline
 outline(false),
 outline_width(2.0),
-outline_color(0, 51, 102, 255),
+outline_color(0, 51, 102, 255), // dokun_blue outline to match title_bar_color
 outline_antialiased(false),
 // border
 border(false),
@@ -36,13 +36,21 @@ border_radius(10.0),
 border_color(47, 79, 79, 255),
 // gradient
 gradient(false),
-gradient_color(64, 64, 64, 255),
-gradient_mix(true),
+gradient_color(color),
+gradient_value(0.25),
+gradient_type("linear"), // or radial (circle-like)
 // shadow
 shadow(false),
 // highlight - used when hovered over ui
 highlight(true),
 highlight_color(0, 51, 102, 255),
+// separator - horizontal by default
+separator(false),
+separator_count(1), // add_separator(), separator_count = separator_count + 1 
+separator_width(200),
+separator_height(1), 
+separator_position(0, 10),
+separator_color(32, 32, 32, 255),
 // tooltip
 tooltip_arrow_direction("down"),
 tooltip_arrow_width(10),
@@ -195,7 +203,7 @@ void Box::draw(void)
 				// border
 				border, border_radius, border_color,
 				// gradient
-				gradient, gradient_color,
+				gradient, gradient_color, gradient_value,
 				// shadow
 				shadow
 			);
@@ -205,7 +213,7 @@ void Box::draw(void)
 			{   // title_bar image or icon (goes on the titlebar)
 				if(title_bar_image) // if title_bar_image is not nullptr
 				{
-				    // set title_bar_image position relative to title_bar
+				    // set title_bar_image alignment and position relative to title_bar
 					if(title_bar_image->get_alignment() == "left"  ) {title_bar_image->set_relative_position(0/* + title_bar_horizontal_padding*/                                                , 0);} // we are scaling to fit image into titlbar, so no need to mess with image_relative_y // relative: child_position = parent_position + relative_position
                     if(title_bar_image->get_alignment() == "center") {title_bar_image->set_relative_position((get_title_bar_size().x - get_title_bar_size().y) / 2                               , 0);}			
                     if(title_bar_image->get_alignment() == "right" ) {title_bar_image->set_relative_position((get_title_bar_size().x - get_title_bar_size().y)/* - title_bar_horizontal_padding*/, 0);}								
@@ -219,7 +227,7 @@ void Box::draw(void)
                 // title_bar text (goes on the titlebar)
                 if(title_bar_label) // if "title_bar_label" is not nullptr
                 {
-                    // set title_bar_label position to title_bar_position + title_bar_label_position
+                    // set title_bar_label alignment and position to title_bar_position + title_bar_label_position
 			        if(title_bar_label->get_alignment() == "left"  ) { title_bar_label->set_relative_position(0 + title_bar_horizontal_padding                                                      , (get_title_bar_size().y - 10/*title_bar_label->get_height()*/) / 2); } // the 10 here, is used in place of the label's height (for more accurate results) // keep y positioned at center of titlebar at all times
                     if(title_bar_label->get_alignment() == "center") { title_bar_label->set_relative_position((get_title_bar_size().x - title_bar_label->get_width()) / 2                           , (get_title_bar_size().y - 10/*title_bar_label->get_height()*/) / 2); } // the 10 here, is used in place of the label's height (for more accurate results) // keep y positioned at center of titlebar at all times			
                     if(title_bar_label->get_alignment() == "right" ) { title_bar_label->set_relative_position((get_title_bar_size().x - title_bar_label->get_width()) - title_bar_horizontal_padding, (get_title_bar_size().y - 10/*title_bar_label->get_height()*/) / 2); } // the 10 here, is used in place of the label's height (for more accurate results) // keep y positioned at center of titlebar at all times
@@ -232,9 +240,9 @@ void Box::draw(void)
             /////////////////////////////////////////////////////////////////////////
 			// Draw label (goes inside box) **********************************************************
             if(label) // make sure Box has an "initialized" label beforehand (or else engine will crash)
-            {   // set label's position relative to the Box
+            {   // set label's alignment and position relative to the Box
 		        if(label->get_alignment() == "left"  ) { label->set_relative_position(0                                     , 0); }
-				if(label->get_alignment() == "center") { label->set_relative_position((get_width() - label->get_width()) / 2, (get_height() - label->get_height()) / 2); }						
+				if(label->get_alignment() == "center") { label->set_relative_position((get_width() - label->get_width()) / 2, (get_height() - 10/*label->get_height()*/) / 2); }						
 				if(label->get_alignment() == "right" ) { label->set_relative_position((get_width() - label->get_width())    , 0); }	
                 if(label->get_alignment() == "none"  ) {} // default - with this you are free to set the label's relative position to whatever you want // relative_position will always be (0, 0) unless you change it    
                 label->set_position(get_x() + label->get_relative_x(), get_y() + label->get_relative_y()); // set actual position (No need to call since GUI::on_draw auto fixes child position to parent's)
@@ -262,20 +270,32 @@ void Box::draw(void)
 				if(image->get_alignment() == "right" ) {image->set_relative_position(get_width() - image_width, 0);}
                 if(image->get_alignment() == "none"  ) {}
 				image->set_position(get_x() + image->get_relative_x(), get_y() + image->get_relative_y());
-				// make sure image is within widget bounds - image size bounds restriction - void set_image_size_restriction(bool image_size_restriction)
-				if(image_width  > get_width ()) image->resize(get_width(), image->get_height());// if image is wider than widget, make width equal
-				if(image_height > get_height()) image->resize(image->get_width(), get_height());// if image is taller than widget, make height equal
+				// if image is larger than box, scale it to fit box
+				if(image_width > get_width () || image_height > get_height()) image->scale_to_fit(get_width(), get_height());// if image is wider than widget, make width equal or if image is taller than widget, make height equal
 				// and finally, draw the image ...	
 				image->draw(); // Image is not a GUI so you cannot set its parent which means it must be drawn manually
 			}
 			// Draw multiple images ...
+			/////////////////////////////////////////////////////////////////////////
+			// Draw separator
+			if(separator)
+			{
+			    for(int i = 0; i < separator_count; i++)
+			    {
+			        // update separator_width
+			        //separator_width = get_width();
+			        // update seperator_position (centered x, if horz)
+			        //separator_position = Vector2(separator_position.x, separator_position.y);
+			        Renderer::draw_line(get_x() + separator_position.x, get_y() + separator_position.y, separator_width, separator_height, 0.0, 1, 1, separator_color.x, separator_color.y, separator_color.z, separator_color.w);
+			    }
+			}
 			/////////////////////////////////////////////////////////////////////////
 			// on draw callback (if visible)
 	        on_draw();	// will automatically set child(label)'s position relative to parent(box)	
 		}
 	}
 	//-------------------------------
-	if(is_icon()) //If this widget is an icon // draw image (only) // Boxs can be both a box or an icon
+	if(is_icon()) //If this widget is an icon, draw image (only) // Boxs can be both a box or an icon
 	{
 		if(!is_active()) // add shade to color
 		{}
@@ -301,7 +321,7 @@ void Box::draw(void)
 	        Renderer::draw_tooltip("Hello", get_x(), get_y(), get_width(), get_height(), get_angle(), get_scale().x, get_scale().y, get_color().x, get_color().y, get_color().z, get_color().w, tooltip_arrow_direction, tooltip_arrow_width, tooltip_arrow_height, tooltip_arrow_position/*, tooltip_arrow_color*/);
             // Draw label (goes inside box) **********************************************************
             if(label) // make sure Box has an "initialized" label beforehand (or else engine will crash)
-            {   // set label's position relative to the Tooltip (Box)                     // 10 is the space between the text and the Box's edge
+            {   // set label's alignment and position relative to the Tooltip (Box)                     // 10 is the space between the text and the Box's edge
 		        if(label->get_alignment() == "left"  ) { label->set_relative_position(0 + 10                                , 0 + 10); }
 				if(label->get_alignment() == "center") { label->set_relative_position((get_width() - label->get_width()) / 2, (get_height() - label->get_height()) / 2); }
 				if(label->get_alignment() == "right" ) { label->set_relative_position((get_width() - label->get_width())    , 0 + 10); }
@@ -319,9 +339,8 @@ void Box::draw(void)
 				if(image->get_alignment() == "right" ) {image->set_relative_position(get_width() - image_width, 0);}
                 if(image->get_alignment() == "none"  ) {}
 				image->set_position(get_x() + image->get_relative_x(), get_y() + image->get_relative_y());
-				// make sure image is within widget bounds - image size bounds restriction - void set_image_size_restriction(bool image_size_restriction)
-				if(image_width  > get_width ()) image->resize(get_width(), image->get_height());// if image is wider than widget, make width equal
-				if(image_height > get_height()) image->resize(image->get_width(), get_height());// if image is taller than widget, make height equal
+				// if image is larger than box, scale to fit
+				if(image_width > get_width () || image_height > get_height()) image->scale_to_fit(get_width(), get_height());// if image is wider than widget, make width equal or if image is taller than widget, make height equal
 				// and finally, draw the image ...	
 				image->draw(); // Image is not a GUI so you cannot set its parent which means it must be drawn manually
 			}
@@ -732,16 +751,15 @@ int Box::set_gradient(lua_State * L)
 	}
 	return 0;	
 }
-void Box::set_gradient_color(int red, int green, int blue, int alpha, bool mix)
+void Box::set_gradient_color(int red, int green, int blue, int alpha)
 {
 	gradient_color = Vector4(red, green, blue, alpha);
-	gradient_mix   = mix;
 }
-void Box::set_gradient_color(const Vector3& color, bool mix)
+void Box::set_gradient_color(const Vector3& color)
 {
 	set_gradient_color(color.x, color.y, color.z);
 }
-void Box::set_gradient_color(const Vector4& color, bool mix)
+void Box::set_gradient_color(const Vector4& color)
 {
 	set_gradient_color(color.x, color.y, color.z, color.w);
 }
@@ -1170,6 +1188,12 @@ int Box::get_color(lua_State * L)
 	return 4;
 }
 //////////////
+/*double Box::get_alpha()
+{
+    return color.w;
+}*/
+//////////////
+//////////////
 Image * Box::get_image() const
 {
 	return image;
@@ -1233,8 +1257,8 @@ std::string Box::get_text() const
 /////////////
 Vector2 Box::get_title_bar_position() const
 {
-	double x = get_x();
-	double y = get_y() + (-title_bar_height);
+	double x = 0                 + get_x();
+	double y = -title_bar_height + get_y();
 	return Vector2(x, y);
 }
 Vector2 Box::get_title_bar_size() const
@@ -1273,37 +1297,37 @@ Image * Box::get_title_bar_icon() const
 }
 /////////////
 /////////////
-Vector2 Box::get_title_bar_button_iconify_position()const
+Vector2 Box::get_title_bar_button_iconify_position()const // 3
 {
-	double x = get_title_bar_position().x + (get_title_bar_size().x - (title_bar_button_size * 3)) - 3;
-	double y = get_title_bar_position().y + 2;
+	double x = get_x() + 0                 + (get_title_bar_size().x - (get_title_bar_button_iconify_size().x * 3)) - (5 * 3);
+	double y = get_y() + -title_bar_height + (get_title_bar_size().y -  get_title_bar_button_iconify_size().y) / 2;	
 	return Vector2(x, y);	
 }
 Vector2 Box::get_title_bar_button_iconify_size()const
 {
-	return Vector2(title_bar_button_size, title_bar_height - 5);	
+	return Vector2(title_bar_button_width, title_bar_height / 2);	
 }
 /////////////
-Vector2 Box::get_title_bar_button_maximize_position()const
+Vector2 Box::get_title_bar_button_maximize_position()const // 2
 {
-	double x = get_title_bar_position().x + (get_title_bar_size().x - (title_bar_button_size * 2)) - 2;
-	double y = get_title_bar_position().y + 2;
+	double x = get_x() + 0                 + (get_title_bar_size().x - (get_title_bar_button_maximize_size().x * 2)) - (5 * 2);
+	double y = get_y() + -title_bar_height + (get_title_bar_size().y -  get_title_bar_button_maximize_size().y) / 2;	
 	return Vector2(x, y);	
 }
 Vector2 Box::get_title_bar_button_maximize_size()const
 {
-	return Vector2(title_bar_button_size, title_bar_height - 5);	
+	return Vector2(title_bar_button_width, title_bar_height / 2);	
 }
 /////////////
-Vector2 Box::get_title_bar_button_close_position()const
+Vector2 Box::get_title_bar_button_close_position()const // 1
 {
-	double x = get_title_bar_position().x + ((get_title_bar_size().x - title_bar_button_size) - 1);
-	double y = get_title_bar_position().y + 2;//((get_title_bar_size().y - title_bar_button_size) / 2); // (title_height - close_height) / 2
+	double x = get_x() + 0                 + (get_title_bar_size().x - get_title_bar_button_close_size().x) - 5;
+	double y = get_y() + -title_bar_height + (get_title_bar_size().y - get_title_bar_button_close_size().y) / 2;
 	return Vector2(x, y);
 }
 Vector2 Box::get_title_bar_button_close_size()const
 {
-	return Vector2(title_bar_button_size, title_bar_height - 5);//title_bar_button_size);
+	return Vector2(title_bar_button_width, title_bar_height / 2);
 }
 Vector4 Box::get_title_bar_button_close_color()const
 {
@@ -1511,13 +1535,17 @@ void Box::on_drag(void)
 		}
 		if(Mouse::is_pressed(1) && dragged)
 		{
-			set_position(Mouse::get_position(*window).x - get_title_bar_size().x / 2, Mouse::get_position(*window).y + get_title_bar_size().y / 2);
-		}
+		    // capture position where mouse was pressed at
+		    //const int mouse_press_position_x_const = Mouse::get_position(*window).x;
+		    //const int old_title_bar_x = get_title_bar_position().x;
+		    // mouse_position - position_that_was_pressed   -    Mouse::get_position(*window).x - (get_title_bar_size().x - mouse_press_position_x_const)
+			set_position(Mouse::get_position(*window).x - get_title_bar_size().x / 2, Mouse::get_position(*window).y + (get_title_bar_size().y / 2)); // y stays the same, x changes
+		}		
 		if(Mouse::is_released(1)) // on release
 		{
 			dragged = false;
 			set_position(get_position());
-		}
+		}		
 	}
 	if(!has_title_bar()) // no title_bar
 	{

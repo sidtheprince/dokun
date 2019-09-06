@@ -1193,6 +1193,7 @@ void Renderer::draw_box(int x, int y, int width, int height, double angle, doubl
 	// gradient
 	bool gradient,
 	const Vector4& gradient_color,
+	double gradient_value,
 	// shadow
 	bool shadow
 )
@@ -1222,16 +1223,28 @@ void Renderer::draw_box(int x, int y, int width, int height, double angle, doubl
 	{
 	    "#version 330\n"
         "\n"
+        "const float PI = 3.14159265;\n"
+        "\n"
 		"out vec4 out_color;\n"
         "uniform vec4 color;\n"
-        "//uniform sampler2D base;\n"
+        "uniform sampler2D texture;\n"
 		"in vec2 Texcoord;\n"
+		"uniform vec2 size;"
+		"uniform float radius;"
 		"\n"
+		"\n" // uniform float radius;
 		"float round_corner(vec2 p, vec2 b, float r) {\n"
-		    "return length(max(abs(p)-b+r, 0.0));\n"
+		    "return length(max(abs(p)-b+r,0.0))-r;\n" // length(max(abs(p)-b, 0.0))-r;
 		"}\n"
+		"float circle(in vec2 _st, in float _radius) {\n"
+        "    vec2 dist = _st - vec2(0.5);\n"
+	    "    return 1. - smoothstep(_radius - (_radius * 0.01), _radius+(_radius*0.01), dot(dist, dist) * 4.0);\n"
+        "}"// usage: vec3 color = vec3(circle(st,0.9));
 		"\n"
-		"uniform vec2 resolution;\n"
+		"uniform vec2  resolution;\n"
+		"uniform float time;"
+		"uniform vec2 mouse;"
+		"\n"
 		"vec2 position;" // Texcoord.x = from_left_to_right, Texcoord.y = from_up_to_down
 		"struct Gradient {\n"
 		    "vec4 color0;\n" // top
@@ -1245,14 +1258,27 @@ void Renderer::draw_box(int x, int y, int width, int height, double angle, doubl
 		"\n"
         "void main()\n"
         "{\n"
-		    "\n"
-		    "\n"
+            "vec2 st = Texcoord.xy  / resolution.xy;"
+            "float aspect = resolution.x / resolution.y;"
+            "vec2 uv = (2.0 * st - 1.0) * vec2(aspect, 1.0);"
+            "vec2 half_res = 0.5 * resolution;"
+            "vec2 half_size = 0.5 * size;" // half of the box_size
 			"\n"
-		    "out_color = color;\n"
+			"\n"
+			//"if ( (length(Texcoord * size - vec2(0)) < radius)  || (length(Texcoord * size - vec2(0, size.y)) < radius) || (length(Texcoord * size - vec2(size.x, 0)) < radius) || (length(Texcoord * size - size) < radius) )"
+            //"{     discard;"
+            //"}"
+			"\n" // size_x = (size.x / 2) * (size.x / size.y)    or  size_y = (size.y / 2) * (size.y / size.x)
+		    "float b = 1.0 - round_corner(Texcoord * size - half_res, half_res, abs(radius));  //(Texcoord - half_res, half_res, radius);\n" // position, size, radius // abs() turns a negative number into a positive number
+		    "float round = smoothstep(0.0, 1.0, b);          \n" //"vec4 pixel = texture2D(texture, Texcoord);" // if texture is present
+		    "out_color = vec4(color.xyz, color.w * round);   \n" // 1.0, 1.0, 1.0, 1.0 is default frag_color
+		    "\n" // gradient
             "if(gradient.enabled == true)\n" 
 			"{"
-			    "position  = Texcoord; //out_color.xy / resolution;\n"
-			    "out_color = vec4(mix(vec4(gradient.color0 + (1.0 - gradient.color0) * 0.25), vec4(gradient.color1 + (0.0 - gradient.color1) * 0.25), position.y));\n"
+			    "position  = Texcoord;\n"
+			    "vec4 g0_calc = vec4(gradient.color0 + (1.0 - gradient.color0) * gradient.value);\n" // tint  (1=white)
+			    "vec4 g1_calc = vec4(gradient.color1 + (0.0 - gradient.color1) * gradient.value);\n" // shade (0=black)
+			    "out_color = vec4(mix(g0_calc, g1_calc, position.y));\n" // mix takes 3 args
 			    "\n"
 			"}\n"
         "}\n"
@@ -1294,7 +1320,7 @@ void Renderer::draw_box(int x, int y, int width, int height, double angle, doubl
         glBindBuffer(GL_ARRAY_BUFFER, title_bar_vertex_buffer_obj);
 		// set title_bar position relative to widget
 		float title_bar_x = 0;
-		float title_bar_y = -title_bar_height;
+		float title_bar_y = -title_bar_height; //-30
 		int title_bar_width  = width; // is set automatically
 		//std::cout << y + title_bar_y << " title_bar_y\n"; 
 		GLfloat vertices1[] = { // when x and y are 0 then from wwidth-wheight
@@ -1334,16 +1360,30 @@ void Renderer::draw_box(int x, int y, int width, int height, double angle, doubl
 	glUniformMatrix4fv(glGetUniformLocation(shader.get_program(), "model"), 1, GL_FALSE, glm::value_ptr(model));
 	glUniformMatrix4fv(glGetUniformLocation(shader.get_program(), "proj") , 1, GL_FALSE, glm::value_ptr(proj) );
 #endif
-    // set gradient    if(shader.get_uniform("") != -1)
-	if(shader.get_uniform("resolution") != -1) shader.set_float("resolution", static_cast<double>(window_width), static_cast<double>(window_height));
-	if(shader.get_uniform("gradient.enabled") != -1) shader.set_integer("gradient.enabled", static_cast<int>(gradient)); // set gradient on
-	if(shader.get_uniform("gradient.color0" ) != -1) shader.set_float("gradient.color0", (red/255), (green/255), (blue/255), (alpha/255)); // color0 will be a tint  (top)
-	if(shader.get_uniform("gradient.color1" ) != -1) shader.set_float("gradient.color1", (gradient_color.x/255), (gradient_color.y/255), (gradient_color.z/255), (gradient_color.w/255)); // color1 will be a shade (bottom)	
-	// title_bar_outline
+    // set uniforms (if uniform cannot be found or does not exist, the function will return)
+    shader.set_vector2  ("size", Vector2(width, height));
+	if(shader.get_uniform("resolution") != -1) shader.set_float("resolution", static_cast<double>(Renderer::get_display_width()), static_cast<double>(Renderer::get_display_height()));
+	shader.set_integer("gradient.enabled", gradient      ); // set gradient on
+	shader.set_float  ("gradient.value"  , gradient_value); // set gradient value
+	shader.set_float  ("radius", radius); // set rounded_corner
+	// if has_title_bar
 	if(title_bar)
 	{
 	//glEnable(GL_DEPTH_TEST);           // for removing hidden line
-	//glEnable(GL_POLYGON_OFFSET_FILL);  // for removing hidden line	
+	//glEnable(GL_POLYGON_OFFSET_FILL);  // for removing hidden line
+	// Draw title_bar
+	// title_bar : gradient
+	shader.set_float("gradient.color0", (title_bar_color.x/255), (title_bar_color.y/255), (title_bar_color.z/255), (title_bar_color.w/255)); // color0 will be a tint  (top)
+	shader.set_float("gradient.color1", (title_bar_color.x/255), (title_bar_color.y/255), (title_bar_color.z/255), (title_bar_color.w/255)); // color1 will be a shade (bottom)	
+	// title_bar : color
+	shader.set_float("color", (title_bar_color.x / 255), (title_bar_color.y / 255), (title_bar_color.z / 255), (title_bar_color.w / 255));	
+	glBindVertexArray(title_bar_vertex_array_obj); // (vao start 2)
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);
+	//glDisable(GL_POLYGON_OFFSET_FILL); // for removing hidden line
+	//glDisable(GL_DEPTH_TEST);          // for removing hidden line
+	// What is drawn last should appear top, according to openGL, so outline will be drawn last
+	// Draw outline
 	if(outline) {
 	shader.set_float("color", (outline_color.x / 255), (outline_color.y / 255), (outline_color.z / 255), (outline_color.w / 255));
 	glLineWidth(outline_width);
@@ -1351,13 +1391,6 @@ void Renderer::draw_box(int x, int y, int width, int height, double angle, doubl
 	    glDrawElements(GL_LINE_LOOP, 6, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
 	}	
-	// Draw title_bar
-	shader.set_float("color", (title_bar_color.x / 255), (title_bar_color.y / 255), (title_bar_color.z / 255), (title_bar_color.w / 255));	
-	glBindVertexArray(title_bar_vertex_array_obj); // (vao start 2)
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-	glBindVertexArray(0);
-	//glDisable(GL_POLYGON_OFFSET_FILL); // for removing hidden line
-	//glDisable(GL_DEPTH_TEST);          // for removing hidden line
 	}
 	//--------------------------
 	// CLOSE_BUTTON
@@ -1378,17 +1411,17 @@ void Renderer::draw_box(int x, int y, int width, int height, double angle, doubl
     glBindVertexArray(close_button_vertex_array_obj); // bind vertex array obj
         GLuint close_button_vertex_buffer_obj;
         glGenBuffers(1, &close_button_vertex_buffer_obj);
-        glBindBuffer(GL_ARRAY_BUFFER, close_button_vertex_buffer_obj); 
-		float close_button_x = (title_bar_width  - 10) - 1; // 1 is the right_padding
-		float close_button_y = 2;//(title_bar_height - 10) / 2;//2; // 2 is top_padding // (title_bar_height - close_height) / 2
+        glBindBuffer(GL_ARRAY_BUFFER, close_button_vertex_buffer_obj);
 		int close_button_width =  10;//title_bar_button_width;
-		int close_button_height = title_bar_height - 5;//10;//5; // 5 is bottom_padding
+		int close_button_height = title_bar_height / 2; // half of titlebar_height //title_bar_height - 5; // 5 is bottom_padding        
+		float close_button_x = (title_bar_width  - close_button_width ) - 5; // 5 is the right_padding (space between close_button and titlebar's right edge)
+		float close_button_y = (title_bar_height - close_button_height) / 2;//2; // 2 is top_padding // (title_bar_height - close_height) / 2
 		GLfloat vertices2[] = { // when x and y are 0 then from wwidth-wheight
 		    static_cast<GLfloat>(x + title_bar_x + close_button_x)                                           , static_cast<GLfloat>(y + title_bar_y + close_button_y),
             static_cast<GLfloat>(x + title_bar_x + close_button_x) + static_cast<GLfloat>(close_button_width), static_cast<GLfloat>(y + title_bar_y + close_button_y),
             static_cast<GLfloat>(x + title_bar_x + close_button_x) + static_cast<GLfloat>(close_button_width), static_cast<GLfloat>(y + title_bar_y + close_button_y) + static_cast<GLfloat>(close_button_height),
             static_cast<GLfloat>(x + title_bar_x + close_button_x)                                           , static_cast<GLfloat>(y + title_bar_y + close_button_y) + static_cast<GLfloat>(close_button_height),   
-        };      		
+        };		
         //std::cout << "close button position (renderer): " << Vector2(x, y) + Vector2(title_bar_x, title_bar_y) + Vector2(close_button_x, close_button_y) << std::endl;
         glBufferData(GL_ARRAY_BUFFER, sizeof(vertices2)* sizeof(GLfloat), vertices2, GL_STATIC_DRAW);
         glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (GLvoid*)0);
@@ -1404,17 +1437,20 @@ void Renderer::draw_box(int x, int y, int width, int height, double angle, doubl
 	// Draw close_button
 	if(title_bar) {
 	if(title_bar_button_close) {
+	// close_button : gradient
+	shader.set_float("gradient.color0", (title_bar_button_close_color.x/255), (title_bar_button_close_color.y/255), (title_bar_button_close_color.z/255), (title_bar_button_close_color.w/255)); // color0 will be a tint  (top)
+	shader.set_float("gradient.color1", (title_bar_button_close_color.x/255), (title_bar_button_close_color.y/255), (title_bar_button_close_color.z/255), (title_bar_button_close_color.w/255)); // color1 will be a shade (bottom)
+	// close_button : color	- close_button has its own unique color while the other buttons copy the box's color because the close_button changes to red, on hover
 	shader.set_float("color", (title_bar_button_close_color.x / 255), (title_bar_button_close_color.y / 255), (title_bar_button_close_color.z / 255), (title_bar_button_close_color.w / 255));
     glBindVertexArray(close_button_vertex_array_obj);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
+	shader.set_float("color", (red / 255), (green / 255), (blue / 255), (alpha / 255)); // restore original color (close_button can change its color, which may also affect the box's outline color) (happens when close_button is the ONLY button on a title_bar)
 	}
 	}
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	//--------------------------
 	// MAXIMIZE_BUTTON
-	// maximize_button_color
-	shader.set_float("color", (red / 255), (green / 255), (blue / 255), (alpha / 255));
     // vertex array obj  - stores vertices
 	GLuint maximize_button_vertex_array_obj;
     glGenVertexArrays(1, &maximize_button_vertex_array_obj);
@@ -1432,10 +1468,10 @@ void Renderer::draw_box(int x, int y, int width, int height, double angle, doubl
         GLuint maximize_button_vertex_buffer_obj;
         glGenBuffers(1, &maximize_button_vertex_buffer_obj);
         glBindBuffer(GL_ARRAY_BUFFER, maximize_button_vertex_buffer_obj); 
-		float maximize_button_x = (title_bar_width - (10*2)) - 2; // 2 is the right_padding
-		float maximize_button_y = 2; // top_padding
-		int maximize_button_width =  10;//title_bar_width;
-		int maximize_button_height = title_bar_height - 5;	// 5 is bottom_padding	
+		int maximize_button_width  =  10;
+		int maximize_button_height = title_bar_height / 2; // half of titlebar_height        
+		float maximize_button_x = (title_bar_width - (maximize_button_width * 2)) - (5 * 2); // 10 is the right_padding
+		float maximize_button_y = (title_bar_height - maximize_button_height) / 2;	
 		GLfloat vertices3[] = { // when x and y are 0 then from wwidth-wheight
 		    static_cast<GLfloat>(x + title_bar_x + maximize_button_x)                                                , static_cast<GLfloat>(y + title_bar_y + maximize_button_y),
             static_cast<GLfloat>(x + title_bar_x + maximize_button_x) + static_cast<GLfloat>(maximize_button_width), static_cast<GLfloat>(y + title_bar_y + maximize_button_y),
@@ -1456,6 +1492,11 @@ void Renderer::draw_box(int x, int y, int width, int height, double angle, doubl
 	// Draw maximize_button
 	if(title_bar) {
 	if(title_bar_button_maximize) {
+    // maximize_button : gradient
+	shader.set_float("gradient.color0", (red/255), (green/255), (blue/255), (alpha/255)); // color0 will be a tint  (top)
+	shader.set_float("gradient.color1", (gradient_color.x/255), (gradient_color.y/255), (gradient_color.z/255), (gradient_color.w/255)); // color1 will be a shade (bottom)
+	// maximize_button : color
+	shader.set_float("color", (red / 255), (green / 255), (blue / 255), (alpha / 255));	
     glBindVertexArray(maximize_button_vertex_array_obj);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
@@ -1463,8 +1504,6 @@ void Renderer::draw_box(int x, int y, int width, int height, double angle, doubl
 	}
     //--------------------------	
 	// MINIMIZE_BUTTON
-	// iconify_button_color
-	shader.set_float("color", (red / 255), (green / 255), (blue / 255), (alpha / 255));
     // vertex array obj  - stores vertices
 	GLuint iconify_button_vertex_array_obj;
     glGenVertexArrays(1, &iconify_button_vertex_array_obj);
@@ -1482,10 +1521,10 @@ void Renderer::draw_box(int x, int y, int width, int height, double angle, doubl
         GLuint iconify_button_vertex_buffer_obj;
         glGenBuffers(1, &iconify_button_vertex_buffer_obj);
         glBindBuffer(GL_ARRAY_BUFFER, iconify_button_vertex_buffer_obj);
-		float iconify_button_x = (title_bar_width - (10*3)) - 3; // 3 is the right_padding
-		float iconify_button_y = 2; // top_padding
-		int iconify_button_width =  10;//title_bar_width;
-		int iconify_button_height = title_bar_height - 5; // 5 is bottom_padding
+		int iconify_button_width =  10;
+		int iconify_button_height = title_bar_height / 2; // half of titlebar_height       
+		float iconify_button_x = (title_bar_width - (iconify_button_width * 3)) - (5 * 3); // 15 is the right_padding
+		float iconify_button_y = (title_bar_height - iconify_button_height) / 2;
 		GLfloat vertices4[] = { // when x and y are 0 then from wwidth-wheight
 		    static_cast<GLfloat>(x + title_bar_x + iconify_button_x)                                               , static_cast<GLfloat>(y + title_bar_y + iconify_button_y),
             static_cast<GLfloat>(x + title_bar_x + iconify_button_x) + static_cast<GLfloat>(iconify_button_width), static_cast<GLfloat>(y + title_bar_y + iconify_button_y),
@@ -1506,6 +1545,11 @@ void Renderer::draw_box(int x, int y, int width, int height, double angle, doubl
 	// Draw iconify_button
 	if(title_bar) {
 	if(title_bar_button_iconify) {	
+    // iconify_button : gradient (will copy gradient color from maximize_button)
+	//shader.set_float("gradient.color0", (red/255), (green/255), (blue/255), (alpha/255)); // color0 will be a tint  (top)
+	//shader.set_float("gradient.color1", (gradient_color.x/255), (gradient_color.y/255), (gradient_color.z/255), (gradient_color.w/255)); // color1 will be a shade (bottom)	
+	// iconify_button : color
+	shader.set_float("color", (red / 255), (green / 255), (blue / 255), alpha/*(alpha / 255)*/);	
     glBindVertexArray(iconify_button_vertex_array_obj);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
@@ -1553,17 +1597,25 @@ void Renderer::draw_box(int x, int y, int width, int height, double angle, doubl
 	//glPolygonOffset(1.0, 1.0);
 	if(!iconify)
 	{
+	// What is drawn last should appear on top, according to openGL, but we want to HIDE the diagonal line shown by the outline, so outline should appear at the bottom
+	// Modern OpenGL defines only points, lines or triangles; there are no 4-vertex primitive types, so you can't draw a quad without triangles, which is why you see the diagonal line across the box
+	// Draw outline (first: at bottom of box, so we can hide the diagonal lines) // Think of the outline as the skeleton of a box
 	if(outline)
 	{
-    shader.set_float("color", (outline_color.x / 255), (outline_color.y / 255), (outline_color.z / 255), (outline_color.w / 255));
-	//glEnable(GL_LINE_SMOOTH);
+	// restore gradient color (so outline does not copy gradient of close_button, in the case of close_button being the only button in the title_bar)
+	// outline, box : gradient
+	shader.set_float("gradient.color0", (red/255), (green/255), (blue/255), (alpha/255)); // color0 will be a tint  (top)
+	shader.set_float("gradient.color1", (gradient_color.x/255), (gradient_color.y/255), (gradient_color.z/255), (gradient_color.w/255)); // color1 will be a shade (bottom)
+	// outline : color
+    shader.set_float("color", (outline_color.x / 255), (outline_color.y / 255), (outline_color.z / 255), (outline_color.w / 255));//glEnable(GL_LINE_SMOOTH);
 	glLineWidth(outline_width); // outline_width
 	glBindVertexArray(box_vertex_array_obj); // use same vao data as box but this time in a line loop
         glDrawElements(GL_LINE_LOOP, 6, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);	
 	}
-	// Draw box
-	shader.set_float("color", (red / 255), (green / 255), (blue / 255), (alpha / 255));
+	// Draw box (last: on top of outline so diagonal lines do not show up)
+	// box : color
+	shader.set_float("color", static_cast<float>(red) / 255, static_cast<float>(green) / 255, static_cast<float>(blue) / 255, static_cast<float>(alpha) / 255);
     glBindVertexArray(box_vertex_array_obj); // (vao start 2)
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);                // (vao end 2  )
@@ -1675,7 +1727,7 @@ void Renderer::draw_text (const std::string& text, double x, double y, int width
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), 0);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0); /*
+    glBindVertexArray(0);
 	// background rect - NEW! ---------------------------
 	GLuint background_vertex_array_obj;
 	glGenVertexArrays(1, &background_vertex_array_obj);
@@ -1716,7 +1768,7 @@ void Renderer::draw_text (const std::string& text, double x, double y, int width
 	    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, background_element_buffer_obj);
         GLuint indices[] = {0, 1, 3,  1, 2, 3,}; 		
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices)* sizeof(GLuint), indices, GL_STATIC_DRAW); 		
-    glBindVertexArray(0);	*/
+    glBindVertexArray(0);	
     //---------------------------------------	
     // enable
 	glEnable(GL_BLEND); // transparent background
@@ -1737,12 +1789,7 @@ void Renderer::draw_text (const std::string& text, double x, double y, int width
 	glUniformMatrix4fv(glGetUniformLocation(shader.get_program(), "model"),  1, false, glm::value_ptr(model));
 	glUniformMatrix4fv(glGetUniformLocation(shader.get_program(), "proj" ),  1, false, glm::value_ptr(proj) );
 	if(shader.get_uniform("view") != -1) glUniformMatrix4fv(glGetUniformLocation(shader.get_program(), "view" ),  1, false, glm::value_ptr(view) );
-#endif	
-	// Draw background ------------ NEW!!
-	/*shader.set_float("color", (0.0f / 255), (51.0f / 255), (102.0f / 255)); // alpha
-	glBindVertexArray(background_vertex_array_obj);
-	    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-	glBindVertexArray(0);*/
+#endif
 	// Draw text
 	glUniform3f(glGetUniformLocation(shader.get_program(), "color"), (red / 255), (green / 255), (blue / 255)); // alpha
 	glActiveTexture(GL_TEXTURE0);
@@ -1780,17 +1827,22 @@ void Renderer::draw_text (const std::string& text, double x, double y, int width
     glBindVertexArray(0);
     glBindTexture(GL_TEXTURE_2D, 0);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 4); // restore original pixel_store
+	// Draw background ------------ NEW!!
+	shader.set_float("color", (0.0f / 255), (51.0f / 255), (102.0f / 255)); // alpha
+	glBindVertexArray(background_vertex_array_obj);
+	    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);    
 	// Clean textures
 	// Clean buffers
 	// : text
 	glDeleteBuffers(1, & vertex_buffer_obj);
 	// : background
-	/*glDeleteBuffers(1, & background_vertex_buffer_obj);
+	glDeleteBuffers(1, & background_vertex_buffer_obj);
 	glDeleteBuffers(1, & background_tex_coord_buffer_obj);
-	glDeleteBuffers(1, & background_element_buffer_obj);*/
+	glDeleteBuffers(1, & background_element_buffer_obj);
 	// Clean arrays
 	glDeleteVertexArrays(1, & vertex_array_obj);
-	//glDeleteVertexArrays(1, & background_vertex_array_obj);
+	glDeleteVertexArrays(1, & background_vertex_array_obj);
 	// disable
 	glDisable(GL_BLEND);
 	// program
@@ -1966,6 +2018,12 @@ void Renderer::draw_text2 (const std::string& text, double x, double y, int widt
     glBindTexture(GL_TEXTURE_2D, 0);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 4); // restore original pixel_store
     /////////////////////////////////////////
+    /*// Draw background ------------ NEW!!
+	shader.set_float("color", (0.0f / 255), (51.0f / 255), (102.0f / 255)); // alpha
+	glBindVertexArray(background_vertex_array_obj);
+	    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);*/
+    /////////////////////////////////////////
 	// Clean textures
 	// Clean buffers
 	// : text
@@ -2121,10 +2179,13 @@ void Renderer::draw_button(int x, int y, int width, int height, double angle, do
 	bool outline, 
 	double outline_width, 
 	const Vector4& outline_color,
-	bool outline_antialiased
+	bool outline_antialiased,
 	// border
 	//bool border,
-	//const Vector4& border_color,	
+	//const Vector4& border_color,
+	// gradient
+    bool gradient,
+	const Vector4& gradient_color	
 )
 {
 #ifdef DOKUN_OPENGL	// OpenGL is defined
@@ -2161,6 +2222,45 @@ void Renderer::draw_button(int x, int y, int width, int height, double angle, do
         "\n"
 		"out vec4 out_color;\n"
         "uniform vec4 color;\n"
+        "//uniform sampler2D base;\n"
+		"in vec2 Texcoord;\n"
+		"\n"
+		"float round_corner(vec2 p, vec2 b, float r) {\n"
+		    "return length(max(abs(p)-b+r, 0.0));\n"
+		"}\n"
+		"\n"
+		"uniform vec2 resolution;\n"
+		"vec2 position;" // Texcoord.x = from_left_to_right, Texcoord.y = from_up_to_down
+		"struct Gradient {\n"
+		    "vec4 color0;\n" // top
+		    "vec4 color1;\n" // bottom
+			"float value;\n"
+		    "bool enabled;\n"
+		"\n"
+		"};\n"
+		"uniform Gradient gradient;\n"
+		"\n"
+		"\n"
+        "void main()\n"
+        "{\n"
+		    "\n"
+		    "\n"
+			"\n"
+		    "out_color = color;\n"
+            "if(gradient.enabled == true)\n" 
+			"{"
+			    "position  = Texcoord; //out_color.xy / resolution;\n"
+			    "out_color = vec4(mix(vec4(gradient.color0 + (1.0 - gradient.color0) * 0.25), vec4(gradient.color1 + (0.0 - gradient.color1) * 0.25), position.y));\n"
+			    "\n"
+			"}\n"
+        "}\n"
+	};
+	/*const char * fragment_source[] =
+	{
+	    "#version 330\n"
+        "\n"
+		"out vec4 out_color;\n"
+        "uniform vec4 color;\n"
         "uniform sampler2D base;\n"
 		"in vec2 Texcoord;\n"
 		"uniform bool is_image;\n"
@@ -2172,7 +2272,7 @@ void Renderer::draw_button(int x, int y, int width, int height, double angle, do
 		"\n"
             "out_color = color;\n"
         "}\n"
-	};
+	};*/
 	// Shader
 	Shader shader;
 	shader.create();
@@ -2193,6 +2293,9 @@ void Renderer::draw_button(int x, int y, int width, int height, double angle, do
 	glUniformMatrix4fv(glGetUniformLocation(shader.get_program(), "model"), 1, GL_FALSE, glm::value_ptr(model));
 	glUniformMatrix4fv(glGetUniformLocation(shader.get_program(), "proj") , 1, GL_FALSE, glm::value_ptr(proj) );
 #endif	
+    // set gradient    if(shader.get_uniform("") != -1)
+	if(shader.get_uniform("resolution"      ) != -1) shader.set_float("resolution", static_cast<double>(Renderer::get_display_width()), static_cast<double>(Renderer::get_display_height()));
+	if(shader.get_uniform("gradient.enabled") != -1) shader.set_integer("gradient.enabled", static_cast<int>(gradient)); // set gradient on
     // --------------------
 	// BUTTON   
     // vertex array obj  - stores vertices
@@ -2247,6 +2350,10 @@ void Renderer::draw_button(int x, int y, int width, int height, double angle, do
 	glBindVertexArray(0);
 	}
 	// Draw button
+    // button : gradient
+	shader.set_float("gradient.color0", (red / 255), (green / 255), (blue / 255), (alpha / 255)); // color0 will be a tint  (top)
+	shader.set_float("gradient.color1", (gradient_color.x/255), (gradient_color.y/255), (gradient_color.z/255), (gradient_color.w/255)); // color1 will be a shade (bottom)
+	// button : color
 	shader.set_float("color", (red / 255), (green / 255), (blue / 255), (alpha / 255));
     glBindVertexArray(button_vertex_array_obj); // (vao start 2)
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
@@ -2926,7 +3033,7 @@ void Renderer::draw_slider(int x, int y, int width, int height, double angle, do
 		int ball_bottom_padding = 0;//2     // space between handle and bottom of slider
 		int ball_height = (height * 2) - ball_bottom_padding;//height - ball_bottom_padding; // adjust the height a bit                                                                // height (slider_height)
 		float ball_y    = -(height - height / 2) + ball_top_padding;//0 + ball_top_padding;             // move down 1 unit away from slider (bottom padding???)               // 0      (slider_y + ball_y) 
-		float ball_x    = (value / max_value) * static_cast<GLfloat>(width); // value starts at 0	//std::cout << "Renderer ball_height: " << ball_height << std::endl;	std::cout << "Renderer ball_y: " << y + ball_y << std::endl;	
+		float ball_x    = (value / max_value) * static_cast<GLfloat>(width - ball_width); // value starts at 0	(width - ball_width)  //std::cout << "Renderer ball_height: " << ball_height << std::endl;	std::cout << "Renderer ball_y: " << y + ball_y << std::endl;	
 		GLfloat vertices2[] = {
 		    static_cast<GLfloat>(x + ball_x)                                   , static_cast<GLfloat>(y + ball_y),
             static_cast<GLfloat>(x + ball_x) + static_cast<GLfloat>(ball_width), static_cast<GLfloat>(y + ball_y),
@@ -4756,10 +4863,10 @@ void Renderer::draw_spinner(int x, int y, int width, int height, double angle, d
         double seperator_x = top_button_x;
 		double seperator_y = top_button_height;//seperator_y + top_padding;
 		int seperator_width  = top_button_width;
-		int seperator_height = 0;//10; // bottom_padding // edit height
+		int seperator_height = 1;//10; // bottom_padding // edit height
 		GLfloat vertices11[] = { // when x and y are 0 then from wwidth-wheight
-		    static_cast<GLfloat>(x + seperator_x) + static_cast<float>(seperator_width), static_cast<GLfloat>(y + seperator_y) + static_cast<float>(seperator_height),
-            static_cast<GLfloat>(x + seperator_x)                                      , static_cast<GLfloat>(y + seperator_y) + static_cast<float>(seperator_height),
+		    static_cast<GLfloat>(x + seperator_x) + static_cast<float>(seperator_width), static_cast<GLfloat>(y + seperator_y),
+            static_cast<GLfloat>(x + seperator_x)                                      , static_cast<GLfloat>(y + seperator_y),
         };      
         glBufferData(GL_ARRAY_BUFFER, sizeof(vertices11)* sizeof(GLfloat), vertices11, GL_STATIC_DRAW);
         glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (GLvoid*)0);
@@ -4768,10 +4875,10 @@ void Renderer::draw_spinner(int x, int y, int width, int height, double angle, d
 	// Draw seperator
 	shader.set_float("color", (0 / 255), (0 / 255), (0 / 255), (255 / 255));
     //glEnable(GL_LINE_SMOOTH);
-	glLineWidth(1.0); // width of the seperator
+	glLineWidth(static_cast<float>(seperator_height)); // thickness of the seperator (will act as height since separator is horz)
 	glBindVertexArray(seperator_vertex_array_obj);
         glDrawArrays(GL_LINES, 0,  2); // 2 points make up a line
-	glBindVertexArray(0);*/         
+	glBindVertexArray(0);*/
 	//-----------------------------------
 	//////////////////
 	// Clean buffers
@@ -5397,25 +5504,6 @@ void Renderer::draw_line(double x, double y, int width, int height, double angle
             "out_color = color;\n"
         "}\n"
 	};
-    //-----------------------------------
-    // CURSOR
-    // vertex array obj  - stores vertices
-    GLuint cursor_vertex_array_obj;
-    glGenVertexArrays(1, &cursor_vertex_array_obj);	
-    // vertex buffer obj
-    glBindVertexArray(cursor_vertex_array_obj); // bind vertex array obj
-        GLuint cursor_vertex_buffer_obj;
-        glGenBuffers(1, &cursor_vertex_buffer_obj);
-        glBindBuffer(GL_ARRAY_BUFFER, cursor_vertex_buffer_obj);
-
-		GLfloat vertices1[] = { // when x and y are 0 then from wwidth-wheight
-		    static_cast<GLfloat>(x) + static_cast<float>(width), static_cast<GLfloat>(y),
-            static_cast<GLfloat>(x) + static_cast<float>(width), static_cast<GLfloat>(y) + static_cast<float>(height),
-        };      
-        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices1)* sizeof(GLfloat), vertices1, GL_STATIC_DRAW);
-        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (GLvoid*)0);
-        glEnableVertexAttribArray(0);
-    glBindVertexArray(0); // vertex array obj (end 0)	
 	// State
 	glDisable(GL_DEPTH_TEST);                         // Disable 3d for User interdata
     glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA); // Enable transparent background
@@ -5440,19 +5528,43 @@ void Renderer::draw_line(double x, double y, int width, int height, double angle
 		
 	glUniformMatrix4fv(glGetUniformLocation(shader.get_program(), "model"), 1, GL_FALSE, glm::value_ptr(model));
 	glUniformMatrix4fv(glGetUniformLocation(shader.get_program(), "proj") , 1, GL_FALSE, glm::value_ptr(proj) );
-#endif		
-	// Draw cursor
-	shader.set_float("color", (red / 255), (green / 255), (blue / 255), (alpha / 255));
-    //glEnable(GL_LINE_SMOOTH);
-	glLineWidth(width);
-	glBindVertexArray(cursor_vertex_array_obj);
+#endif			
+    //-----------------------------------
+    // LINE
+    // vertex array obj  - stores vertices
+    GLuint line_vertex_array_obj;
+    glGenVertexArrays(1, &line_vertex_array_obj);	
+    // vertex buffer obj
+    glBindVertexArray(line_vertex_array_obj); // bind vertex array obj
+        GLuint line_vertex_buffer_obj;
+        glGenBuffers(1, &line_vertex_buffer_obj);
+        glBindBuffer(GL_ARRAY_BUFFER, line_vertex_buffer_obj);
+
+		GLfloat vertices1[] = { // when x and y are 0 then from wwidth-wheight
+		    static_cast<GLfloat>(x) + static_cast<float>(width), static_cast<GLfloat>(y),
+            static_cast<GLfloat>(x)                            , static_cast<GLfloat>(y),
+        };
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices1)* sizeof(GLfloat), vertices1, GL_STATIC_DRAW);
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (GLvoid*)0);
+        glEnableVertexAttribArray(0);
+    glBindVertexArray(0); // vertex array obj (end 0)	
+	// Draw line
+	shader.set_float("color", (red / 255), (green / 255), (blue / 255), (alpha / 255)); //glEnable(GL_LINE_SMOOTH);
+	glLineWidth(height); // line thickness (not width, but will act as height since the line is horizontal)
+	glBindVertexArray(line_vertex_array_obj);
         glDrawArrays(GL_LINES, 0, 2);
-	glBindVertexArray(0);  
+	glBindVertexArray(0);
     shader.disable();
     // Clean
-	glDeleteVertexArrays(1, &cursor_vertex_array_obj);
+    // : buffers
+    glDeleteBuffers(1, &line_vertex_buffer_obj );
+    // : arrays
+	glDeleteVertexArrays(1, &line_vertex_array_obj);
+	// : shaders
+	shader.destroy();
 #endif	
 }
+/////////////
 void Renderer::draw_circle()
 {/*
 #ifdef DOKUN_OPENGL	// OpenGL is defined
@@ -5637,7 +5749,7 @@ void Renderer::draw_circle()
 	shader.destroy();
 #endif			*/
 }
-////////////
+//////////// //Renderer::draw_triangle(700, 500, 5, 5, 0.0, 1, 1, 255, 255, 255, 255);
 void Renderer::draw_triangle(double x, double y, int width, int height, double angle, double scale_x, double scale_y, double red, double green, double blue, double alpha)
 {
 #ifdef DOKUN_OPENGL	// OpenGL is defined

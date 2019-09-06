@@ -2,11 +2,14 @@
 
 Toggle::Toggle() : value (false), foreground_color(255, 255, 255, 255), background_color(255, 255, 255, 255), background_color_on(0, 51, 102, 255), background_color_off(64, 64, 64, 255), type("switch"),
     // handle
-	// outline
+	// outline (or border)
     outline(false),
 	outline_width(1.0),
 	outline_color(0, 0, 0, 255),
-	outline_antialiased(false)
+	outline_antialiased(false),
+    // gradient
+    gradient(false),
+	gradient_color(background_color) // gradient.color1 = backgound_color, gradient.color0 = foreground_color	
 {
 	set_position(0, 0);
 	set_size(50, 20);
@@ -238,10 +241,13 @@ Vector4 Toggle::get_background_color_off()const
 /////////////
 double Toggle::get_handle_x()const
 {
-	if(value == 0) // if off
-	    return get_x(); // same x_position as switch
-	if(value == 1) // if on
-		return get_x() + (get_width() / 2); // moved to the other half of the switch
+    if(is_switch())
+    {
+	    if(value == 0) // if off
+	        return get_x(); // same x_position as switch
+	    if(value == 1) // if on
+		    return get_x() + (get_width() / 2); // moved to the other half of the switch
+	}	    
     return get_x();
 }
 double Toggle::get_handle_y()const
@@ -265,18 +271,17 @@ Vector4 Toggle::get_handle_color()const
 /////////////
 // BOOLEAN
 /////////////
-bool Toggle::is_checkbox()
+bool Toggle::is_checkbox() const
 {
-	return (String::lower(get_type()) == "check_box" || String::lower(get_type()) == "checkbox" || 
-		String::lower(get_type()) == "check");
+	return (String::lower(get_type()) == "check_box" || String::lower(get_type()) == "checkbox" || String::lower(get_type()) == "check");
 }
 /////////////
-bool Toggle::is_radio()
+bool Toggle::is_radio() const
 {
 	return (String::lower(get_type()) == "radio");
 }
 /////////////
-bool Toggle::is_switch()
+bool Toggle::is_switch() const
 {
     return (String::lower(get_type()) == "switch");	
 }

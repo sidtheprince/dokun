@@ -5,7 +5,10 @@ List::List() : color(106, 106, 106, 255), selection(nullptr), image(nullptr),
 outline(true),
 outline_width(1.0),
 outline_color(0, 0, 0, 255),
-outline_antialiased(false)
+outline_antialiased(false),
+// gradient
+gradient(false),
+gradient_color(color)
 {
 	set_position(0, 0);
 	set_size(80, 20);
@@ -63,7 +66,7 @@ void List::draw()
 			    item->get_radius(), false, false, 0, color, false, false, false, item->get_title_bar_button_close_color(),
 			    item->has_outline(), item->outline_width, item->outline_color, item->outline_antialiased,
 			    item->has_border(), 0, color,
-			    item->has_gradient(), color,
+			    item->has_gradient(), item->gradient_color, item->gradient_value,
 			    item->has_shadow()
 			);
 			// Draw image

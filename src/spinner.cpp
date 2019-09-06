@@ -10,7 +10,10 @@ button_color(0, 51, 102, 255)/*(64, 64, 64, 255)*/,
 outline(false),
 outline_width(1.0),
 outline_color(0, 0, 0, 255),
-outline_antialiased(false)
+outline_antialiased(false),
+// gradient
+gradient(false),
+gradient_color(color)
 {
 	set_position(0, 0);
 	set_size(60, 30);

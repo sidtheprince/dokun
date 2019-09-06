@@ -73,6 +73,9 @@ class Slider : public GUI // a bit like a ball and beam
 		Vector4 outline_color;
 		double outline_width;
 		bool outline_antialiased;
+		// gradient
+		bool gradient;
+		Vector4 gradient_color;		
 };
 /*
 // slider example:

@@ -40,6 +40,7 @@ public: // C++                                                                  
 	void bind();                                       static int bind(lua_State * L);
 	void unbind();                                     static int unbind(lua_State * L);
 	void destroy();                                    static int destroy(lua_State *L);
+	void clear();                                      static int clear(lua_State * L);
 	// setters -  new! 
 	void set_rect(int x, int y, int width, int height);   static int set_rect(lua_State *L);// crop a part of the texture 11/7/2015 
 	// opengl-related
@@ -98,6 +99,7 @@ public: // C++                                                                  
 	friend class Renderer;
 	friend class Image;
     friend class FONT;
+    friend class Video;
 private:	
 	// loader (importer)
 	bool load_png(const std::string& file_name);               // complete!

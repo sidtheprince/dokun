@@ -89,6 +89,9 @@ private:
 	Vector4 outline_color;
 	double outline_width;
 	bool outline_antialiased;
+	// gradient
+	bool gradient;
+	Vector4 gradient_color;		
 	// border
 	bool border;
 };

@@ -1,7 +1,5 @@
-In file included from src/../include/types.h:5,
-                 from src/../include/engine.h:18,
-                 from src/engine.cpp:1:
-src/../include/vector.h:7:10: fatal error: lua.hpp: No such file or directory
- #include <lua.hpp>
-          ^~~~~~~~~
-compilation terminated.
+gcc (Ubuntu 8.3.0-6ubuntu1) 8.3.0
+Copyright (C) 2018 Free Software Foundation, Inc.
+This is free software; see the source for copying conditions.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+

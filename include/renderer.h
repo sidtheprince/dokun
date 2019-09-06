@@ -68,6 +68,7 @@ public:
 		// gradient
 		bool gradient,
 		const Vector4& gradient_color,
+		double gradient_value,
 		// shadow
 		bool shadow
 	);
@@ -81,10 +82,13 @@ public:
 		bool outline, 
 		double outline_width, 
 		const Vector4& outline_color,
-		bool outline_antialiased
+		bool outline_antialiased,
 		// border
 		//bool border,
-		//const Vector4& border_color,		
+		//const Vector4& border_color,
+		// gradient
+        bool gradient,
+		const Vector4& gradient_color//,
 	);
 	//--------------------------
 	static void draw_progressbar(int x, int y, int width, int height, double angle, double scale_x, double scale_y, double red, double green, double blue, double alpha, 

@@ -54,9 +54,9 @@ class Box : public GUI { // A box ui - ui element that can act as a container fo
 	    void set_shadow(bool shadow);                                                  static int set_shadow(lua_State * L);
 		// gradient - do the colors mix?
 		void set_gradient(bool gradient);                                              static int set_gradient(lua_State * L);
-		void set_gradient_color(int red, int green, int blue, int alpha = 255, bool mix = true);
-		void set_gradient_color(const Vector3& color, bool mix = true);
-		void set_gradient_color(const Vector4& color, bool mix = true);
+		void set_gradient_color(int red, int green, int blue, int alpha = 255);
+		void set_gradient_color(const Vector3& color);
+		void set_gradient_color(const Vector4& color);
 		void set_gradient_color(const Vector3& color0, const Vector3& color1);
 		void set_gradient_color(const Vector4& color0, const Vector4& color1);
 		// title_bar - does it have a title_bar
@@ -154,6 +154,14 @@ class Box : public GUI { // A box ui - ui element that can act as a container fo
 		bool dragged;
 		std::string alignment;
 		Vector4 forbidden_area;
+		// Box : seperate (line)
+		bool separator;
+		int separator_width;
+		int separator_height;
+		Vector4 separator_color;
+		Vector2 separator_position;
+		int separator_padding;
+		int separator_count;
 		// Box : tooltip
 		std::string tooltip_arrow_direction;
 		int tooltip_arrow_width;
@@ -177,7 +185,7 @@ class Box : public GUI { // A box ui - ui element that can act as a container fo
 		bool title_bar_button_iconify;
 		bool title_bar_button_maximize;
 		bool title_bar_button_close; Vector4 title_bar_button_close_color; Image * close_button_image;
-		int title_bar_button_size;
+		int title_bar_button_width;
 		int title_bar_horizontal_padding;
 		// Box : outline
 		bool outline;
@@ -193,8 +201,10 @@ class Box : public GUI { // A box ui - ui element that can act as a container fo
 		double border_radius;//= 0;
 		// Box : gradient
 		bool gradient;
-        bool gradient_mix; // if you want to mix color with gradient_color
-        Vector4 gradient_color;		
+        double gradient_value; // mix value // if you want to mix color with gradient_color
+        Vector4 gradient_color;
+        std::string gradient_type;  // gradient types : linear (up, down, left, right, diagonal), radial (define by its center)
+        std::string gradient_style; // gradient styles: "top-to-bottom" (default even in HTML)(linear), "left-to-right" (linear), "diagonal" (linear)		
 		// Box : shadow
 		bool shadow;
 		// Box : highlight

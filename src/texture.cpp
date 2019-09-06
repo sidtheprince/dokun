@@ -223,8 +223,8 @@ int Texture::load(lua_State *L)
 /////////////
 void Texture::copy(const Texture& texture)
 {
-    // destroy old texture_buffer so you can be able to generate a new texture_buffer
-    destroy();
+    // clear old texture_buffer so you can be able to copy a new texture buffer // generate a new texture_buffer
+    clear();
 
 	data    = texture.get_data  ();
 	width   = texture.get_width ();
@@ -416,11 +416,12 @@ void Texture::destroy()
         buffer = 0;     // set GL_texture to nullptr
 	#ifdef DOKUN_DEBUG 
         if(!glIsTexture(texture)) {std::cout << "GL_texture: " << texture << " deleted" << std::endl;} // check if GL_texture is actually deleted
-    #endif			
+    #endif	
     }   
 #endif
     // Non-opengl stuff here ...
-    data = nullptr; // set texture_data   to nullptr (actually its better to delete 'data' manually then set to nullptr I think; use Sprite.set_texture(nil) in Lua to set a texture to nullptr)
+    if(is_png()) delete [] static_cast<png_byte *>(data); // array allocated with "new"
+    data = nullptr; // set texture_data   to nullptr
 #ifdef DOKUN_DEBUG    
     if(!data) std::cout << "Texture_" << String(Factory::get_texture_factory()->get_location(this)) << ": data deleted." << std::endl;
 #endif   	
@@ -435,6 +436,35 @@ int Texture::destroy(lua_State *L)
 		texture->destroy();
 	}
 	return 0;
+}
+/////////////
+void Texture::clear()
+{
+#ifdef DOKUN_OPENGL	
+#ifdef __windows__
+	if(!wglGetCurrentContext()) // no context (to make function more safer to use and to prevent crash)
+        return;
+#endif		
+#ifdef __gnu_linux__
+#ifdef DOKUN_X11
+    if(!glXGetCurrentContext())
+		return;
+#endif
+#endif
+    //glClearTexImage(buffer, 0, format, GL_UNSIGNED_BYTE, 0/*empty_data*/); // glClearTexImage is available only if the GL version is 4.4 or greater.
+    destroy();
+#endif
+}
+int Texture::clear(lua_State * L)
+{
+	luaL_checktype(L, 1, LUA_TTABLE); // texture
+    lua_getfield(L, -1, "udata");
+	if(lua_isuserdata(L, -1))
+	{
+		Texture * texture = *static_cast<Texture **>(lua_touserdata(L, -1));
+		texture->clear();
+	}
+    return 0;
 }
 ///////////// to_do: create a Texture::update function so pixels can be updated from an array of pixels
 /////////////

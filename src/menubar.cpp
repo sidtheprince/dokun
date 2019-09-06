@@ -1,52 +1,107 @@
 #include "../include/menubar.h"
 
-Menubar::Menubar() : color(106, 106, 106, 255), submenu_color(106, 106, 106, 255),
+Menubar::Menubar() : color(64, 64, 64, 255), submenu_color(color),
+// fill
+fill(true), // true by default // fills up any extra space within the menubar
+// spacing
+spacing(0),//(0),
 // outline
 outline(false),
 outline_width(1.0),
-outline_color(0, 0, 0, 255),
+outline_color(255, 255, 255, 255),
 outline_antialiased(false),
 // highlight
 highlight(true),
-highlight_color(0, 51, 102, 255)
+highlight_color(0, 51, 102, 255),
+// gradient
+gradient(false),
+gradient_color(color)
 {
 	set_position(0, 0);
 	set_size(Renderer::window_width, 20); //Logger("Menubar width is " + String::to_string(get_width()) + " on creation");// menubar_width / menu_width = how_many_menu_can_fit  
 	set_orientation(0);	                  // If you want a vertical menubar then just use a combo_box
-}                             
+	
+	bar = new Box();
+	// set bar properties (to match Menubar)
+	bar->set_position(this->get_x(), this->get_y());
+	bar->set_size(this->get_width(), this->get_height());
+	bar->set_color(this->color);
+	bar->set_orientation(this->get_orientation());
+	// outline
+	bar->set_outline(true);
+	bar->set_outline_width(1.0);
+    bar->set_outline_color(0, 0, 0, 255);
+    bar->set_outline_antialiased(false);
+    // gradient
+    bar->set_gradient(this->gradient);
+    bar->set_gradient_color(this->gradient_color);
+}
 Menubar::Menubar(int x, int y)
 {
 	set_position(x, y);
 	set_size(Renderer::window_width, 20);
-	set_orientation(0);	
+	set_orientation(0);
+	
+	bar = new Box();
+	// set bar properties (to match Menubar)
+	bar->set_position(this->get_x(), this->get_y());
+	bar->set_size(this->get_width(), this->get_height());
+	bar->set_color(this->color);	
 }
 Menubar::Menubar(int x, int y, int width, int height)
 {
 	set_position(x, y);
 	set_size(width, height);
 	set_orientation(0);
+	
+	bar = new Box();
+	// set bar properties (to match Menubar)
+	bar->set_position(this->get_x(), this->get_y());
+	bar->set_size(this->get_width(), this->get_height());
+	bar->set_color(this->color);	
 }
 int Menubar::menu_new(lua_State *L)
 {
     return 1;
 }
 Menubar::~Menubar(){}
-		
+///////////////
+Box * Menubar::selected_menu (nullptr);
+///////////////		
 void Menubar::draw() // because Menubar is parent to all the menus, its menu children will be automatically drawn unless "visible" is set to false
 {
 	if(is_visible())
 	{
+	    if(!fill) // we will not be filling any extra spaces in the bar
+	    {
+		    // update bar properties (to match Menubar)
+		    bar->set_position(this->get_x(), this->get_y());
+		    bar->set_size(this->get_width(), this->get_height());
+		    bar->set_color(this->color); //
+	        bar->set_outline(true);
+	        bar->set_outline_width(1.0);
+            bar->set_outline_color(0, 0, 0, 255);
+            bar->set_outline_antialiased(false);
+		    // Draw bar
+		    bar->draw();
+		}
 		// Do not draw menubar - Imaginary menubar that holds menus and does not actually exist. It is just a concept (only the menus are visible)
         for(int i = 0; i < menu_list.size(); i++)
 	    {
 		    Box * menu = menu_list[i];
+		    // On hover, highlight
+		    if(highlight) {if(Mouse::is_over(menu->get_rect()) && (selected_menu != menu)) menu->set_color(highlight_color); else { if(selected_menu != menu) menu->set_color(color); } } // no menu must be active when you hover
+			// On hover but this time there is an active_menu, show menu of hovered_menu - if(((active) && (active !=menu)) && Mouse::is_over(menu->get_rect()))
 			if(get_orientation() == 0) 
 			{  // HORIZONTAL MENUBAR
 			    // adjust and update size of each menu according to menubar size
-			    menu->set_width(this->get_width() / menu_list.size()); // 0 - when horizontal each menu's width is equal to the menubar's width divided by the number of menus // menu_bar_width / number_of_menus =  1280 / 1 = 1280 (1 menu means the single menu will be the entire width of the screen;) | 1280 / 2 =  640 (2 menus would mean each menu would be half the width of the screen) 
+			    // if fill_entire_bar, fill extra spaces within menubar
+			    if(fill) menu->set_width(this->get_width() / menu_list.size()); // 0 - when horizontal each menu's width is equal to the menubar's width divided by the number of menus // menu_bar_width / number_of_menus =  1280 / 1 = 1280 (1 menu means the single menu will be the entire width of the screen;) | 1280 / 2 =  640 (2 menus would mean each menu would be half the width of the screen) 
+			    // if not fill_entire_bar, maintain its original size
 			    // calculate position and size of previous menus
-		        if(i != 0) {menu_list[i]->previous = menu_list[i - 1];  menu_list[i]->set_position(menu_list[i]->previous->get_position().x + menu_list[i]->previous->get_width(), get_position().y);} // menu[0] is the first menu so it won't have any previous
-		        if(i != menu_list.size()-1) menu_list[i]->next = menu_list[i + 1]; // assign next_menu if not last
+			    if(i == 0) menu->set_position(this->get_x(), this->get_y()); // first menu item
+		        if(i != 0) {menu->previous = menu_list[i - 1];  menu->set_position((menu->previous->get_x() + spacing) + menu->previous->get_width(), get_y());} // menu[0] is the first menu so it won't have any previous
+		        if(i != menu_list.size()-1) menu->next = menu_list[i + 1]; // assign next_menu if not last
 		        // Draw menus (children of parent menubar will be automatically drawn with the 'on_draw' function)
             }
 		    if(get_orientation() == 1) 
@@ -54,65 +109,69 @@ void Menubar::draw() // because Menubar is parent to all the menus, its menu chi
 			    // adjust and update size of each menu according to menubar size
 			    menu->set_height(this->get_height() / menu_list.size()); // 1 - when horizontal each menu's height is equal to the menubar's height divided by the number of menus
 			    // calculate position and size of previous menus
-		        if(i != 0) {menu_list[i]->previous = menu_list[i - 1];  menu_list[i]->set_position(get_position().x, menu_list[i]->previous->get_position().y + menu_list[i]->previous->get_height());} // menu[0] is the first menu so it won't have any previous
+		        if(i != 0) {menu_list[i]->previous = menu_list[i - 1];  menu_list[i]->set_position(get_position().x, (menu_list[i]->previous->get_position().y + spacing) + menu_list[i]->previous->get_height());} // menu[0] is the first menu so it won't have any previous
 		        if(i != menu_list.size()-1) menu_list[i]->next = menu_list[i + 1]; // assign next_menu if not last
 		        // Draw menus (children of parent menubar will be automatically drawn with the 'on_draw' function)
             }
 			// Draw label (for menus - automatically drawn if object is a widget)
-			    /*Label * label = menu->get_label();
-			    if(label) {
-			        if(label->get_alignment() == "left"  ) { label->set_relative_position(0                                       , 0); } // default - relative_position will always be (0, 0) unless you change the alignment
-					if(label->get_alignment() == "center") { label->set_relative_position((menu->get_width()-label->get_width())/2, (menu->get_height()-label->get_height())/2); }						
-					if(label->get_alignment() == "right" ) { label->set_relative_position(menu->get_width()-label->get_width()    , 0); }	
-                    if(label->get_alignment() == "none"  ) {} // or "none"          
-                    label->set_position(menu->get_x() + label->get_relative_x(), menu->get_y() + label->get_relative_y());
-                    // NO need to draw label since child GUI are automatically drawn
-			    }*/			
 			// Draw image (for menus - automatically drawn if object is a widget)
+			// Draw menus
+			menu->draw(); // if menus parent is set to menubar, remove this line! on_draw will draw the menus automatically. Also draws labels and images
 			/////////////////////
 			for(int j = 0; j < menu->sub.size(); j++)
 			{
 				Box * sub = menu->sub[j];
-				if(Mouse::is_over(menu->get_rect()))
-	            {
-					std::cout << "Mouse over menu " << menu->get_label()->get_string() << std::endl;
-		            if(Mouse::is_pressed(1)) {sub->set_visible(true);} //else if(Mouse::is_pressed(1)) sub->set_visible(false);
-	            }
-				//menu->sub[0]->set_position(menu->sub[0]->previous->get_position().x, menu->previous->get_position().y + menu->sub[0]->previous->get_height()); // crashes engine
+				// on focus lost (both)
+				if((!Mouse::is_over(sub->get_rect()) || !Mouse::is_over(menu->get_rect())) && Mouse::is_pressed(1)) 
+				{
+				    selected_menu = nullptr; 
+				    menu->set_color(color); 
+				    if(sub->is_visible()) sub->hide();
+				}// mouse pressed, but mouse not over box, hide sub if visible. Also set active menu to nullptr and restore menu color
+				// On press (menu)
+				if(Mouse::is_over(menu->get_rect()) && Mouse::is_pressed(1)) 
+				{
+				    selected_menu = menu; 
+				    menu->set_color(highlight_color);
+				    if(!sub->is_visible()) sub->show();
+				} // menu is pressed, show sub, if not visible. Also, set menu as the active menu
+			    // set sub sizes
+			    // if fill empty spaces
+			    if(fill) sub->set_width( this->get_width() / menu_list.size() );
+			    // if not fill, maintain its original size
+	            // set sub geometry
+	            if(j == 0) {sub->set_position( menu->get_x(), menu->get_y() + menu->get_height() );}// first sub, set position to first menubar item
 				if(j != 0) {sub->previous = menu_list[i]->sub[j - 1];sub->set_position(sub->previous->get_position().x, sub->previous->get_position().y + sub->previous->get_height());}
-			    if(j != menu->sub.size()-1) sub->next = menu->sub[j + 1];	            
+			    if(j != menu->sub.size()-1) sub->next = menu->sub[j + 1]; // if not last element, set its "next"	       
+			    // if sub is visible      
 				if(sub->is_visible())
 		        {
-					// draw sub_menu
-			        /*Renderer::draw_box(sub->get_position().x, sub->get_position().y, sub->get_width(),
-			            sub->get_height() , get_angle(), get_scale().x, get_scale().y, 
-			            sub->get_color().x, sub->get_color().y, sub->get_color().z, sub->get_color().w,
-			            0, false, false, 0, color, false, false, false,	sub->get_title_bar_button_close_color(),			
-			            sub->has_outline(), sub->outline_width, sub->outline_color, sub->outline_antialiased,
-			            sub->has_border(), 0, color,
-			            sub->has_gradient(), color,
-			            sub->has_shadow());*/
-			        // Draw label (for menus - automatically drawn if object is a widget)
-				    // Draw image (for menus - automatically drawn if object is a widget)
-				    // On hover
-				    /*if(highlight)
+		            // User input stuff here first ...
+				    // On hover (sub )
+				    if(highlight)
 				    {
 				        if(Mouse::is_over(sub->get_rect()))
 	                    {
-						    sub->set_color(highlight_color);
+						    sub->set_color(Vector4(highlight_color.xyz, sub->get_color().w));
  						    if(Mouse::is_pressed(1)) 
 					        {
 							#ifdef DOKUN_DEBUG0	
 						        std::cout <<"Submenu " << j << " at index " << i << " selected.\n";
 					        #endif
 							}
-					    } else sub->set_color(submenu_color);
-				    }*/
+					    }
+					    else sub->set_color(Vector4(submenu_color.xyz, sub->get_color().w));
+				    }		   
+				    /////////////////     
+					// draw sub_menu
+					sub->draw(); // Draw sub (Box). Also draws labels and images
+				    // Draw image (for sub - automatically drawn if object is a widget)
+			        // Draw label (for subs - automatically drawn if object is a widget)				    
 				}
 			}
-		}
+		}	
+		// DO NOT call on_draw since Menubar calls Box::draw which also calls on_draw!!
 	}
-	on_draw(); // draws all children of menubar
 }                           
 int Menubar::draw(lua_State *L)
 {
@@ -121,19 +180,25 @@ int Menubar::draw(lua_State *L)
 void Menubar::add(const Box& menu)
 {
 	menu_list.push_back(&const_cast<Box&>(menu));                     //std::cout << "number of menus = " << menu_list.size() << std::endl; // get number of menus after creation
-	const_cast<Box&>(menu).set_size(get_width() / menu_list.size(), get_height()); // window_width / num_of_menu, 20
-	const_cast<Box&>(menu).set_parent(*this);
+	if(fill ) const_cast<Box&>(menu).set_size(get_width() / menu_list.size(), get_height()); // window_width / num_of_menu, 20 
+	if(!fill) const_cast<Box&>(menu).set_size(100, get_height()); // default width of each menu will be 100
 	const_cast<Box&>(menu).set_color(get_color());
-	const_cast<Box&>(menu).set_outline(true);
-	const_cast<Box&>(menu).set_outline_width(2.0);
-	const_cast<Box&>(menu).set_outline_color(32, 32, 32);
 }          
 void Menubar::add(const std::string& menu_name)
 {
 	Box * menu = new Box();
-	Label * label = menu->get_label();
-	label->set_string(menu_name); // set menu's label string
-	label->set_alignment("center");
+	// create a new label for menu (in case it does not have one and so it does not crash when trying to access its label)
+	if(!menu->get_label()) 
+	{ 
+	    Logger("Menu: " + menu_name + " does not have a label so I will create one for it.");
+	    Label * menu_label = new Label(); 
+	    menu->set_label(*menu_label); // also sets label parent to sub
+	    Logger("Label has been created for Menu: " + menu_name, "info");
+	}	
+	// menu_label -  make sure parent is set (which it should be) so label can be drawn
+	menu->get_label()->set_string   (menu_name); // set menu's label string
+	menu->get_label()->set_alignment("center" );
+	// add menu to menubar
 	add(*menu);
 }
 int Menubar::add(lua_State * L)
@@ -144,12 +209,10 @@ void Menubar::sub(const Box& submenu, int index)
 {
     if(menu_list.size() < index + 1) // if menu at index does not exist
 		Logger("Attempt to access invalid location in sub() | menubar.cpp (180)");
-	const_cast<Box&>(submenu).set_size(menu_list[index]->get_width(), get_height());
+	if(fill ) const_cast<Box&>(submenu).set_size(menu_list[index]->get_width(), menu_list[index]->get_height());
+	if(!fill) const_cast<Box&>(submenu).set_height(menu_list[index]->get_height()); // only change the height, leave the width alone (if not filling entire bar)
 	const_cast<Box&>(submenu).set_position(menu_list[index]->get_position().x, menu_list[index]->get_position().y + menu_list[index]->get_height());
-	const_cast<Box&>(submenu).set_color(submenu_color);
-	const_cast<Box&>(submenu).set_outline(true);
-	const_cast<Box&>(submenu).set_outline_width(2.0);
-	const_cast<Box&>(submenu).set_outline_color(32, 32, 32);
+	const_cast<Box&>(submenu).set_color(Vector4(submenu_color.xyz, 230/*204*/)); // rgba:200 / 255 = glsl:0.784313725 | glsl:0.784313725 * 255 = rgba:200 // rgba=0-255, float=0.0-1.0
 	const_cast<Box&>(submenu).set_visible(false);
 	const_cast<Box&>(submenu).previous = menu_list[index]; // set menu as its previous
 	menu_list[index]->sub.push_back(&const_cast<Box&>(submenu)); // &const_cast<Box&>(submenu)
@@ -165,9 +228,6 @@ void Menubar::sub(const Box& submenu, int index)
 	const_cast<Box&>(submenu).set_size(50, get_height());
 	const_cast<Box&>(submenu).set_position(menu_list[index]->get_position().x, menu_list[index]->get_position().y + menu_list[index]->get_height());
 	const_cast<Box&>(submenu).set_color(submenu_color);
-	const_cast<Box&>(submenu).set_outline(true);
-	const_cast<Box&>(submenu).set_outline_width(2.0);
-	const_cast<Box&>(submenu).set_outline_color(32, 32, 32);
 	const_cast<Box&>(submenu).set_visible(false);
 	if(sub_list[index].size() == 1) // if first sub_item has been added
 	{
@@ -178,24 +238,62 @@ void Menubar::sub(const std::string& menu_name, const std::string& sub_name) // 
 {
 	// sub_menu
 	Box * submenu = new Box();
-	submenu->get_label()->set_string(sub_name);
+	// create a new label for sub (in case it does not have one)
+	if(!submenu->get_label()) 
+	{ 
+	    Logger("Submenu: " + sub_name + " does not have a label so I will create one for it.");
+	    Label * sub_label = new Label();
+	    submenu->set_label(*sub_label); // also sets label parent to sub
+	    Logger("Label has been created for Submenu: " + sub_name, "info");
+	}
+	// set existing sub->label's properties (some Boxes are created with a pre-installed label)
+	// be sure label_parent is set to submenu
+	submenu->get_label()->set_string   (sub_name);
+	//if(fill ) submenu->get_label()->set_alignment("center");
+	submenu->get_label()->set_relative_position(5, 5);//if(!fill) submenu->get_label()->set_relative_position(5, 5);
+	// add submenu to sub_list ...
 	for(int j = 0; j < menu_list.size(); j++)
 	{
 		if(menu_list[j]->get_text() == menu_name)
 		{
-			//std::cout << "submenu added at index [" << j << "]\n";
+			std::cout << "Submenu: " << sub_name << " added at index [" << j << "]\n";
 			sub(*submenu, j);
 			break;
 		}
 	}
 }
-
+////////////
+////////////
 void Menubar::set_color(int red, int green, int blue, int alpha)
-{}
+{
+    color = Vector4(red, green, blue, alpha);
+}
+////////////
 void Menubar::set_color(const Vector3& color)
-{}
+{
+    set_color(color.x, color.y, color.z);
+}
+////////////
 void Menubar::set_color(const Vector4& color)
-{}
+{
+    set_color(color.x, color.y, color.z, color.w);
+}
+////////////
+void Menubar::set_submenu_color(int red, int green, int blue, int alpha)
+{
+    submenu_color = Vector4(red, green, blue, alpha);
+}
+////////////
+void Menubar::set_submenu_color(const Vector3& color)
+{
+    set_submenu_color(color.x, color.y, color.z);
+}
+////////////
+void Menubar::set_submenu_color(const Vector4& color)
+{
+    set_submenu_color(color.x, color.y, color.z, color.w);
+}
+////////////
 // outline
 void Menubar::set_outline(bool outline)
 {} 
@@ -225,25 +323,48 @@ int Menubar::set_outline_antialiased(lua_State *L)
 {
     return 0;
 }
-
-
-
+////////////
+void Menubar::set_fill(bool fill)
+{
+    this->fill = fill;
+}
+int Menubar::set_fill(lua_State * L)
+{
+    return 0;
+}
+////////////
+////////////
 Box * Menubar::get_menu(int index)
 {
 #ifdef DOKUN_DEBUG	
-	if(menu_list.size() < index + 1) Logger("Attempt to access invalid location | menubar.cpp (234)");
+	if(menu_list.size() < index + 1) Logger("Attempt to access invalid location | menubar.cpp (234)", "error");
 #endif	
 	return menu_list[index];
 }
+////////////
+Box * Menubar::get_menu(const std::string& menu_name)
+{
+    for(int i = 0; i < menu_list.size(); i++)
+    {
+        Box * menu = menu_list[i];
+        if(!menu->get_label()) continue; // menu has no label, skip it
+        if(menu->get_label()->get_string() == menu_name)
+        {
+            return menu;
+        }
+    }
+}
+////////////
 int Menubar::get_menu(lua_State * L)
 {
     return 1;
 }
+////////////
 Box * Menubar::get_submenu(int menu_index, int sub_index)
 {
 #ifdef DOKUN_DEBUG	
-	if(menu_list.size() < menu_index + 1) Logger("Attempt to access invalid location | menubar.cpp (243)");
-	if(sub_list.size() < sub_index + 1) Logger("Attempt to access invalid location | menubar.cpp (244)");
+	if(menu_list.size() < menu_index + 1) Logger("Attempt to access invalid location | menubar.cpp (243)", "error");
+	if(sub_list.size() < sub_index + 1) Logger("Attempt to access invalid location | menubar.cpp (244)", "error");
 #endif	
 	return sub_list[menu_index][sub_index];
 }
@@ -274,6 +395,8 @@ Vector4 Menubar::get_color()
 {
 	return color;
 }
+////////////
+////////////
 bool Menubar::has_sub(int menu_index)
 {
 	return (sub_list.size() > menu_index);

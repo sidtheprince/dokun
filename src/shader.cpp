@@ -434,8 +434,7 @@ void Shader::set_integer(const std::string& uniform_name, int integer)
 	if(glIsProgram(program))
 	{
         GLint uniform_location = glGetUniformLocation(program, uniform_name.c_str());
-        if(uniform_location == -1) {Logger("Uniform '" + uniform_name + "' is not valid");
-		    return;}
+        if(uniform_location == -1) {Logger::push("Uniform '" + uniform_name + "' is not valid"); return;}
 	    glUniform1i(uniform_location, integer);		
 	}
 #endif	
@@ -456,8 +455,7 @@ void Shader::set_integer(const std::string& uniform_name, int x, int y)
 	if(glIsProgram(program))
 	{
         GLint uniform_location = glGetUniformLocation(program, uniform_name.c_str());
-        if(uniform_location == -1) {Logger("Uniform '" + uniform_name + "' is not valid");
-		    return;}
+        if(uniform_location == -1) {Logger::push("Uniform '" + uniform_name + "' is not valid"); return;}
        glUniform2i(uniform_location, x, y);		
 	}
 #endif	
@@ -478,8 +476,7 @@ void Shader::set_integer(const std::string& uniform_name, int x, int y, int z)
 	if(glIsProgram(program))
 	{
         GLint uniform_location = glGetUniformLocation(program, uniform_name.c_str());
-        if(uniform_location == -1) {Logger("Uniform '" + uniform_name + "' is not valid");
-		    return;}
+        if(uniform_location == -1) {Logger::push("Uniform '" + uniform_name + "' is not valid"); return;}
        glUniform3i(uniform_location, x, y, z);		
 	}
 #endif	
@@ -500,8 +497,7 @@ void Shader::set_integer(const std::string& uniform_name, int x, int y, int z, i
 	if(glIsProgram(program))
 	{
         GLint uniform_location = glGetUniformLocation(program, uniform_name.c_str());
-        if(uniform_location == -1) {Logger("Uniform '" + uniform_name + "' is not valid");
-		    return;}
+        if(uniform_location == -1) {Logger::push("Uniform '" + uniform_name + "' is not valid"); return;}
        glUniform4i(uniform_location, x, y, z, w);		
 	}	
 #endif	
@@ -522,8 +518,7 @@ void Shader::set_float(const std::string& uniform_name, float floatp)
 	if(glIsProgram(program))
 	{
         GLint uniform_location = glGetUniformLocation(program, uniform_name.c_str());
-        if(uniform_location == -1) {Logger("Uniform '" + uniform_name + "' is not valid");
-		    return;}
+        if(uniform_location == -1) {Logger::push("Uniform '" + uniform_name + "' is not valid"); return;}
         glUniform1f(uniform_location, floatp);		
 	}	
 #endif	
@@ -544,8 +539,7 @@ void Shader::set_float(const std::string& uniform_name, float x, float y)
 	if(glIsProgram(program))
 	{
         GLint uniform_location = glGetUniformLocation(program, uniform_name.c_str());
-        if(uniform_location == -1) {Logger("Uniform '" + uniform_name + "' is not valid");
-		    return;}
+        if(uniform_location == -1) {Logger::push("Uniform '" + uniform_name + "' is not valid"); return;}
         glUniform2f(uniform_location, x, y);		
 	}		
 #endif	
@@ -566,8 +560,7 @@ void Shader::set_float(const std::string& uniform_name, float x, float y, float 
 	if(glIsProgram(program))
 	{
         GLint uniform_location = glGetUniformLocation(program, uniform_name.c_str());
-        if(uniform_location == -1) {Logger("Uniform '" + uniform_name + "' is not valid");
-		    return;}
+        if(uniform_location == -1) {Logger::push("Uniform '" + uniform_name + "' is not valid"); return;}
         glUniform3f(uniform_location, x, y, z);		
 	}	
 #endif	
@@ -588,8 +581,7 @@ void Shader::set_float(const std::string& uniform_name, float x, float y, float 
 	if(glIsProgram(program))
 	{
         GLint uniform_location = glGetUniformLocation(program, uniform_name.c_str());
-        if(uniform_location == -1) {Logger("Uniform '" + uniform_name + "' is not valid");
-		    return;}
+        if(uniform_location == -1) {Logger::push("Uniform '" + uniform_name + "' is not valid"); return;}
         glUniform4f(uniform_location, x, y, z, w);		
 	}		
 #endif	
@@ -610,8 +602,7 @@ void Shader::set_double(const std::string& uniform_name, double doublep)
 	if(glIsProgram(program))
 	{
         GLint uniform_location = glGetUniformLocation(program, uniform_name.c_str());
-        if(uniform_location == -1) {Logger("Uniform '" + uniform_name + "' is not valid");
-		    return;}
+        if(uniform_location == -1) {Logger::push("Uniform '" + uniform_name + "' is not valid"); return;}
         glUniform1f(uniform_location, static_cast<GLfloat>(doublep));		
 	}	
 #endif	
@@ -632,8 +623,7 @@ void Shader::set_double(const std::string& uniform_name, double x, double y)
 	if(glIsProgram(program))
 	{
         GLint uniform_location = glGetUniformLocation(program, uniform_name.c_str());
-        if(uniform_location == -1) {Logger("Uniform '" + uniform_name + "' is not valid");
-		    return;}
+        if(uniform_location == -1) {Logger::push("Uniform '" + uniform_name + "' is not valid"); return;}
         glUniform2f(uniform_location, static_cast<GLfloat>(x), static_cast<GLfloat>(y));		
 	}			
 #endif	
@@ -654,8 +644,7 @@ void Shader::set_double(const std::string& uniform_name, double x, double y, dou
 	if(glIsProgram(program))
 	{
         GLint uniform_location = glGetUniformLocation(program, uniform_name.c_str());
-        if(uniform_location == -1) {Logger("Uniform '" + uniform_name + "' is not valid");
-		    return;}
+        if(uniform_location == -1) {Logger::push("Uniform '" + uniform_name + "' is not valid"); return;}
         glUniform3f(uniform_location, static_cast<GLfloat>(x), static_cast<GLfloat>(y), static_cast<GLfloat>(z));		
 	}	
 #endif	
@@ -676,8 +665,7 @@ void Shader::set_double(const std::string& uniform_name, double x, double y, dou
 	if(glIsProgram(program))
 	{
         GLint uniform_location = glGetUniformLocation(program, uniform_name.c_str());
-        if(uniform_location == -1) {Logger("Uniform '" + uniform_name + "' is not valid");
-		    return;}
+        if(uniform_location == -1) {Logger::push("Uniform '" + uniform_name + "' is not valid"); return;}
         glUniform4f(uniform_location, static_cast<GLfloat>(x), static_cast<GLfloat>(y), static_cast<GLfloat>(z), static_cast<GLfloat>(w));		
 	}	
 #endif	
@@ -698,8 +686,7 @@ void Shader::set_vector2(const std::string& uniform_name, const Vector2& vector)
 	if(glIsProgram(program))
 	{
         GLint uniform_location = glGetUniformLocation(program, uniform_name.c_str());
-        if(uniform_location == -1) {Logger("Uniform '" + uniform_name + "' is not valid");
-		    return;}
+        if(uniform_location == -1) {Logger::push("Uniform '" + uniform_name + "' is not valid"); return;}
         glUniform2f(uniform_location, static_cast<GLfloat>(vector.x), static_cast<GLfloat>(vector.y));		
 	}
 #endif	
@@ -720,8 +707,7 @@ void Shader::set_vector3(const std::string& uniform_name, const Vector3& vector)
 	if(glIsProgram(program))
 	{
         GLint uniform_location = glGetUniformLocation(program, uniform_name.c_str());
-        if(uniform_location == -1) {Logger("Uniform '" + uniform_name + "' is not valid");
-		    return;}
+        if(uniform_location == -1) {Logger::push("Uniform '" + uniform_name + "' is not valid"); return;}
         glUniform3f(uniform_location, static_cast<GLfloat>(vector.x), static_cast<GLfloat>(vector.y), static_cast<GLfloat>(vector.z));		
 	}	
 #endif	
@@ -742,8 +728,7 @@ void Shader::set_vector4(const std::string& uniform_name, const Vector4& vector)
 	if(glIsProgram(program))
 	{
         GLint uniform_location = glGetUniformLocation(program, uniform_name.c_str());
-        if(uniform_location == -1) {Logger("Uniform '" + uniform_name + "' is not valid");
-		    return;}
+        if(uniform_location == -1) {Logger::push("Uniform '" + uniform_name + "' is not valid"); return;}
         glUniform4f(uniform_location, static_cast<GLfloat>(vector.x), static_cast<GLfloat>(vector.y), static_cast<GLfloat>(vector.z), static_cast<GLfloat>(vector.w));		
 	}		
 #endif	
@@ -782,8 +767,7 @@ void Shader::set_matrix3(const std::string& uniform_name, const Matrix3& matrix)
 	if(glIsProgram(program))
 	{
         GLint uniform_location = glGetUniformLocation(program, uniform_name.c_str());
-        if(uniform_location == -1) {Logger("Uniform '" + uniform_name + "' is not valid");
-		    return;}
+        if(uniform_location == -1) {Logger("Uniform '" + uniform_name + "' is not valid"); return;}
        //glUniformMatrixfv(uniform_location, 1, false, static_cast<const GLfloat *>(matrix.data()));		
 	}
 #endif	
@@ -804,8 +788,7 @@ void Shader::set_matrix4(const std::string& uniform_name, int count, const Matri
 	if(glIsProgram(program))
 	{
         GLint uniform_location = glGetUniformLocation(program, uniform_name.c_str());
-        if(uniform_location == -1) {Logger("Uniform '" + uniform_name + "' is not valid");
-		    return;}
+        if(uniform_location == -1) {Logger::push("Uniform '" + uniform_name + "' is not valid"); return;}
         glUniform4fv(uniform_location, count, (const GLfloat *)&matrix.value[0][0]);//view0.data());
 	}
 #endif	
@@ -826,8 +809,7 @@ void Shader::set_matrix4(const std::string& uniform_name, int count, bool transp
 	if(glIsProgram(program))
 	{
         GLint uniform_location = glGetUniformLocation(program, uniform_name.c_str());
-        if(uniform_location == -1) {Logger("Uniform '" + uniform_name + "' is not valid");
-		    return;}
+        if(uniform_location == -1) {Logger::push("Uniform '" + uniform_name + "' is not valid"); return;}
         glUniformMatrix4fv(uniform_location, count, transpose, (const GLfloat *)&matrix.value[0][0]);		
 	}
 #endif	

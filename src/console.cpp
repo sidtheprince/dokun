@@ -242,6 +242,7 @@ void Console::init()
         // title_bar
         console_ptr->box->set_title_bar(true);
         console_ptr->box->set_title_bar_size(30);
+        console_ptr->box->set_title_bar_color(console_ptr->box->get_color());
         // title_bar : labels
         console_ptr->box->set_title_bar_label(*new Label("Console"));
         console_ptr->box->get_title_bar_label()->set_alignment("center");
@@ -251,7 +252,7 @@ void Console::init()
         // outline and other properties
         console_ptr->box->set_outline(true);
         console_ptr->box->set_draggable(true);
-        console_ptr->box->set_position(console_ptr->box->get_x(), 720 - console_ptr->box->get_height() - 50 );//console_ptr->box->get_y() + 30);
+        console_ptr->box->set_position(500/*console_ptr->box->get_x()*/, 720 - console_ptr->box->get_height() - 50 );//console_ptr->box->get_y() + 30);
         // edit
 	    console_ptr->edit = new Edit();
 	    console_ptr->edit->set_character_limit(console_ptr->box->get_width() / 10);//(50); // dimensions for label is estimated to be 10 //std::cout << "Character limit for console is: " << console_ptr->box->get_width() / 10 << std::endl;

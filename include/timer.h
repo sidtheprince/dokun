@@ -157,7 +157,24 @@ Example usage:
     model->load("res/monkey.obj");
     stopwatch->stop(); // stop the timer
     std::cout << "It took " << stopwatch->get_seconds() << " seconds to load the model." << std::endl;
-
+    
+Example 2 usage:    
+        // outside loop
+        Timer * frame_timer = new Timer();
+        frame_timer->start();
+        
+        // run this code every 5 seconds
+        // inside loop
+        std::cout << "Frame timer: " << frame_timer->increment() << "s" << std::endl;
+        if(frame_timer->increment() >= 5.01) 
+        {
+            std::cout << "Five seconds has passed" << std::endl;
+            // reset timer if x seconds has passed
+            frame_timer->reset();
+            // and start the cycle all over again ...
+            frame_timer->start();
+        }
+=====================================================================================================
 Getting elapse time since the program started:    
     std::cout << "Milliseconds passed since dokun launched : " << Timer::milliseconds() << std::endl;
     std::cout << "Seconds passed since dokun launched      : " << Timer::seconds     () << std::endl;
@@ -173,7 +190,6 @@ Getting frame rate:
 	std::cout << "No, I love you more\n";
 	auto end = std::chrono::high_resolution_clock::now();
 	std::cout << "It took " << std::chrono::duration_cast<std::chrono::seconds>(end-start).count() << " seconds to say love stuff\n";
-	
 
 performance_counter example usage:	
     Timer::start_performance_counter();

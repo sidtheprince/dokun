@@ -12,6 +12,9 @@ Progressbar::Progressbar() : value(0), range(0, 100), direction(0),
 	outline_width(1.0), 
 	outline_antialiased(false),
 	outline_color(0, 0, 0, 255),
+// gradient
+    gradient(false),
+	gradient_color(background_color), // gradient.color1 = backgound_color, gradient.color0 = foreground_color
 // border
     border(false)
 {

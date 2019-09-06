@@ -53,6 +53,7 @@ public:
 	void scale_to_fit(const Vector2& size);
 	void generate();                                 static int generate(lua_State *L);
 	void destroy();                                  static int destroy(lua_State *L);
+	void clear();                                    static int clear(lua_State * L);
 	// setters
 	void set_x(double x);                            static int set_x(lua_State *L);
 	void set_y(double y);                            static int set_y(lua_State *L);

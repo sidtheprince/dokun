@@ -191,8 +191,8 @@ int Image::save(lua_State *L)
 /////////////
 void Image::copy(const Image& image)
 {
-    // destroy old texture_buffer so you can be able to generate a new texture_buffer
-    destroy();
+    // clear old texture_buffer so you can be able to copy a new texture buffer // generate a new texture_buffer
+    clear();
 
 	data    = image.get_data   ();
 	width   = image.get_width  ();
@@ -220,8 +220,8 @@ void Image::copy(const Image& image)
 /////////////
 void Image::copy(const Texture& texture) // same as Image:copy_texture in Lua
 {
-    // destroy old texture_buffer so you can be able to generate a new texture_buffer
-    destroy();
+    // clear old texture_buffer so you can be able to copy a new texture buffer // generate a new texture_buffer
+    clear();
 
 	width   = texture.get_width  ();
 	height  = texture.get_height ();
@@ -390,13 +390,14 @@ void Image::destroy()
 #endif
     if(buffer != 0)
 	{
-        glDeleteTextures(1, static_cast<GLuint *>(&buffer));
+        glDeleteTextures(1, static_cast<GLuint *>(&buffer)); // delete old texture buffer
         buffer = 0;	// to ensure its deleted
-	#ifdef DOKUN_DEBUG0
-	    Logger("Image" + String(Factory::get_image_factory()->get_location(this)).str() + " buffer destroyed");
-    #endif		
-        // delete texture_data as well?
-        data = nullptr;        
+	#ifdef DOKUN_DEBUG
+	    if(!glIsTexture(buffer)) Logger("Image" + String(Factory::get_image_factory()->get_location(this)).str() + " buffer destroyed");
+    #endif
+        // delete texture data as well ...                                                            // free each element in "data"
+        if(is_png()) delete [] static_cast<png_byte *>(data); // delete data
+        data = nullptr;                                       // set data to nullptr
 #endif	
 	}		
 }
@@ -410,6 +411,89 @@ int Image::destroy(lua_State *L)
         image->destroy();
 	}
     return 0;	
+}
+/////////////
+void Image::clear()
+{
+#ifdef DOKUN_OPENGL	
+#ifdef __windows__
+	if(!wglGetCurrentContext()) // no context (to make function more safer to use and to prevent crash)
+        return;
+#endif		
+#ifdef __gnu_linux__
+#ifdef DOKUN_X11
+    if(!glXGetCurrentContext())
+		return;
+#endif
+#endif
+    /*unsigned char * empty_data = new unsigned char[width * height * 4];//(unsigned char *)get_data();//new unsigned char[width * height * 4]; // create an empty image
+    size_t empty_data_size = sizeof(empty_data)/sizeof(empty_data[0]); // get size of empty image
+    std::cout << "size of empty data: " << empty_data_size << std::endl;
+    std::cout << "size of (width * height * 4): " << (width * height * 4) << std::endl;*/
+    // fill empty_data with zeros
+    //memset(empty_data, 0x00, width * height * 4 * sizeof(unsigned char));
+    //empty_data[] = 
+    //for(int i = 0; i < (width * height * 4)/*empty_data_size*/; i++)
+    //    empty_data[i] = 0;
+   /* for( int y = 0; y < 128; y++ )
+{
+    for( int x = 0; x < 128; x++ )
+    {
+        // Fill each pixel with red.
+        const unsigned char idx = (y * (128 * 4)) + (x * 4);
+        empty_data[idx + 0] = 0xff;
+        empty_data[idx + 1] = 0x00;
+        empty_data[idx + 2] = 0x00;
+        empty_data[idx + 3] = 0xff;
+    }
+}*/
+// generate new texture buffer    
+//generate();
+/*
+glBindTexture(GL_TEXTURE_2D, buffer);
+glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 1024, 768, GL_RGBA, GL_UNSIGNED_BYTE, empty_data);
+glBindTexture(GL_TEXTURE_2D, 0);
+delete empty_data;
+*/
+/*
+std::vector<GLubyte> emptyData(width * height * 4, 0);
+glBindTexture(GL_TEXTURE_2D, buffer);
+glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, format, GL_UNSIGNED_BYTE, &emptyData[0]);
+
+glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0); // default framebuffer
+glFramebufferTexture(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, buffer, 0); //Only need to do this once.
+glDrawBuffer(GL_COLOR_ATTACHMENT0); //Only need to do this once.
+GLuint clearColor[4] = {0, 0, 0, 0};
+glClearBufferuiv(GL_COLOR, 0, clearColor);
+*/
+    // ...
+        /*glClearTexSubImage(	buffer,
+ 	0,//level
+ 	0,//GLint xoffset, // left
+ 	0,//GLint yoffset, // top
+ 	0,//GLint zoffset, // front
+ 	width,
+ 	height,
+ 	depth,
+ 	format,
+ 	GL_UNSIGNED_BYTE,
+ 	empty_data);*/ // glClearTexSubImage is available only if the GL version is 4.4 or greater.
+ 	// clear texture first
+    //if(is_generated()) glClearTexImage(buffer, 0, format, GL_UNSIGNED_BYTE, 0/*empty_data*/); // glClearTexImage is available only if the GL version is 4.4 or greater.
+    // destroy old texture buffer
+    destroy();
+#endif
+}
+int Image::clear(lua_State * L)
+{
+    luaL_checktype(L, 1, LUA_TTABLE);
+	lua_getfield(L, 1, "udata");
+	if(lua_isuserdata(L, -1))
+	{
+	    Image * image = *static_cast<Image **>(lua_touserdata(L, -1));
+        image->clear();
+	}
+    return 0;
 }
 /////////////
 /////////////

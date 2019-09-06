@@ -51,6 +51,9 @@ private:
 	double outline_width;
 	Vector4 outline_color;
 	bool outline_antialiased;
+	// gradient
+	bool gradient;
+	Vector4 gradient_color;	
     // callbacks
     void on_button_press();	
 };

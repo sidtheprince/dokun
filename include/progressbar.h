@@ -69,6 +69,9 @@ class Progressbar : public GUI
 		double outline_width;
 		bool outline_antialiased; // removes staircase effect from line and straightens the line (can lower performance)
 		Vector4 outline_color;
+		// gradient
+		bool gradient;
+		Vector4 gradient_color;		
 		// border
 		bool border;
 };

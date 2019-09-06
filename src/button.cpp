@@ -1,19 +1,22 @@
 #include "../include/button.h"
 
 Button::Button() : color(0, 51, 102, 255), tint_factor(0.05), shade_factor(0.25), depth(1), label(nullptr), image(nullptr), fill(true), shadow(false), border(false), type("polygon"),
-    old_color(0, 51, 102, 255),
-	// outline
-    outline(false),
-	outline_width(1.0),
-	outline_color(0, 0, 0, 255),
+    old_color(0, 51, 102, 255), color_saved(false),
+	// outline (is the same as a border)
+    outline(true),//(false),
+	outline_width(2.0),
+	outline_color(255, 255, 255, 255),
 	outline_antialiased(false),
-// border properties
+// border properties - remove this asap
     border_color(255, 255, 255),
     border_size(1, 1),
     border_thickness(0),
     border_style(0),
-    border_radius(0)
+    border_radius(0),
 // shadow properties
+// gradient properties
+    gradient(false),//(true),
+	gradient_color(color)
 {
 	set_position(0, 0);
 	set_width(100);
@@ -86,7 +89,10 @@ void Button::draw()
 		    get_angle(), get_scale().x, get_scale().y, 
 			get_color().x, get_color().y, get_color().z, get_color().w,
             // outline
-            outline, outline_width, outline_color, outline_antialiased			
+            outline, outline_width, outline_color, outline_antialiased,
+            // gradient
+            gradient,
+		    gradient_color
 		);
 		// Draw image (over button)
 		if(image != nullptr)
@@ -105,10 +111,10 @@ void Button::draw()
 		// Draw text  (over button)
 		if(label != nullptr)
 		{
-		    if(label->get_alignment() == "left"  ) { label->set_relative_position(0                                     , 0); } // default - relative_position will always be (0, 0) unless you change the alignment
-			if(label->get_alignment() == "center") { label->set_relative_position((get_width() - label->get_width()) / 2, (get_height() - label->get_height()) / 2); }						
-			if(label->get_alignment() == "right" ) { label->set_relative_position( get_width() - label->get_width()     , 0); }	
-            if(label->get_alignment() == "none"  ) {} // with this you are free to set the label's relative position to whatever you want
+		    if(label->get_alignment() == "left"  ) { label->set_relative_position(0                                     , (get_height() - 10/*label->get_height()*/) / 2); } // keep label_y centered always
+			if(label->get_alignment() == "center") { label->set_relative_position((get_width() - label->get_width()) / 2, (get_height() - 10/*label->get_height()*/) / 2); } // keep label_y centered always					
+			if(label->get_alignment() == "right" ) { label->set_relative_position( get_width() - label->get_width()     , (get_height() - 10/*label->get_height()*/) / 2); } // keep label_y centered always	
+            if(label->get_alignment() == "none"  ) {} // with this you are free to set the label's relative position to whatever you want  // default - relative_position will always be (0, 0) unless you change the alignment
             label->set_position(get_x() + label->get_relative_x(), get_y() + label->get_relative_y()); // set actual position
 		}
 	}
@@ -248,19 +254,21 @@ int Button::set_label(lua_State *L)
 	return 0;
 }
 /////////////
-void Button::set_color(double red, double green, double blue, double alpha)
+void Button::set_color(double red, double green, double blue, double alpha, bool original)
 {    // old_color = color; // save old color before changing the color
 	color = Vector4(red, green, blue, alpha);
+	if(!original) return; // not original color, exit function
+	old_color = color;
 }
 /////////////
-void Button::set_color(const Vector3& color)
+void Button::set_color(const Vector3& color, bool original)
 {
-	set_color(color.x, color.y, color.z);
+	set_color(color.x, color.y, color.z, 255, original);
 }
 /////////////
-void Button::set_color(const Vector4& color)
+void Button::set_color(const Vector4& color, bool original)
 {
-	set_color(color.x, color.y, color.z, color.w);
+	set_color(color.x, color.y, color.z, color.w, original);
 }
 /////////////
 int Button::set_color(lua_State *L)
@@ -333,6 +341,56 @@ int Button::set_shadow(lua_State *L)
 	}
 	return 0;	
 }
+/////////////
+void Button::set_gradient(bool gradient)
+{
+    this->gradient = gradient;
+}
+/////////////
+int Button::set_gradient(lua_State *L)
+{
+	luaL_checktype(L, 1, LUA_TTABLE);
+	luaL_checktype(L, 2, LUA_TBOOLEAN);
+	lua_getfield(L, 1, "udata");
+	if(lua_isuserdata(L, -1))
+	{
+		Button * button = *static_cast<Button **>(lua_touserdata(L, -1));
+		button->set_gradient(lua_toboolean(L, 2));
+	}
+    return 0;
+}
+/////////////
+void Button::set_gradient_color(double red, double green, double blue, double alpha)
+{
+    gradient_color = Vector4(red, green, blue, alpha);
+}
+/////////////
+void Button::set_gradient_color(const Vector3& gradient_color)
+{
+    set_gradient_color(gradient_color.x, gradient_color.y, gradient_color.z);
+}
+/////////////
+void Button::set_gradient_color(const Vector4& gradient_color)
+{
+    set_gradient_color(gradient_color.x, gradient_color.y, gradient_color.z, gradient_color.w);
+}
+/////////////
+int Button::set_gradient_color(lua_State *L)
+{
+	luaL_checktype(L, 1, LUA_TTABLE);
+	luaL_checktype(L, 2, LUA_TNUMBER);
+	luaL_checktype(L, 3, LUA_TNUMBER);
+	luaL_checktype(L, 4, LUA_TNUMBER);
+	luaL_optnumber(L, 5, 1.0);
+	lua_getfield(L, 1, "udata");
+	if(lua_isuserdata(L, -1))
+	{
+		Button * button = *static_cast<Button **>(lua_touserdata(L, -1));
+		button->set_gradient_color(lua_tonumber(L, 2), lua_tonumber(L, 3), lua_tonumber(L, 4), lua_tonumber(L, 5));
+	}
+	return 0;
+}
+/////////////
 /////////////
 /////////////
 //  GETTERS
@@ -450,8 +508,15 @@ void Button::on_press()
 /////////////
 void Button::on_mouse_interact()
 {
+	// save original color
+	if(!color_saved) 
+	{
+	    old_color = get_color();
+	    color_saved = true;
+	}
 	if(Mouse::is_over(get_position(), get_size()))
 	{
+	    std::cout << "old_color (saved): " << old_color << std::endl;
 		if(Mouse::is_pressed(1))
 	    {
 			// add a shade to color (on press)
@@ -459,14 +524,17 @@ void Button::on_mouse_interact()
 		    press_color.y = color.y * (1 - shade_factor);
 		    press_color.z = color.z * (1 - shade_factor);	
 		    press_color.w = color.w;
+            //std::cout << "press_color: " << press_color << std::endl;
 		    set_color(press_color);
-		}else set_color(old_color); // set to hover_color
+		}
+		else set_color(old_color); // set to hover_color
 		
 		// add a tint to color (on hover)
 		hover_color.x = color.x + (255 - color.x) * tint_factor; //  255 = white
 		hover_color.y = color.y + (255 - color.y) * tint_factor;
 		hover_color.z = color.z + (255 - color.z) * tint_factor;
         hover_color.w = color.w;
+        //std::cout << "hover_color: " << hover_color << std::endl;
 		set_color(hover_color);
 		
 	} else set_color(old_color); // revert back to original color

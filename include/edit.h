@@ -6,6 +6,7 @@
 
 #ifdef __cplusplus // if c++
 #include <iostream>
+#include <tuple>
 #include <lua.hpp>
 
 class Edit : public GUI {// can be a line edit or text edit or search field
@@ -49,6 +50,10 @@ class Edit : public GUI {// can be a line edit or text edit or search field
 		int get_text_style()const;    static int get_text_style(lua_State *L);
 	    Vector4 get_text_background_color()const; static int get_text_background_color(lua_State *L);
 		int get_character_limit()const;
+		// newer functions - 2019-08-31
+		int get_capacity() const;             static int get_capacity(lua_State *L);// returns the number of characters the edit is able to hold (in total)
+		int get_horizontal_capacity() const;  static int get_horizontal_capacity(lua_State *L);// returns the number of characters the edit is able to hold (horizontal)
+		int get_vertical_capacity  () const;  static int get_vertical_capacity(lua_State *L);// returns the number of "newlines" the edit is able to hold (vertical)
 		// boolean
 		bool is_multilined() const;
 		// interactions here --
@@ -75,6 +80,7 @@ class Edit : public GUI {// can be a line edit or text edit or search field
 		void on_keypress();
 		void on_enter();
 		void on_backspace();
+		void on_arrow_keys();
 		// properties
 	    Vector4 color;
 	    bool   cursor;
@@ -85,6 +91,17 @@ class Edit : public GUI {// can be a line edit or text edit or search field
 		bool multilined;
 		int num_newlines;
 		Label * label;
+		// outline
+		bool outline;
+		double outline_width; // thickness
+		Vector4 outline_color;
+		bool outline_antialiased;
+		// gradient
+		bool gradient;
+		Vector4 gradient_color;
+		// maybe add a list later on, with the options: cut, copy, paste, etc.
+		// character data
+		std::vector< std::tuple<char, unsigned int, int> > character_data;// make a std::tuple, character with cursor_index and string_index // accessing tuple elements: std::get<0>(character_data[0])= first value, std::get<1>(character_data[0])= second value, std::get<3>(character_data[0])=third value // string_index must be an int
 		// other
 		//std::map<std::string, Vector3& color> syntax_list;
 };
