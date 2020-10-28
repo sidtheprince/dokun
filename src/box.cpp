@@ -14,9 +14,9 @@ forbidden_area(0, 0, 0, 0), // forbidden area
 title_bar(false), 
 title_bar_height(30),
 title_bar_color(0, 51, 102, 255), // I call this color, dokun_blue
-title_bar_button_iconify(false),
-title_bar_button_maximize(false),
-title_bar_button_close(true),
+title_bar_button_iconify(false),  // cannot have button_iconify  without button_close
+title_bar_button_maximize(false), // cannot have button_minimize without button_close
+title_bar_button_close(true),     // can have button_close by itself or with other buttons
 title_bar_button_width(10),
 title_bar_image(nullptr), // if you operate on this and do not assign it to nullptr or any value then the engine will crash (on Linux especially)
 title_bar_label(nullptr), // if you operate on this and do not assign it to nullptr or any value then the engine will crash (on Linux especially)
@@ -461,6 +461,15 @@ int Box::set_color(lua_State * L)
 	{
 		Box * widget = *static_cast<Box **>(lua_touserdata(L, -1));
 		widget->set_color(lua_tonumber(L, 2), lua_tonumber(L, 3), lua_tonumber(L, 4), lua_tonumber(L, 5));
+		// set in lua as well ...
+		lua_pushvalue(L, 2);
+		lua_setfield(L, 1, "red");
+		lua_pushvalue(L, 3);
+		lua_setfield(L, 1, "green");
+		lua_pushvalue(L, 4);
+		lua_setfield(L, 1, "blue");
+		lua_pushvalue(L, 5);
+		lua_setfield(L, 1, "alpha");		
 	}
 	return 0;
 }
@@ -1145,6 +1154,7 @@ int Box::set_alignment(lua_State * L)
 void Box::set_as_tooltip(bool tooltip)
 {
 	type = (tooltip == true) ? "tooltip" : "box";
+	color.w = 230;
 }
 /////////////
 int Box::set_as_tooltip(lua_State *L)
@@ -1175,10 +1185,10 @@ int Box::get_color(lua_State * L)
 	if(lua_isuserdata(L, -1))
 	{
 		Box * widget = *static_cast<Box **>(lua_touserdata(L, -1));
-		lua_pushboolean(L, widget->get_color().x);
-		lua_pushboolean(L, widget->get_color().y);
-		lua_pushboolean(L, widget->get_color().z);
-		lua_pushboolean(L, widget->get_color().w);
+		lua_pushinteger(L, widget->get_color().x);
+		lua_pushinteger(L, widget->get_color().y);
+		lua_pushinteger(L, widget->get_color().z);
+		lua_pushinteger(L, widget->get_color().w);
 		return 4;
 	}
 	lua_pushnil(L);

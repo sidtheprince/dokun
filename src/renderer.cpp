@@ -5307,6 +5307,8 @@ void Renderer::draw_tab(int x, int y, int width, int height, double angle, doubl
         glDrawElements(GL_LINE_LOOP, 6, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
 	// Draw tab (head)	
+	double current_x = x + tab_count * width;
+	double current_y = y + tab_count * height;
 	shader.set_float("color", (red / 255), (green / 255), (blue / 255), (alpha / 255));
     glBindVertexArray(tab_vertex_array_obj); // (vao start 2)  
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);//glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0, 4); // (as we have 4 instances specified in array)

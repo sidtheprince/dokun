@@ -2,6 +2,7 @@
 #define _SLIDER
 
 #include "ui.h"
+#include "label.h"
 
 #ifdef __cplusplus // if c++
 #include <iostream>
@@ -30,6 +31,8 @@ class Slider : public GUI // a bit like a ball and beam
 		void set_ball_size(int ball_size);
 		// slider (beam) properties
 		void set_radius(double radius);                                           static int set_radius(lua_State *L);// roundness of beam edges [===========]
+		// label
+		void set_label(const Label& label);                                       static int set_label(lua_State *L);
 		// outline properties
 		// outline
 		void set_outline(bool outline);                                           static int set_outline(lua_State *L);
@@ -46,6 +49,7 @@ class Slider : public GUI // a bit like a ball and beam
 		double get_minimum_value() const;                                         static int get_minimum_value(lua_State *L);
 		double get_maximum_value()const;                                          static int get_maximum_value(lua_State *L);
 		Vector4 get_color() const;                                                static int get_color(lua_State *L);
+		Label * get_label() const;                                                static int get_label(lua_State *L);
 		// ball
 		int get_ball_x();                                                         static int get_ball_x(lua_State *L);
 		int get_ball_y();                                                         static int get_ball_y(lua_State *L);
@@ -68,6 +72,8 @@ class Slider : public GUI // a bit like a ball and beam
 		Vector4 ball_color_outer;
 		int ball_size;
 		double ball_radius;
+		// label
+		Label * label;
 		// outline
 		bool outline;
 		Vector4 outline_color;

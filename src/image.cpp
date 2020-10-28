@@ -66,7 +66,7 @@ Image::Image(void * data, int width, int height, int depth, int channel) : width
 /////////////
 Image::~Image(void)
 {
-	destroy();
+	destroy(); // destroy texture buffer obj and delete image pixel data
 	Factory::get_image_factory()->release(this);
 }
 /////////////
@@ -133,10 +133,10 @@ void Image:: draw ()
 	}
 }
 /////////////
-void Image::draw(int x, int y)
+void Image::draw(double x, double y)
 {
-	(this)->x = x;
-	(this)->y = y;
+	this->x = x;
+	this->y = y;
 	draw();
 }
 /////////////
@@ -189,24 +189,14 @@ int Image::save(lua_State *L)
 	return 0;
 }
 /////////////
-void Image::copy(const Image& image)
+void Image::copy(const Image& image) // copies another image's texture pixels - no need to copy the position, angle, scale, color, relative_position, nor alignment - or it will just mess up everything
 {
-    // clear old texture_buffer so you can be able to copy a new texture buffer // generate a new texture_buffer
-    clear();
-
-	data    = image.get_data   ();
+    //data    = image.get_data   ();// new pixel data will be used without changing original pixel data since we may need to deallocate the original pixel data later on
 	width   = image.get_width  ();
 	height  = image.get_height ();
 	depth   = image.get_depth  ();
 	channel = image.get_channel();
-	file    = image.get_file   ();
-	set_position(image.get_position());
-	set_angle(image.get_angle());
-	set_scale(image.get_scale());
-	set_color(image.get_color());
-	// user interface
-	set_relative_position(image.get_relative_position());
-	set_alignment(image.get_alignment());
+	file    = image.get_file   (); // this is not neccessary but whatever ...
 #ifdef DOKUN_OPENGL
     //buffer          = image.get_buffer         (); // buffer must be unique like the Image itself
 	min_filter      = image.get_filter         ().x;
@@ -215,29 +205,58 @@ void Image::copy(const Image& image)
 	wrap_t          = image.get_wrap           ().y;
 	internal_format = image.get_internal_format();
 	format          = image.get_format         ();
+    // check for opengl context
+    Renderer::context_check();
+    // generate texture buffer if it not a valid OpenGL texture and it did not previously exist
+    if(buffer == 0) glGenTextures(1, &buffer);    
+	// update texture buffer without having to generate a new one
+    glBindTexture(GL_TEXTURE_2D, buffer); // bind buffer
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, static_cast<GLint>(min_filter));
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, static_cast<GLint>(mag_filter));
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, static_cast<GLint>(wrap_s));
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, static_cast<GLint>(wrap_t));
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, static_cast<GLsizei>(get_width()), static_cast<GLsizei>(get_height()), 0, static_cast<GLenum>(get_format()), GL_UNSIGNED_BYTE, static_cast<GLvoid *>(image.get_data   ()/*get_data()*/)); // pass texture width, height, and data to OpenGL
+        glGenerateMipmap(GL_TEXTURE_2D); // generate mipmaps
+	glBindTexture(GL_TEXTURE_2D, 0);
+#ifdef DOKUN_DEBUG	
+	std::cout << "Image::copy(const Image&): buffer " << buffer << " (updated)" << std::endl;
+#endif
 #endif
 }
 /////////////
 void Image::copy(const Texture& texture) // same as Image:copy_texture in Lua
 {
-    // clear old texture_buffer so you can be able to copy a new texture buffer // generate a new texture_buffer
-    clear();
-
-	width   = texture.get_width  ();
+    //data    = texture.get_data   (); // new pixel data will be used without changing original pixel data since we may need to deallocate the original pixel data later on
+    width   = texture.get_width  ();
 	height  = texture.get_height ();
 	depth   = texture.get_depth  ();
 	channel = texture.get_channel();
-	data    = texture.get_data   ();
-	file    = texture.get_file   ();
+	file    = texture.get_file   (); // this is not neccessary but whatever ...
 #ifdef DOKUN_OPENGL
 	//buffer     = texture.get_buffer(); // buffer must be unique like the Image itself (so DO NOT copy!!)
 	min_filter = texture.get_filter().x;
 	mag_filter = texture.get_filter().y;
 	wrap_s     = texture.get_wrap  ().x;
 	wrap_t     = texture.get_wrap  ().y;
-	internal_format = texture.get_internal_format();	
+	internal_format = texture.get_internal_format();
 	format = texture.get_format();	
-#endif	
+    // check for opengl context
+    Renderer::context_check();
+    // generate texture buffer if it not a valid OpenGL texture and it did not previously exist
+    if(buffer == 0) glGenTextures(1, &buffer);
+	// update existing texture buffer without having to generate a new one
+    glBindTexture(GL_TEXTURE_2D, buffer); // bind buffer
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, static_cast<GLint>(min_filter));
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, static_cast<GLint>(mag_filter));
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, static_cast<GLint>(wrap_s));
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, static_cast<GLint>(wrap_t));
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, static_cast<GLsizei>(get_width()), static_cast<GLsizei>(get_height()), 0, static_cast<GLenum>(get_format()), GL_UNSIGNED_BYTE, static_cast<GLvoid *>(texture.get_data   ()/*get_data()*/)); // pass texture width, height, and data to OpenGL
+        glGenerateMipmap(GL_TEXTURE_2D); // generate mipmaps
+	glBindTexture(GL_TEXTURE_2D, 0);
+#ifdef DOKUN_DEBUG
+	std::cout << "Image::copy(const Texture&): buffer " << buffer << " (updated)" << std::endl;
+#endif
+#endif
 }               
 /////////////
 int Image::copy(lua_State *L)
@@ -336,16 +355,8 @@ void Image::scale_to_fit(const Vector2& size)
 void Image::generate()
 {
 #ifdef DOKUN_OPENGL
-#ifdef __windows__
-	if(!wglGetCurrentContext()) // no context (to make function more safer to use and to prevent crash)
-		return;
-#endif		
-#ifdef __gnu_linux__
-#ifdef DOKUN_X11
-    if(!glXGetCurrentContext())
-		return;
-#endif
-#endif
+    // check for opengl context first
+    Renderer::context_check();
 	if(!glIsTexture(buffer)) // no buffer yet (generate a single buffer and no more than 1)
 	{
 		glGenTextures(1, &buffer); // generate a buffer
@@ -358,7 +369,7 @@ void Image::generate()
         glGenerateMipmap(GL_TEXTURE_2D); // generate mipmaps
 		glBindTexture(GL_TEXTURE_2D, 0); // unbind buffer
 	#ifdef DOKUN_DEBUG
-	    //Logger("Image" + String(Factory::get_image_factory()->get_location(this)).str() + " buffer generated");
+	    Logger("Image" + String(Factory::get_image_factory()->get_location(this)).str() + " buffer " + std::to_string(buffer) + " generated");
     #endif	
 	}
 #endif	
@@ -378,28 +389,26 @@ int Image::generate(lua_State *L)
 void Image::destroy()
 {
 #ifdef DOKUN_OPENGL	
-#ifdef __windows__
-	if(!wglGetCurrentContext()) // no context (to make function more safer to use and to prevent crash)
-        return;
-#endif		
-#ifdef __gnu_linux__
-#ifdef DOKUN_X11
-    if(!glXGetCurrentContext())
-		return;
-#endif
-#endif
-    if(buffer != 0)
+    // check for opengl context first to prevent a crash
+    Renderer::context_check();
+    if(glIsTexture(buffer) && buffer != 0)
 	{
-        glDeleteTextures(1, static_cast<GLuint *>(&buffer)); // delete old texture buffer
+        glDeleteTextures(1, static_cast<GLuint *>(&buffer)); // delete old texture buffer obj
         buffer = 0;	// to ensure its deleted
 	#ifdef DOKUN_DEBUG
-	    if(!glIsTexture(buffer)) Logger("Image" + String(Factory::get_image_factory()->get_location(this)).str() + " buffer destroyed");
+	    if(!glIsTexture(buffer)) Logger("Image::destroy(): " + String(Factory::get_image_factory()->get_location(this)).str() + " buffer destroyed");
     #endif
-        // delete texture data as well ...                                                            // free each element in "data"
-        if(is_png()) delete [] static_cast<png_byte *>(data); // delete data
-        data = nullptr;                                       // set data to nullptr
 #endif	
-	}		
+	}
+	// delete image pixel data as well ..
+	if(data != nullptr) 
+	{
+        if(is_png()) delete [] static_cast<png_byte *>(data); // array allocated with "new", so I guess I have to delete it this way???
+        data = nullptr; // set image pixel data to nullptr
+#ifdef DOKUN_DEBUG
+        if(!data) std::cout << "Image_" << String(Factory::get_texture_factory()->get_location(this)) << ": data deleted." << std::endl;
+#endif
+	}			
 }
 int Image::destroy(lua_State *L)
 {
@@ -413,19 +422,11 @@ int Image::destroy(lua_State *L)
     return 0;	
 }
 /////////////
-void Image::clear()
+void Image::clear() // find a way to update textures with default pixels
 {
 #ifdef DOKUN_OPENGL	
-#ifdef __windows__
-	if(!wglGetCurrentContext()) // no context (to make function more safer to use and to prevent crash)
-        return;
-#endif		
-#ifdef __gnu_linux__
-#ifdef DOKUN_X11
-    if(!glXGetCurrentContext())
-		return;
-#endif
-#endif
+    // check for opengl context first
+    Renderer::context_check();
     /*unsigned char * empty_data = new unsigned char[width * height * 4];//(unsigned char *)get_data();//new unsigned char[width * height * 4]; // create an empty image
     size_t empty_data_size = sizeof(empty_data)/sizeof(empty_data[0]); // get size of empty image
     std::cout << "size of empty data: " << empty_data_size << std::endl;
@@ -1357,16 +1358,8 @@ int Image::is_resized(lua_State *L)
 bool Image::is_generated()const
 {
 #ifdef DOKUN_OPENGL
-#ifdef __windows__
-	if(!wglGetCurrentContext()) // no context (to make function more safer to use and to prevent crash)
-		return false;
-#endif		
-#ifdef __gnu_linux__
-#ifdef DOKUN_X11
-    if(!glXGetCurrentContext())
-		return false;
-#endif
-#endif
+    // check for opengl context first
+    Renderer::context_check();
     return (glIsTexture(buffer) == true);
 #endif	
     return false;	

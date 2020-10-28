@@ -142,7 +142,7 @@ Texture::Texture(const void * data, int width, int height, int depth, int channe
 /////////////
 Texture::~Texture(void)
 {
-    destroy();
+    destroy(); // destroy texture buffer obj and texture pixel data
 	Factory::get_texture_factory()->release(this);
 #ifdef DOKUN_DEBUG 	
 	Logger::push("dokun: " + String(this).str() + " has been deallocated with Texture::~Texture ()");
@@ -223,10 +223,7 @@ int Texture::load(lua_State *L)
 /////////////
 void Texture::copy(const Texture& texture)
 {
-    // clear old texture_buffer so you can be able to copy a new texture buffer // generate a new texture_buffer
-    clear();
-
-	data    = texture.get_data  ();
+    data    = texture.get_data  ();
 	width   = texture.get_width ();
 	height  = texture.get_height();
 	channel = texture.get_channel();
@@ -234,6 +231,33 @@ void Texture::copy(const Texture& texture)
 	set_param(texture.get_filter().x, texture.get_filter().y, texture.get_wrap().x, texture.get_wrap().y, 
 	    texture.get_internal_format(), texture.get_format());
 	set_type(texture.get_type());
+	// check for opengl context
+#ifdef DOKUN_OPENGL
+#ifdef __windows__
+	if(!wglGetCurrentContext()) // no context (to make function more safer to use and to prevent crash)
+		return;
+#endif		
+#ifdef __gnu_linux__
+#ifdef DOKUN_X11
+    if(!glXGetCurrentContext())
+		return;
+#endif
+#endif
+    // generate texture buffer if it not a valid OpenGL texture and it did not previously exist
+    if(buffer == 0) glGenTextures(1, &buffer);
+	// update texture buffer without having to generate a new one
+    glBindTexture(GL_TEXTURE_2D, buffer); // bind buffer
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, static_cast<GLint>(min_filter));
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, static_cast<GLint>(mag_filter));
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, static_cast<GLint>(wrap_s));
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, static_cast<GLint>(wrap_t));
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, static_cast<GLsizei>(get_width()), static_cast<GLsizei>(get_height()), 0, static_cast<GLenum>(get_format()), GL_UNSIGNED_BYTE, static_cast<GLvoid *>(get_data())); // pass texture width, height, and data to OpenGL
+        glGenerateMipmap(GL_TEXTURE_2D); // generate mipmaps
+	glBindTexture(GL_TEXTURE_2D, 0);
+#ifdef DOKUN_DEBUG	
+	std::cout << "Texture::copy(const Texture&): buffer name: " << buffer << " (updated)" << std::endl;
+#endif	
+#endif
 }
 /////////////
 int Texture::copy(lua_State *L)
@@ -409,22 +433,25 @@ void Texture::destroy()
 	    return;
 #endif	    
 #endif
-    GLuint texture = buffer;
-    if(glIsTexture(texture)) // if buffer is valid, then delete, zero means its not valid
+    if(glIsTexture(static_cast<GLuint>(buffer)) && buffer != 0) // if texture buffer obj is valid, then delete it (zero means it's not valid)
     {
-        glDeleteTextures(1, static_cast<GLuint *>(&texture)); // delete texture_buffer
-        buffer = 0;     // set GL_texture to nullptr
-	#ifdef DOKUN_DEBUG 
-        if(!glIsTexture(texture)) {std::cout << "GL_texture: " << texture << " deleted" << std::endl;} // check if GL_texture is actually deleted
-    #endif	
-    }   
+        GLuint buffer_temp = buffer; // copy texture buffer obj name just for debug
+        glDeleteTextures(1, static_cast<GLuint *>(&buffer)); // delete texture buffer obj
+        buffer = 0;     // set texture buffer obj to nullptr
+	#ifdef DOKUN_DEBUG
+        if(!glIsTexture(static_cast<GLuint>(buffer))) {std::cout << "Texture::destroy(): buffer " << buffer_temp << " deleted" << std::endl;} // check if GL_texture is actually deleted
+    #endif
+    }
+    // delete texture pixel data as well ..
+	if(data != nullptr)
+	{
+        if(is_png()) delete [] static_cast<png_byte *>(data); // array allocated with "new", so I guess I have to delete it this way???
+        data = nullptr; // set texture pixel data to nullptr
+#ifdef DOKUN_DEBUG
+        if(!data) std::cout << "Texture::destroy(): Texture_" << String(Factory::get_texture_factory()->get_location(this)) << ": data deleted." << std::endl;
 #endif
-    // Non-opengl stuff here ...
-    if(is_png()) delete [] static_cast<png_byte *>(data); // array allocated with "new"
-    data = nullptr; // set texture_data   to nullptr
-#ifdef DOKUN_DEBUG    
-    if(!data) std::cout << "Texture_" << String(Factory::get_texture_factory()->get_location(this)) << ": data deleted." << std::endl;
-#endif   	
+	}
+#endif
 }
 int Texture::destroy(lua_State *L)
 {

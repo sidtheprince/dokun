@@ -274,6 +274,7 @@ int Engine::test(lua_State *L)
     //widget->set_title_bar_button_close(true);
     //widget->set_title_bar_button_maximize(true);
     //widget->set_title_bar_button_iconify(true);
+    widget->set_title_bar_color(15, 46, 83, 255);
     //widget->set_outline(true);
     widget->set_size(200, 50);
     widget->set_position(500, 500);//(0, 0 + widget->get_title_bar_size().y); // box_position should also include titlebar_position if "has_title_bar()" (or else the box's titlebar will be overlaped by the window's titlebar) // So basically the titlebar is a seperate entity with its own size and position though a part/extension of box
@@ -281,7 +282,7 @@ int Engine::test(lua_State *L)
     //widget->set_gradient_color(0, 158, 115);
     //widget->set_image(*new Image("res/Dokun-logo.png"));
     //widget->set_color(Vector4(widget->get_color().xyz, 200));//set_alpha(200);
-    widget->set_radius(50.0);
+    //widget->set_radius(50.0);
     // ---
     Label * title_label = new Label();
     title_label->set_string("dokun");
@@ -605,7 +606,7 @@ int Engine::test(lua_State *L)
         //label->set_string(String(sprite->get_position()).str());
         label->draw();
         //edit->draw();
-        toggle->draw();
+        //toggle->draw();
         button->draw();
         slider->draw();
         spinner->draw();
@@ -616,6 +617,7 @@ int Engine::test(lua_State *L)
         date_display->draw();
         tool->draw();
         menubar->draw();
+        //tab->draw();
         // take screenshot after everything is drawn
         if(Keyboard::is_pressed(DOKUN_KEY_P)) Video::screenshot(window.get_client_width(), window.get_client_height(), "mini_map.png");
         // update mini_map every x seconds
@@ -827,7 +829,7 @@ int Engine::reg(lua_State *L)
 	Script::function(L, "Image", "flip", Image::flip    );		
 	Script::function(L, "Image", "resize", Image::resize);
     //Script::function(L, "Image", "scale_to_fit", Image::scale_to_fit);
-    //Script::function(L, "Image", "generate"        , Image::generate);
+    //Script::function(L, "Image", "generate", Image::generate);
 	Script::function(L, "Image", "destroy", Image::destroy);
 	Script::function(L, "Image", "clear"  , Image::clear  );
 	Script::function(L, "Image", "translate", 0);
@@ -1067,6 +1069,7 @@ int Engine::reg(lua_State *L)
     Script::function(L, "Box", "set_label_list", Box::set_label_list);
 	//Script::function(L, "Box", "set_", Box::set_);
 	//Script::function(L, "Box", "", Box::);
+	Script::function(L, "Box", "get_color", Box::get_color);
 	Script::function(L, "Box", "get_image", Box::get_image);
 	Script::function(L, "Box", "get_label", Box::get_label);
     Script::function(L, "Box", "get_image_list", Box::get_image_list);
@@ -1076,7 +1079,7 @@ int Engine::reg(lua_State *L)
 	//Script::function(L, "Box", "", Box::);
 	//Script::function(L, "Box", "", Box::);
 	//Script::function(L, "Box", "", Box::);
-    Script::execute(L, "Widget = Box"); // assign Box to Box as another name for Box (You can also use Box in place of Box)
+    Script::execute(L, "Widget = Box"); // assign Widget to Box as another name for Box (You can also use Widget in place of Box)
 	// button -----------------------------------------------------------
 	Script::table   (L, "Button"); // Button = {}  Button_mt = {__index = Button }
 	Script::attach  (L, "GUI", "Button"); // GUI.Button = Button

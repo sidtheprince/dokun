@@ -1,2 +1,0 @@
-srdokun crashes due to DOKUN_BUILD_LIBRARY being defined, which results in the engine::open(L) not being called : SOLVED : must call "dokun:start()" manually in Lua to initialize dokun when building with srlua
-

@@ -1,6 +1,10 @@
 todo:
 
-- replace glm::mat4 with custom Matrix4 class and discard glm from dependencies
+- replace glm::mat4 with custom Matrix4 class and discard glm from dependencies [priority: high]
 - implement openssl (Passwords should be hashed with either PBKDF2, bcrypt or scrypt) (bcrypt is better than PBKDF2 slow enough that brute-force attacks are not feasible; scrypt is newer but still needs to prove itself) bcrypt format is .bfe (bcrypt uses Blowfish)
 - finish working on editor (will convert editor projects to a lua script which can be compiled into an executable)
 - remove unused files like loader.h;.c
+- fix and optimize all draw() functions to reduce lag [priority: high]
+- master shaders 
+- create lights and shadows
+- find other devs to help out [priority: high]

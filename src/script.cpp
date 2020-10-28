@@ -879,7 +879,7 @@ std::string Script::get_type(lua_State * L, const std::string& object)
 //////////
 //////////
 //////////
-int Script::table_not_mt(lua_State *L, std::string class_name) // soon to be replaced by Script::table_as_mt
+int Script::table_not_mt(lua_State *L, std::string class_name) // soon to be replaced by Script::table
 {
 	lua_newtable(L);
 	lua_newtable(L); 

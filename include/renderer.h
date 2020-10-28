@@ -264,13 +264,14 @@ public:
     // Test
     static void draw_sprite_test(double x, double y, double angle, double scale_x, double scale_y, double red, double green, double blue, double alpha,
     const std::vector<float>& vertex_array, const Shader& shader, const Texture& texture);
-private:
+    /////////////////////////////////////////
     static void context_check(void);
 	static void device_check (void); // NEW! added 9-3-2018
     /////////////////////////////////////////
  	static void generate_vertex_array(double x, double y, unsigned int width, unsigned int height);
 	static void update_vertex_array(const std::vector<float>& vertex_array);
 	static void destroy_vertex_array (void);
+private:
 	/////////////////////////////////////////
     static Renderer * render_ptr; // default renderer
 	static bool status;

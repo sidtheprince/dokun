@@ -60,7 +60,7 @@ Logger * Logger::logger_ptr (new Logger());
 void Logger::open() // private: can only be called by engine
 {
     Logger::push("=======================================================================================================");
-	Logger::push("Started dokun at " + Logger::format("[%Y-%m-%d  %H:%M:%S %p]"));
+	Logger::push("Started dokun " + Logger::format("[%Y-%m-%d  %H:%M:%S %p]"));
 	Logger::push("=======================================================================================================");	
     Logger::push("\n\n");	
 	Logger::push(String("Running dokun version  ") + String("1.0.0"));
@@ -92,7 +92,7 @@ void Logger::open() // private: can only be called by engine
 void Logger::close() // private: can only be called by engine
 {
     Logger::push("\n=======================================================================================================");
-    Logger::push("Closed dokun at " + Logger::format("[%Y-%m-%d  %H:%M:%S %p]"));
+    Logger::push("Closed dokun " + Logger::format("[%Y-%m-%d  %H:%M:%S %p]"));
     Logger::push("=======================================================================================================\n");
 	if(!Logger::save("dokun_log.txt")) Logger("Logger::save : Could not save log to: dokun_log.txt");
 }

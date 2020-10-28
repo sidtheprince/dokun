@@ -39,7 +39,7 @@ public:
     bool load(const std::string& file_name);                static int load(lua_State *L);
     bool load(void * data , int width, int height, int depth = 1, int channel = 4);  
 	void draw();                                     static int draw(lua_State *L);	// draw function might be temporry as class Sprite acts as the main 2D renderer	
-	void draw(int x, int y);
+	void draw(double x, double y);
 	void hide();static int hide(lua_State *L);
 	void show();static int show(lua_State *L);
 	// normal
@@ -150,9 +150,9 @@ private:
 	unsigned int new_height;
 	bool resized;
 	// geometric values
-	unsigned int   x, y;
-	double        angle;
-	Vector2       scale;
+	double x, y;
+	double angle;
+	Vector2 scale;
 	// for user interface
 	double relative_x, relative_y;
 	std::string alignment;

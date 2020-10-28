@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0) # Tested on 2.8 and higher (3.7 comes with vulkan support)
+cmake_minimum_required(VERSION 3.0) # Modern CMake starts from version 3.0.0 onwards # Tested on 2.8 and higher (3.7 comes with vulkan support)
 
 project(dokun)
 
@@ -64,10 +64,12 @@ set(game_src   src/game.cpp  ) # game demo
 # scripting
 set(lua51_src dependencies/lua/lua-5.1.5/src/lua.c dependencies/lua/lua-5.1.5/src/luac.c dependencies/lua/lua-5.1.5/src/lapi.c dependencies/lua/lua-5.1.5/src/lcode.c dependencies/lua/lua-5.1.5/src/ldebug.c dependencies/lua/lua-5.1.5/src/ldo.c dependencies/lua/lua-5.1.5/src/ldump.c dependencies/lua/lua-5.1.5/src/lfunc.c dependencies/lua/lua-5.1.5/src/lgc.c dependencies/lua/lua-5.1.5/src/llex.c dependencies/lua/lua-5.1.5/src/lmem.c dependencies/lua/lua-5.1.5/src/lobject.c dependencies/lua/lua-5.1.5/src/lopcodes.c dependencies/lua/lua-5.1.5/src/lparser.c dependencies/lua/lua-5.1.5/src/lstate.c dependencies/lua/lua-5.1.5/src/lstring.c dependencies/lua/lua-5.1.5/src/ltable.c dependencies/lua/lua-5.1.5/src/ltm.c dependencies/lua/lua-5.1.5/src/lundump.c dependencies/lua/lua-5.1.5/src/lvm.c dependencies/lua/lua-5.1.5/src/lzio.c dependencies/lua/lua-5.1.5/src/lauxlib.c dependencies/lua/lua-5.1.5/src/lbaselib.c dependencies/lua/lua-5.1.5/src/ldblib.c dependencies/lua/lua-5.1.5/src/liolib.c dependencies/lua/lua-5.1.5/src/lmathlib.c dependencies/lua/lua-5.1.5/src/loslib.c dependencies/lua/lua-5.1.5/src/lstrlib.c dependencies/lua/lua-5.1.5/src/ltablib.c dependencies/lua/lua-5.1.5/src/loadlib.c dependencies/lua/lua-5.1.5/src/linit.c)
 set(lua52_src dependencies/lua/lua-5.2.4/src/lua.c dependencies/lua/lua-5.2.4/src/luac.c dependencies/lua/lua-5.2.4/src/lapi.c dependencies/lua/lua-5.2.4/src/lcode.c dependencies/lua/lua-5.2.4/src/lctype.c dependencies/lua/lua-5.2.4/src/ldebug.c dependencies/lua/lua-5.2.4/src/ldo.c dependencies/lua/lua-5.2.4/src/ldump.c dependencies/lua/lua-5.2.4/src/lfunc.c dependencies/lua/lua-5.2.4/src/lgc.c dependencies/lua/lua-5.2.4/src/llex.c dependencies/lua/lua-5.2.4/src/lmem.c dependencies/lua/lua-5.2.4/src/lobject.c dependencies/lua/lua-5.2.4/src/lopcodes.c dependencies/lua/lua-5.2.4/src/lparser.c dependencies/lua/lua-5.2.4/src/lstate.c dependencies/lua/lua-5.2.4/src/lstring.c dependencies/lua/lua-5.2.4/src/ltable.c dependencies/lua/lua-5.2.4/src/ltm.c dependencies/lua/lua-5.2.4/src/lundump.c dependencies/lua/lua-5.2.4/src/lvm.c dependencies/lua/lua-5.2.4/src/lzio.c dependencies/lua/lua-5.2.4/src/lauxlib.c dependencies/lua/lua-5.2.4/src/lbaselib.c dependencies/lua/lua-5.2.4/src/lbitlib.c dependencies/lua/lua-5.2.4/src/lcorolib.c dependencies/lua/lua-5.2.4/src/ldblib.c dependencies/lua/lua-5.2.4/src/liolib.c dependencies/lua/lua-5.2.4/src/lmathlib.c dependencies/lua/lua-5.2.4/src/loslib.c dependencies/lua/lua-5.2.4/src/lstrlib.c dependencies/lua/lua-5.2.4/src/ltablib.c dependencies/lua/lua-5.2.4/src/loadlib.c dependencies/lua/lua-5.2.4/src/linit.c)                                           # 5.2 added lctype.c, lbitlib.c, and lcorolib.c
-set(lua53_src dependencies/lua/lua-5.3.5/src/lua.c dependencies/lua/lua-5.3.5/src/luac.c dependencies/lua/lua-5.3.5/src/lapi.c dependencies/lua/lua-5.3.5/src/lcode.c dependencies/lua/lua-5.3.5/src/lctype.c dependencies/lua/lua-5.3.5/src/ldebug.c dependencies/lua/lua-5.3.5/src/ldo.c dependencies/lua/lua-5.3.5/src/ldump.c dependencies/lua/lua-5.3.5/src/lfunc.c dependencies/lua/lua-5.3.5/src/lgc.c dependencies/lua/lua-5.3.5/src/llex.c dependencies/lua/lua-5.3.5/src/lmem.c dependencies/lua/lua-5.3.5/src/lobject.c dependencies/lua/lua-5.3.5/src/lopcodes.c dependencies/lua/lua-5.3.5/src/lparser.c dependencies/lua/lua-5.3.5/src/lstate.c dependencies/lua/lua-5.3.5/src/lstring.c dependencies/lua/lua-5.3.5/src/ltable.c dependencies/lua/lua-5.3.5/src/ltm.c dependencies/lua/lua-5.3.5/src/lundump.c dependencies/lua/lua-5.3.5/src/lvm.c dependencies/lua/lua-5.3.5/src/lzio.c dependencies/lua/lua-5.3.5/src/lauxlib.c dependencies/lua/lua-5.3.5/src/lbaselib.c dependencies/lua/lua-5.3.5/src/lbitlib.c dependencies/lua/lua-5.3.5/src/lcorolib.c dependencies/lua/lua-5.3.5/src/ldblib.c dependencies/lua/lua-5.3.5/src/liolib.c dependencies/lua/lua-5.3.5/src/lmathlib.c dependencies/lua/lua-5.3.5/src/loslib.c dependencies/lua/lua-5.3.5/src/lstrlib.c dependencies/lua/lua-5.3.5/src/ltablib.c dependencies/lua/lua-5.3.5/src/lutf8lib.c dependencies/lua/lua-5.3.5/src/loadlib.c dependencies/lua/lua-5.3.5/src/linit.c) # 5.3 added lutf8lib
+set(lua53_src dependencies/lua/lua-5.3.6/src/lua.c dependencies/lua/lua-5.3.6/src/luac.c dependencies/lua/lua-5.3.6/src/lapi.c dependencies/lua/lua-5.3.6/src/lcode.c dependencies/lua/lua-5.3.6/src/lctype.c dependencies/lua/lua-5.3.6/src/ldebug.c dependencies/lua/lua-5.3.6/src/ldo.c dependencies/lua/lua-5.3.6/src/ldump.c dependencies/lua/lua-5.3.6/src/lfunc.c dependencies/lua/lua-5.3.6/src/lgc.c dependencies/lua/lua-5.3.6/src/llex.c dependencies/lua/lua-5.3.6/src/lmem.c dependencies/lua/lua-5.3.6/src/lobject.c dependencies/lua/lua-5.3.6/src/lopcodes.c dependencies/lua/lua-5.3.6/src/lparser.c dependencies/lua/lua-5.3.6/src/lstate.c dependencies/lua/lua-5.3.6/src/lstring.c dependencies/lua/lua-5.3.6/src/ltable.c dependencies/lua/lua-5.3.6/src/ltm.c dependencies/lua/lua-5.3.6/src/lundump.c dependencies/lua/lua-5.3.6/src/lvm.c dependencies/lua/lua-5.3.6/src/lzio.c dependencies/lua/lua-5.3.6/src/lauxlib.c dependencies/lua/lua-5.3.6/src/lbaselib.c dependencies/lua/lua-5.3.6/src/lbitlib.c dependencies/lua/lua-5.3.6/src/lcorolib.c dependencies/lua/lua-5.3.6/src/ldblib.c dependencies/lua/lua-5.3.6/src/liolib.c dependencies/lua/lua-5.3.6/src/lmathlib.c dependencies/lua/lua-5.3.6/src/loslib.c dependencies/lua/lua-5.3.6/src/lstrlib.c dependencies/lua/lua-5.3.6/src/ltablib.c dependencies/lua/lua-5.3.6/src/lutf8lib.c dependencies/lua/lua-5.3.6/src/loadlib.c dependencies/lua/lua-5.3.6/src/linit.c) # 5.3 added lutf8lib
+set(lua54_src dependencies/lua/lua-5.4.1/src/lua.c dependencies/lua/lua-5.4.1/src/luac.c dependencies/lua/lua-5.4.1/src/lapi.c dependencies/lua/lua-5.4.1/src/lcode.c dependencies/lua/lua-5.4.1/src/lctype.c dependencies/lua/lua-5.4.1/src/ldebug.c dependencies/lua/lua-5.4.1/src/ldo.c dependencies/lua/lua-5.4.1/src/ldump.c dependencies/lua/lua-5.4.1/src/lfunc.c dependencies/lua/lua-5.4.1/src/lgc.c dependencies/lua/lua-5.4.1/src/llex.c dependencies/lua/lua-5.4.1/src/lmem.c dependencies/lua/lua-5.4.1/src/lobject.c dependencies/lua/lua-5.4.1/src/lopcodes.c dependencies/lua/lua-5.4.1/src/lparser.c dependencies/lua/lua-5.4.1/src/lstate.c dependencies/lua/lua-5.4.1/src/lstring.c dependencies/lua/lua-5.4.1/src/ltable.c dependencies/lua/lua-5.4.1/src/ltm.c dependencies/lua/lua-5.4.1/src/lundump.c dependencies/lua/lua-5.4.1/src/lvm.c dependencies/lua/lua-5.4.1/src/lzio.c dependencies/lua/lua-5.4.1/src/lauxlib.c dependencies/lua/lua-5.4.1/src/lbaselib.c dependencies/lua/lua-5.4.1/src/lcorolib.c dependencies/lua/lua-5.4.1/src/ldblib.c dependencies/lua/lua-5.4.1/src/liolib.c dependencies/lua/lua-5.4.1/src/lmathlib.c dependencies/lua/lua-5.4.1/src/loadlib.c dependencies/lua/lua-5.4.1/src/loslib.c dependencies/lua/lua-5.4.1/src/lstrlib.c dependencies/lua/lua-5.4.1/src/ltablib.c dependencies/lua/lua-5.4.1/src/lutf8lib.c dependencies/lua/lua-5.4.1/src/linit.c)                                          # lbitlib.c removed in 5.4
 set(DOKUN_LUA51 OFF CACHE BOOL "Lua 5.1.5")
 set(DOKUN_LUA52 OFF CACHE BOOL "Lua 5.2.4")
-set(DOKUN_LUA53 OFF CACHE BOOL "Lua 5.3.5")
+set(DOKUN_LUA53 OFF CACHE BOOL "Lua 5.3.6")
+set(DOKUN_LUA54 OFF CACHE BOOL "Lua 5.4.1")
 if(DOKUN_LUA51) # cmake -G"..Makefiles" -DDOKUN_LUA51=ON
     set(lua_src ${lua51_src})
 	add_definitions(-DDOKUN_LUA51)
@@ -79,11 +81,13 @@ if(DOKUN_LUA53) # cmake -G"..Makefiles" -DDOKUN_LUA53=ON
     set(lua_src ${lua53_src})
     add_definitions(-DLUA_LIBRARY) # required if using lua 5.3
 endif()
+if(DOKUN_LUA54) # cmake -G"..Makefiles" -DDOKUN_LUA54=ON
+    set(lua_src ${lua54_src})
+endif()
 if(NOT lua_src)
-    message(STATUS "Lua version not specified. Using Lua 5.3 by default")
-	set(DOKUN_LUA53 ON)
-	set(lua_src ${lua53_src})
-	add_definitions(-DLUA_LIBRARY) # lua 5.3
+    message(STATUS "Lua version not specified. Using Lua 5.4 by default")
+	set(DOKUN_LUA54 ON)
+	set(lua_src ${lua54_src})
 endif()
 if(LINUX)
 add_definitions(-DLUA_USE_POSIX  )
@@ -196,7 +200,10 @@ if(DOKUN_LUA52)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/dependencies/lua/lua-5.2.4/src)
 endif()
 if(DOKUN_LUA53)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/dependencies/lua/lua-5.3.5/src)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/dependencies/lua/lua-5.3.6/src)
+endif()
+if(DOKUN_LUA54)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/dependencies/lua/lua-5.4.1/src)
 endif()
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/dependencies
    ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/glew/include 

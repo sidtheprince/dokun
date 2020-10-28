@@ -49,7 +49,7 @@ class Entity // or GameObject; base abtract class that acts as parent for Sprite
 		virtual void draw();                           static int draw(lua_State *L);// does absolutely nothing; BUT I might add custom rendering feature so users can render however they want 
 		virtual void show();                           static int show(lua_State *L);
 		virtual void hide();                           static int hide(lua_State *L);
-		// virtual functions can be inherited, but pure virtual must be overriden by the derived class
+		// virtual functions can be overriden, but pure virtual MUST be overriden by the derived class by force!
 		void add_component(Component * component);     static int add_component(lua_State *L);
 		void remove_component(Component * component);
 		void remove_component(const std::string& name);

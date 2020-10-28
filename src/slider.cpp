@@ -1,7 +1,7 @@
 #include "../include/slider.h"
 
 Slider::Slider() : value(0), range(0, 100), radius(50), foreground_color(0, 51, 102, 255), background_color(160, 160, 160, 255),
-    ball_size(10), ball_color(32, 32, 32, 255), ball_radius(50),
+    ball_size(10), ball_color(32, 32, 32, 255), ball_radius(50), label(nullptr),
 	// outline
 	outline (false),
     outline_color(0, 0, 0, 255),
@@ -17,7 +17,7 @@ Slider::Slider() : value(0), range(0, 100), radius(50), foreground_color(0, 51, 
 }
 /////////////            
 Slider::Slider(int x, int y) : value(0), range(0, 100), radius(50), foreground_color(0, 51, 102, 255), background_color(160, 160, 160, 255),
-    ball_size(10), ball_color(32, 32, 32, 255), ball_radius(50),
+    ball_size(10), ball_color(32, 32, 32, 255), ball_radius(50), label(nullptr),
 	// outline
 	outline (false),
     outline_color(0, 0, 0, 255),
@@ -30,7 +30,7 @@ Slider::Slider(int x, int y) : value(0), range(0, 100), radius(50), foreground_c
 }
 /////////////
 Slider::Slider(int x, int y, int width, int height) : value(0), range(0, 100), radius(50), foreground_color(0, 51, 102, 255), background_color(160, 160, 160, 255),
-    ball_size(10), ball_color(32, 32, 32, 255), ball_radius(50),
+    ball_size(10), ball_color(32, 32, 32, 255), ball_radius(50), label(nullptr),
 	// outline
 	outline (false),
     outline_color(0, 0, 0, 255),
@@ -67,6 +67,19 @@ void Slider::draw()
         int green  = get_color().y;
         int blue   = get_color().z;		
 		int alpha  = get_color().w;
+		// mouse over slider
+		//WINDOW * window = WINDOW::get_active();
+        if(Mouse::is_over(get_ball_x(), get_ball_y(), get_ball_width(), get_ball_height()))
+		{
+            std::cout << "Mouse over ball\n";
+			if(Mouse::is_pressed(1)) {
+			    //if(!window) return;
+			    //int x = fabs(round((double)Mouse::get_position(*window).x - (double)(get_x() + get_ball_x())));
+			    set_value(get_value() + 2 * 1 / 1); // ?? not sure how to increment it with mouse movement//set_value(get_value() + x);
+			    // if mouse is moved, slide it to the direction the mouse is moving to ...
+			}
+		}
+		// Draw slider				
 		if(get_orientation() == 0) { // horizontal
 		    int ball_width = ball_size;
 		    Renderer::draw_slider(x, y, width, height, 0, scale_x, scale_y, red, green, blue, alpha,
@@ -81,19 +94,18 @@ void Slider::draw()
 		    int ball_height = ball_size;
 		    Renderer::draw_slider_vertical(x, y, width, height, 0, scale_x, scale_y, red, green, blue, alpha,
 			    min_val, max_val, value, background_color, ball_height, ball_color);
-		}
-		// mouse over slider
-		//WINDOW * window = WINDOW::get_active();
-        if(Mouse::is_over(get_ball_x(), get_ball_y(), get_ball_width(), get_ball_height()))
+		}	
+		// Label
+		if(label) // as long as label is not nullptr. Does not matter if text is empty, still need to set proper x and y positions
 		{
-            std::cout << "Mouse over ball\n";
-			if(Mouse::is_pressed(1)) {
-			    //if(!window) return;
-			    //int x = fabs(round((double)Mouse::get_position(*window).x - (double)(get_x() + get_ball_x())));
-			    set_value(get_value() + 2 * 1 / 1); // ?? not sure how to increment it with mouse movement//set_value(get_value() + x);
-			    // if mouse is moved, slide it to the direction the mouse is moving to ...
-			}
-		}			
+            // set label_position relative to progressbar_position
+			if(label->get_alignment() == "left"  ) {label->set_relative_position(0                                     , (get_height() - 10/*label->get_height()*/) / 2);} // keep label_y positioned at center of progressbar at all times
+			if(label->get_alignment() == "center") {label->set_relative_position((get_width() - label->get_width()) / 2, (get_height() - 10/*label->get_height()*/) / 2);} // keep label_y positioned at center of progressbar at all times						
+			if(label->get_alignment() == "right" ) {label->set_relative_position( get_width() - label->get_width()     , (get_height() - 10/*label->get_height()*/) / 2);} // keep label_y positioned at center of progressbar at all times	
+            if(label->get_alignment() == "none"  ) {}
+			label->set_position(get_x() + label->get_relative_x(), get_y() + label->get_relative_y());
+            // NO need to draw label since child GUI are automatically drawn //label->draw();//Renderer::draw_label(get_text(), x, y, angle, 0.5, 0.5, get_label()->get_font()->get_data(), get_label()->get_color().x, get_label()->get_color().y, get_label()->get_color().z, get_label()->get_color().w);
+		}		
 	}
     on_draw(); // callback for all gui	
 }    
@@ -215,6 +227,17 @@ int Slider::set_radius(lua_State *L)
 	return 0;
 }
 /////////////
+void Slider::set_label(const Label& label)
+{
+    this->label = &const_cast<Label&>(label);
+    this->label->set_parent(* this);
+}
+/////////////
+int Slider::set_label(lua_State *L)
+{
+    return 0;
+}
+/////////////
 /////////////
 // GETTERS
 /////////////
@@ -267,6 +290,15 @@ int Slider::get_color(lua_State *L)
 	return 1;
 }
 /////////////
+Label * Slider::get_label() const
+{
+    return label;
+}
+/////////////
+int Slider::get_label(lua_State *L)
+{
+    return 1;
+}
 /////////////
 /////////////
 /////////////
