@@ -9,7 +9,7 @@ for the [Lua](https://www.lua.org/) language.
 `version:`         `1.0.0`
 
 ```
-author           Sid Lartey Doku
+author           sidtheprince
 development date 2015-present
 license          MIT
 ```
